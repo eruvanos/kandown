@@ -53,21 +53,31 @@
             color: #888;
             float: right;
         }
+        .add-task {
+            float: right;
+            cursor: pointer;
+            font-size: 1.2em;
+            margin-left: 8px;
+            color: #2c3e50;
+            transition: color 0.2s;
+        }
+        .add-task:hover {
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
     <h1 style="text-align:center;">Kanban Board</h1>
     <div class="board">
         <div class="column" id="todo-col">
-            <h2>To Do</h2>
+            <h2>To Do <span class="add-task" data-status="todo" title="Add task">&#x2795;</span></h2>
         </div>
         <div class="column" id="inprogress-col">
-            <h2>In Progress</h2>
+            <h2>In Progress <span class="add-task" data-status="in_progress" title="Add task">&#x2795;</span></h2>
         </div>
         <div class="column" id="done-col">
-            <h2>Done</h2>
+            <h2>Done <span class="add-task" data-status="done" title="Add task">&#x2795;</span></h2>
         </div>
     </div>
 </body>
 </html>
-

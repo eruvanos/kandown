@@ -92,7 +92,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    window.renderTasks = function() {
+    function addTask(status) {
+        const newTask = {
+            text: '',
+            status: status,
+            tags: []
+        };
+        fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newTask)
+        })
+        .then(resp => resp.json())
+        .then(task => {
+            window.renderTasks(() => {
+                setTimeout(() => {
+                    const col = document.getElementById(status === 'todo' ? 'todo-col' : status === 'in_progress' ? 'inprogress-col' : 'done-col');
+                    if (!col) return;
+                    const tasks = col.querySelectorAll('.task');
+                    for (let el of tasks) {
+                        if (el.dataset.id === task.id) {
+                            const textarea = el.querySelector('textarea.edit-input');
+                            if (textarea) textarea.focus();
+                        }
+                    }
+                }, 100);
+            }, task.id);
+        });
+    }
+
+    document.querySelectorAll('.add-task').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const status = btn.getAttribute('data-status');
+            addTask(status);
+        });
+    });
+
+    // Patch renderTasks to optionally focus a new task for editing
+    window.renderTasks = function(focusCallback, focusTaskId) {
         fetch('/api/tasks').then(resp => resp.json()).then(tasks => {
             const columns = {
                 'todo': document.getElementById('todo-col'),
@@ -109,15 +147,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 el.className = 'task';
                 el.dataset.id = task.id;
                 // Task text span for editing
-                const textSpan = document.createElement('span');
-                textSpan.className = 'task-text';
-                textSpan.textContent = task.text;
-                textSpan.style.cursor = 'pointer';
-                textSpan.style.whiteSpace = 'pre-line'; // preserve line breaks
-                textSpan.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    handleEdit(task.id, textSpan);
-                });
+                let textSpan;
+                if (focusTaskId && task.id === focusTaskId && !task.text) {
+                    textSpan = document.createElement('textarea');
+                    textSpan.className = 'edit-input';
+                    textSpan.value = '';
+                    textSpan.style.width = '95%';
+                    textSpan.style.height = '4em';
+                    textSpan.style.resize = 'vertical';
+                    setTimeout(() => textSpan.focus(), 100);
+                    textSpan.addEventListener('blur', function() {
+                        if (textSpan.value.trim() !== '') {
+                            fetch(`/api/tasks/${task.id}/text`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ text: textSpan.value })
+                            }).then(() => window.renderTasks());
+                        } else {
+                            window.renderTasks();
+                        }
+                    });
+                    textSpan.addEventListener('keydown', function(e) {
+                        if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+                            textSpan.blur();
+                        } else if (e.key === 'Escape') {
+                            window.renderTasks();
+                        }
+                    });
+                } else {
+                    textSpan = document.createElement('span');
+                    textSpan.className = 'task-text';
+                    if (!task.text) {
+                        textSpan.textContent = 'Click to add text';
+                        textSpan.style.fontStyle = 'italic';
+                        textSpan.style.color = '#888';
+                    } else {
+                        textSpan.textContent = task.text;
+                    }
+                    textSpan.style.cursor = 'pointer';
+                    textSpan.addEventListener('click', function() {
+                        window.renderTasks(() => {}, task.id);
+                    });
+                }
                 el.innerHTML = `<span class='task-id'>${task.id}</span>`;
                 el.appendChild(textSpan);
                 const tagsDiv = document.createElement('div');
@@ -127,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 columns[task.status].appendChild(el);
             });
             makeDraggable();
+            if (focusCallback) focusCallback();
         });
     };
 

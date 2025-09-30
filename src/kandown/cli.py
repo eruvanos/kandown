@@ -5,25 +5,35 @@ import click
 from .app import create_app
 
 @click.command()
-@click.argument('markdown_file', type=click.Path(exists=True))
+@click.option('--yaml', 'yaml_file', type=click.Path(), help='Path to a YAML file for tasks')
 @click.option('--host', default='127.0.0.1', help='Host to bind to (default: 127.0.0.1)')
 @click.option('--port', default=5000, help='Port to bind to (default: 5000)')
 @click.option('--debug', is_flag=True, help='Enable debug mode')
-def main(markdown_file, host, port, debug):
-    """Start the Kandown server with a markdown file.
-    
-    MARKDOWN_FILE: Path to the markdown file to render
+def main(yaml_file, host, port, debug):
+    """Start the Kandown server with a YAML file for tasks.
+
+    --yaml YAML_FILE: Path to the YAML file to use for tasks
     """
-    # Convert to absolute path
-    markdown_file = os.path.abspath(markdown_file)
-    
-    click.echo(f"Starting Kandown server...")
-    click.echo(f"Markdown file: {markdown_file}")
+    if yaml_file:
+        yaml_file = os.path.abspath(yaml_file)
+        if not os.path.exists(yaml_file):
+            create = click.confirm(f"YAML file '{yaml_file}' does not exist. Create it?", default=True)
+            if create:
+                with open(yaml_file, 'w', encoding='utf-8') as f:
+                    f.write('[]\n')
+                click.echo(f"Created empty YAML file: {yaml_file}")
+            else:
+                click.echo("Aborted: YAML file does not exist.")
+                return
+        click.echo(f"Using YAML file: {yaml_file}")
+    else:
+        yaml_file = None
+        click.echo("No YAML file provided, using in-memory tasks.")
     click.echo(f"Server will be available at: http://{host}:{port}")
     
     # Set the markdown file and create the app
-    app = create_app()
-    
+    app = create_app(yaml_file=yaml_file)
+
     # Run the Flask app
     app.run(host=host, port=port, debug=debug)
 
