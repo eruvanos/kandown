@@ -202,6 +202,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (e.target.classList.contains('tags') || e.target.tagName === 'A') return;
                     // Only allow one edit at a time
                     if (el.querySelector('textarea.edit-input')) return;
+                    // Disable drag while editing
+                    el.removeAttribute('draggable');
+                    el.ondragstart = function(ev) { ev.preventDefault(); };
                     // Replace textSpan with textarea for editing
                     const oldText = task.text;
                     const textarea = document.createElement('textarea');
@@ -213,6 +216,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     textSpan.replaceWith(textarea);
                     textarea.focus();
                     textarea.addEventListener('blur', function() {
+                        // Restore drag after editing
+                        el.setAttribute('draggable', 'true');
+                        el.ondragstart = null;
                         if (textarea.value.trim() !== '') {
                             fetch(`/api/tasks/${task.id}/text`, {
                                 method: 'PATCH',
@@ -227,7 +233,29 @@ document.addEventListener('DOMContentLoaded', function() {
                         if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
                             textarea.blur();
                         } else if (e.key === 'Escape') {
+                            // Restore drag after editing
+                            el.setAttribute('draggable', 'true');
+                            el.ondragstart = null;
                             window.renderTasks();
+                        }
+                    });
+                    textarea.addEventListener('paste', function(e) {
+                        const items = e.clipboardData.items;
+                        for (let i = 0; i < items.length; i++) {
+                            if (items[i].type.indexOf('image') !== -1) {
+                                const file = items[i].getAsFile();
+                                const reader = new FileReader();
+                                reader.onload = function(event) {
+                                    const base64 = event.target.result;
+                                    const md = `![](${base64})`;
+                                    const start = textarea.selectionStart;
+                                    const end = textarea.selectionEnd;
+                                    textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                                };
+                                reader.readAsDataURL(file);
+                                e.preventDefault();
+                                break;
+                            }
                         }
                     });
                 });
