@@ -4,6 +4,7 @@
     let editingTaskId = null;
     let inputEl = null;
     let columns = {};
+    let doneCollapsed = {};
 
     // --- API ---
     const api = {
@@ -163,6 +164,25 @@
                 const el = document.createElement('div');
                 el.className = 'task';
                 el.dataset.id = task.id;
+                // --- Collapsible Arrow for 'done' column ---
+                let arrowBtn = null;
+                if (task.status === 'done') {
+                    if (typeof doneCollapsed[task.id] === 'undefined') doneCollapsed[task.id] = true;
+                    arrowBtn = document.createElement('span');
+                    arrowBtn.className = 'collapse-arrow';
+                    arrowBtn.style.position = 'absolute';
+                    arrowBtn.style.top = '8px';
+                    arrowBtn.style.right = '8px';
+                    arrowBtn.style.cursor = 'pointer';
+                    arrowBtn.textContent = doneCollapsed[task.id] ? '\u25B6' : '\u25BC'; // ▶ or ▼
+                    arrowBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        doneCollapsed[task.id] = !doneCollapsed[task.id];
+                        renderTasks();
+                    };
+                    el.style.position = 'relative';
+                    el.appendChild(arrowBtn);
+                }
                 // --- Task Text ---
                 let textSpan;
                 if (focusTaskId && task.id === focusTaskId && !task.text) {
@@ -178,7 +198,6 @@
                     });
                     setTimeout(() => textSpan.focus(), 100);
                 } else {
-                    // Render as <p> for consistency
                     textSpan = document.createElement('p');
                     textSpan.className = 'task-text';
                     if (!task.text) {
@@ -196,7 +215,31 @@
                 const idDiv = document.createElement('div');
                 idDiv.className = 'task-id';
                 idDiv.textContent = task.id;
-                el.appendChild(idDiv);
+                // --- Collapsed logic for 'done' column ---
+                if (task.status === 'done' && doneCollapsed[task.id]) {
+                    // Only show id, arrow, and strikethrough title in one row
+                    el.classList.add('collapsed');
+                    // Title extraction
+                    let title = 'No title';
+                    if (task.text && task.text.trim()) {
+                        title = task.text.split('\n')[0].trim();
+                        if (!title) title = 'No title';
+                    }
+                    // Inline row for ID and title
+                    const rowDiv = document.createElement('div');
+                    rowDiv.style.display = 'flex';
+                    rowDiv.style.alignItems = 'center';
+                    rowDiv.style.gap = '8px';
+                    rowDiv.appendChild(idDiv);
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'collapsed-title';
+                    titleDiv.innerHTML = `<s>${title}</s>`;
+                    titleDiv.style.display = 'inline-block';
+                    rowDiv.appendChild(titleDiv);
+                    el.appendChild(rowDiv);
+                    columns[task.status].appendChild(el);
+                    return;
+                }
                 el.appendChild(textSpan);
                 // --- Tags ---
                 const tagsDiv = document.createElement('div');
@@ -255,7 +298,8 @@
                         e.target.classList.contains('tags') ||
                         e.target.tagName === 'A' ||
                         (e.target.classList && e.target.classList.contains('add-tag-input')) ||
-                        e.target.tagName === 'INPUT'
+                        e.target.tagName === 'INPUT' ||
+                        (e.target.classList && e.target.classList.contains('collapse-arrow'))
                     ) return;
                     if (el.querySelector('textarea.edit-input')) return;
                     el.removeAttribute('draggable');
