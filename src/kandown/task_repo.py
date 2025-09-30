@@ -2,128 +2,124 @@ from abc import ABC, abstractmethod
 import os
 import yaml
 
+
 class TaskRepository(ABC):
+    """
+    Abstract base class for a task repository.
+    Defines the interface for saving, retrieving, updating, and listing tasks.
+    """
+
     @abstractmethod
-    def save(self, task):
+    def save(self, task: dict[str, object]) -> dict[str, object]:
+        """
+        Save a new task to the repository.
+        Args:
+            task (dict): The task to save.
+        Returns:
+            dict: The saved task with an assigned ID.
+        """
         pass
 
     @abstractmethod
-    def get(self, id):
+    def get(self, id: str) -> dict[str, object] | None:
+        """
+        Retrieve a task by its ID.
+        Args:
+            id (str): The ID of the task.
+        Returns:
+            dict or None: The task if found, else None.
+        """
         pass
 
     @abstractmethod
-    def all(self):
+    def all(self) -> list[dict[str, object]]:
+        """
+        Retrieve all tasks in the repository.
+        Returns:
+            list: List of all tasks.
+        """
         pass
 
     @abstractmethod
-    def update(self, id, status=None):
+    def update_status(
+        self, id: str, status: str | None = None
+    ) -> dict[str, object] | None:
+        """
+        Update the status of a task.
+        Args:
+            id (str): The ID of the task.
+            status (str, optional): The new status.
+        Returns:
+            dict or None: The updated task if found, else None.
+        """
         pass
 
     @abstractmethod
-    def update_text(self, id, text=None):
+    def update_text(self, id: str, text: str | None = None) -> dict[str, object] | None:
+        """
+        Update the text of a task.
+        Args:
+            id (str): The ID of the task.
+            text (str, optional): The new text.
+        Returns:
+            dict or None: The updated task if found, else None.
+        """
         pass
 
     @abstractmethod
-    def update_tags(self, id, tags=None):
+    def update_tags(
+        self, id: str, tags: list[str] | None = None
+    ) -> dict[str, object] | None:
+        """
+        Update the tags of a task.
+        Args:
+            id (str): The ID of the task.
+            tags (list, optional): The new tags.
+        Returns:
+            dict or None: The updated task if found, else None.
+        """
         pass
 
-class InMemoryTaskRepository(TaskRepository):
-    def __init__(self):
-        self.tasks = []
-        self.counter = 1
-        # Pre-populate with initial tasks
-        for t in [
-            {"text": "Write documentation", "status": "todo", "tags": ["docs", "writing"]},
-            {"text": "Design UI mockups", "status": "todo", "tags": ["design"]},
-            {"text": "Set up CI/CD", "status": "todo", "tags": ["devops"]},
-            {"text": "Implement markdown rendering", "status": "in_progress", "tags": ["backend", "markdown"]},
-            {"text": "Add CLI options", "status": "in_progress", "tags": ["cli"]},
-            {"text": "Initialize project", "status": "done", "tags": ["setup"]},
-            {"text": "Create README", "status": "done", "tags": ["docs"]}
-        ]:
-            self.save(t)
-        # After pre-population, set counter to highest existing id + 1
-        self._update_counter()
-
-    def _update_counter(self):
-        max_id = 0
-        for task in self.tasks:
-            tid = task.get('id', '')
-            if tid.startswith('K-'):
-                try:
-                    num = int(tid[2:])
-                    if num > max_id:
-                        max_id = num
-                except ValueError:
-                    continue
-        self.counter = max_id + 1 if max_id > 0 else 1
-
-    def save(self, task):
-        if 'id' not in task:
-            task = dict(task)
-            task['id'] = f"K-{self.counter:03d}"
-            self.counter += 1
-        self.tasks.append(task)
-        self._update_counter()
-        return task
-
-    def get(self, id):
-        for task in self.tasks:
-            if task['id'] == id:
-                return task
-        return None
-
-    def all(self):
-        return list(self.tasks)
-
-    def update(self, id, status=None):
-        for task in self.tasks:
-            if task['id'] == id:
-                if status is not None:
-                    task['status'] = status
-                return task
-        return None
-
-    def update_text(self, id, text=None):
-        for task in self.tasks:
-            if task['id'] == id:
-                if text is not None:
-                    task['text'] = text
-                return task
-        return None
-
-    def update_tags(self, id, tags=None):
-        for task in self.tasks:
-            if task['id'] == id:
-                if tags is not None:
-                    task['tags'] = tags
-                return task
-        return None
 
 class YamlTaskRepository(TaskRepository):
-    def __init__(self, yaml_path):
-        self.yaml_path = yaml_path
-        self.tasks = []
-        self.counter = 1
+    """
+    Task repository implementation using a YAML file for storage.
+    """
+
+    def __init__(self, yaml_path: str) -> None:
+        """
+        Initialize the repository and load tasks from the YAML file.
+        Args:
+            yaml_path (str): Path to the YAML file.
+        """
+        self.yaml_path: str = yaml_path
+        self.tasks: list[dict[str, object]] = []
+        self.counter: int = 1
         self._load()
         self._update_counter()
 
-    def _update_counter(self):
-        max_id = 0
+    def _update_counter(self) -> None:
+        """
+        Update the task ID counter based on the highest existing ID in the tasks.
+        """
+        max_id: int = 0
         for task in self.tasks:
-            tid = task.get('id', '')
-            if tid.startswith('K-'):
+            tid: str = task.get("id", "")
+            if tid.startswith("K-"):
                 try:
-                    num = int(tid[2:])
+                    num: int = int(tid[2:])
                     if num > max_id:
                         max_id = num
                 except ValueError:
                     continue
         self.counter = max_id + 1 if max_id > 0 else 1
 
-    def _load(self):
+    def _load(self) -> None:
+        """
+        Load tasks from the YAML file. If the file does not exist, initialize with an empty list.
+        """
         if os.path.exists(self.yaml_path):
-            with open(self.yaml_path, 'r', encoding='utf-8') as f:
+            with open(self.yaml_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f) or []
                 self.tasks = []
                 for t in data:
@@ -131,53 +127,105 @@ class YamlTaskRepository(TaskRepository):
         else:
             self.tasks = []
 
-    def _save(self):
-        with open(self.yaml_path, 'w', encoding='utf-8') as f:
+    def _save(self) -> None:
+        """
+        Save all tasks to the YAML file, including project metadata comments.
+        """
+        with open(self.yaml_path, "w", encoding="utf-8") as f:
             f.write("# Project page: https://github.com/eruvanos/kandown\n")
-            f.write("# To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown demo.yml\n")
+            f.write(
+                "# To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown demo.yml\n"
+            )
             yaml.safe_dump(self.tasks, f, allow_unicode=True)
 
-    def save(self, task):
-        if 'id' not in task:
+    def save(self, task: dict[str, object]) -> dict[str, object]:
+        """
+        Save a new task to the repository, assigning an ID if necessary.
+        Args:
+            task (dict): The task to save.
+        Returns:
+            dict: The saved task with an assigned ID.
+        """
+        if "id" not in task:
             task = dict(task)
-            task['id'] = f"K-{self.counter:03d}"
+            task["id"] = f"K-{self.counter:03d}"
             self.counter += 1
         self.tasks.append(task)
         self._save()
         return task
 
-    def get(self, id):
+    def get(self, id: str) -> dict[str, object] | None:
+        """
+        Retrieve a task by its ID.
+        Args:
+            id (str): The ID of the task.
+        Returns:
+            dict or None: The task if found, else None.
+        """
         for task in self.tasks:
-            if task['id'] == id:
+            if task["id"] == id:
                 return task
         return None
 
-    def all(self):
+    def all(self) -> list[dict[str, object]]:
+        """
+        Retrieve all tasks in the repository.
+        Returns:
+            list: List of all tasks.
+        """
         return list(self.tasks)
 
-    def update(self, id, status=None):
+    def update_status(
+        self, id: str, status: str | None = None
+    ) -> dict[str, object] | None:
+        """
+        Update the status of a task.
+        Args:
+            id (str): The ID of the task.
+            status (str, optional): The new status.
+        Returns:
+            dict or None: The updated task if found, else None.
+        """
         for task in self.tasks:
-            if task['id'] == id:
+            if task["id"] == id:
                 if status is not None:
-                    task['status'] = status
+                    task["status"] = status
                 self._save()
                 return task
         return None
 
-    def update_text(self, id, text=None):
+    def update_text(self, id: str, text: str | None = None) -> dict[str, object] | None:
+        """
+        Update the text of a task.
+        Args:
+            id (str): The ID of the task.
+            text (str, optional): The new text.
+        Returns:
+            dict or None: The updated task if found, else None.
+        """
         for task in self.tasks:
-            if task['id'] == id:
+            if task["id"] == id:
                 if text is not None:
-                    task['text'] = text
+                    task["text"] = text
                 self._save()
                 return task
         return None
 
-    def update_tags(self, id, tags=None):
+    def update_tags(
+        self, id: str, tags: list[str] | None = None
+    ) -> dict[str, object] | None:
+        """
+        Update the tags of a task.
+        Args:
+            id (str): The ID of the task.
+            tags (list, optional): The new tags.
+        Returns:
+            dict or None: The updated task if found, else None.
+        """
         for task in self.tasks:
-            if task['id'] == id:
+            if task["id"] == id:
                 if tags is not None:
-                    task['tags'] = tags
+                    task["tags"] = tags
                 self._save()
                 return task
         return None
