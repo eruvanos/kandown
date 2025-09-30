@@ -1,134 +1,9 @@
 """Flask application for rendering markdown files."""
 
 import os
-import markdown
-from flask import Flask, render_template_string, jsonify, send_file
+from flask import Flask, render_template, jsonify, send_file, request, send_from_directory
 
-app = Flask(__name__)
-
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kandown - Markdown Viewer</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            line-height: 1.6;
-            color: #333;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            color: #2c3e50;
-        }
-        pre {
-            background-color: #f4f4f4;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-        code {
-            background-color: #f4f4f4;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        blockquote {
-            border-left: 4px solid #ddd;
-            margin: 0;
-            padding-left: 20px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="content">
-        {{ content|safe }}
-    </div>
-</body>
-</html>
-"""
-
-KANBAN_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kandown - Kanban Board</title>
-    <!-- PyScript CSS -->
-    <link rel="stylesheet" href="https://pyscript.net/releases/2025.8.1/core.css">
-    <!-- This script tag bootstraps PyScript -->
-    <script type="module" src="https://pyscript.net/releases/2025.8.1/core.js"></script>
-
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8f9fa;
-            margin: 0;
-            padding: 20px;
-        }
-        .board {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 40px;
-        }
-        .column {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            padding: 16px;
-            width: 260px;
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-        }
-        .column h2 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 16px;
-        }
-        .task {
-            background: #e3eafc;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            color: #333;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        }
-        .tags {
-            font-size: 0.9em;
-            color: #555;
-            margin-top: 4px;
-        }
-        .task-id {
-            font-size: 0.8em;
-            color: #888;
-            float: right;
-        }
-    </style>
-</head>
-<body>
-    <h1 style="text-align:center;">Kanban Board</h1>
-    <div class="board">
-        <div class="column" id="todo-col">
-            <h2>To Do</h2>
-        </div>
-        <div class="column" id="inprogress-col">
-            <h2>In Progress</h2>
-        </div>
-        <div class="column" id="done-col">
-            <h2>Done</h2>
-        </div>
-    </div>
-    <mpy-script src="/board.py"></mpy-script>
-</body>
-</html>
-"""
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
 
 class TaskRepository:
     def __init__(self):
@@ -163,26 +38,64 @@ class TaskRepository:
     def all(self):
         return list(self.tasks)
 
+    def update(self, id, status=None):
+        for task in self.tasks:
+            if task['id'] == id:
+                if status is not None:
+                    task['status'] = status
+                return task
+        return None
+
+    def update_text(self, id, text=None):
+        for task in self.tasks:
+            if task['id'] == id:
+                if text is not None:
+                    task['text'] = text
+                return task
+        return None
+
 # Instantiate the repository
 repo = TaskRepository()
 
 @app.route('/')
 def index():
     """Render the kanban board as the index page."""
-    return render_template_string(KANBAN_TEMPLATE)
+    return render_template("kanban.html")
 
 @app.route('/api/tasks')
 def get_tasks():
     """Return all tasks as JSON."""
     return jsonify(repo.all())
 
-@app.route('/board.py')
-def serve_board_py():
-    """Serve the PyScript file for the kanban board."""
-    return send_file(
-        os.path.join(os.path.dirname(__file__), 'board.py'),
-        mimetype='text/x-python'
-    )
+@app.route('/statics/<path:filename>')
+def serve_static(filename):
+    """Serve files from the statics directory."""
+    statics_dir = os.path.join(os.path.dirname(__file__), 'statics')
+    return send_from_directory(statics_dir, filename)
+
+@app.route('/api/tasks/<id>', methods=['PATCH'])
+def update_task(id):
+    """Update a task's status by id."""
+    data = request.get_json()
+    status = data.get('status') if data else None
+    if not status:
+        return jsonify({'error': 'Missing status'}), 400
+    task = repo.update(id, status=status)
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+    return jsonify(task)
+
+@app.route('/api/tasks/<id>/text', methods=['PATCH'])
+def update_task_text(id):
+    """Update a task's text by id."""
+    data = request.get_json()
+    text = data.get('text') if data else None
+    if not text:
+        return jsonify({'error': 'Missing text'}), 400
+    task = repo.update_text(id, text=text)
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+    return jsonify(task)
 
 def create_app():
     """Create and configure the Flask app."""

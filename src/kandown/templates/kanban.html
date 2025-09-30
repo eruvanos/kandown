@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kandown - Kanban Board</title>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2025.8.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2025.8.1/core.js"></script>
+    <script src="/statics/board.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .board {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        .column {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 16px;
+            width: 260px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        .column h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+        .task {
+            background: #e3eafc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            color: #333;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .tags {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 4px;
+        }
+        .task-id {
+            font-size: 0.8em;
+            color: #888;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Kanban Board</h1>
+    <div class="board">
+        <div class="column" id="todo-col">
+            <h2>To Do</h2>
+        </div>
+        <div class="column" id="inprogress-col">
+            <h2>In Progress</h2>
+        </div>
+        <div class="column" id="done-col">
+            <h2>Done</h2>
+        </div>
+    </div>
+</body>
+</html>
+
