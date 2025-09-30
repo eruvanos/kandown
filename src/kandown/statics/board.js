@@ -1,7 +1,81 @@
-document.addEventListener('DOMContentLoaded', function() {
+// Kanban Board Refactored
+(function() {
+    // --- State ---
     let editingTaskId = null;
     let inputEl = null;
+    let columns = {};
 
+    // --- API ---
+    const api = {
+        getTasks: () => fetch('/api/tasks').then(r => r.json()),
+        updateTaskStatus: (id, status) => fetch(`/api/tasks/${id}`, {
+            method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status})
+        }).then(r => r.json()),
+        updateTaskText: (id, text) => fetch(`/api/tasks/${id}/text`, {
+            method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text})
+        }).then(r => r.json()),
+        createTask: (status) => fetch('/api/tasks', {
+            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: '', status, tags: []})
+        }).then(r => r.json()),
+        getTagSuggestions: () => fetch('/api/tags/suggestions').then(r => r.json()),
+        updateTaskTags: (id, tags) => fetch(`/api/tasks/${id}/tags`, {
+            method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({tags})
+        }).then(r => r.json()),
+    };
+
+    // --- Helpers ---
+    function createTextarea(value, onBlur, onKeyDown, onPaste) {
+        const textarea = document.createElement('textarea');
+        textarea.className = 'edit-input';
+        textarea.value = value || '';
+        textarea.style.width = '95%';
+        textarea.style.height = '4em';
+        textarea.style.resize = 'vertical';
+        if (onBlur) textarea.addEventListener('blur', onBlur);
+        if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
+        if (onPaste) textarea.addEventListener('paste', onPaste);
+        return textarea;
+    }
+
+    function createTagSuggestionBox(input, task, tagSuggestions) {
+        const box = document.createElement('div');
+        box.className = 'tag-suggestion-box';
+        box.style.position = 'absolute';
+        box.style.border = '1px solid #ccc';
+        box.style.borderRadius = '8px';
+        box.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+        box.style.zIndex = '10';
+        box.style.display = 'none';
+        box.style.minWidth = '100px';
+        box.style.maxHeight = '120px';
+        box.style.overflowY = 'auto';
+        input.oninput = function() {
+            const val = input.value.trim().toLowerCase();
+            box.innerHTML = '';
+            if (!val) { box.style.display = 'none'; return; }
+            const matches = tagSuggestions.filter(tag => tag.toLowerCase().includes(val) && !(task.tags || []).includes(tag));
+            if (matches.length === 0) { box.style.display = 'none'; return; }
+            matches.forEach(tag => {
+                const item = document.createElement('div');
+                item.textContent = tag;
+                item.className = 'tag-suggestion-item';
+                item.style.padding = '4px 8px';
+                item.style.cursor = 'pointer';
+                item.onmousedown = function(e) {
+                    e.preventDefault();
+                    input.value = tag;
+                    input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
+                    box.style.display = 'none';
+                };
+                box.appendChild(item);
+            });
+            box.style.display = 'block';
+        };
+        input.onblur = function() { setTimeout(() => { box.style.display = 'none'; }, 100); };
+        return box;
+    }
+
+    // --- Drag & Drop ---
     function makeDraggable() {
         document.querySelectorAll('.task').forEach(function(card) {
             card.setAttribute('draggable', 'true');
@@ -10,104 +84,62 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
     function setupDropZones() {
-        const columns = {
-            'todo': document.getElementById('todo-col'),
-            'in_progress': document.getElementById('inprogress-col'),
-            'done': document.getElementById('done-col')
-        };
         Object.entries(columns).forEach(([status, col]) => {
-            col.addEventListener('dragover', function(e) {
-                e.preventDefault();
-            });
+            if (!col) return; // Defensive: skip if column not found
+            col.addEventListener('dragover', e => e.preventDefault());
             col.addEventListener('drop', function(e) {
                 e.preventDefault();
                 const id = e.dataTransfer.getData('text/plain');
                 if (!id) return;
-                fetch(`/api/tasks/${id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status })
-                }).then(resp => resp.json()).then(() => {
-                    if (window.renderTasks) {
-                        window.renderTasks();
-                    }
-                });
+                api.updateTaskStatus(id, status).then(() => renderTasks());
             });
         });
     }
 
+    // --- Editing ---
     function handleEdit(taskId, textEl) {
-        if (editingTaskId) return; // Only one edit at a time
+        if (editingTaskId) return;
         editingTaskId = taskId;
         const oldText = textEl.textContent;
-        inputEl = document.createElement('textarea');
-        inputEl.value = oldText;
-        inputEl.className = 'edit-input';
-        inputEl.style.width = '95%';
-        inputEl.style.height = '4em';
-        inputEl.style.resize = 'vertical';
+        inputEl = createTextarea(oldText,
+            function() { finishEdit(true); },
+            function(e) {
+                if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) finishEdit(true);
+                else if (e.key === 'Escape') finishEdit(false);
+            }
+        );
         textEl.replaceWith(inputEl);
         inputEl.focus();
-
         function finishEdit(save) {
             if (!editingTaskId) return;
             const newText = inputEl.value;
             if (save && newText !== oldText && newText.trim() !== '') {
-                fetch(`/api/tasks/${taskId}/text`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: newText })
-                }).then(resp => resp.json()).then(() => {
+                api.updateTaskText(taskId, newText).then(() => {
                     editingTaskId = null;
                     inputEl = null;
-                    window.renderTasks();
+                    renderTasks();
                 });
             } else {
                 editingTaskId = null;
                 inputEl = null;
-                window.renderTasks();
+                renderTasks();
             }
         }
-
-        inputEl.addEventListener('blur', function() {
-            finishEdit(true);
-        });
-
         document.addEventListener('mousedown', function docClick(e) {
             if (inputEl && !inputEl.contains(e.target)) {
                 finishEdit(true);
                 document.removeEventListener('mousedown', docClick);
             }
         });
-
-        inputEl.addEventListener('keydown', function(e) {
-            // Enter inserts newline, Ctrl+Enter or Cmd+Enter saves
-            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
-                finishEdit(true);
-            } else if (e.key === 'Escape') {
-                finishEdit(false);
-            }
-        });
     }
 
+    // --- Add Task ---
     function addTask(status) {
-        const newTask = {
-            text: '',
-            status: status,
-            tags: []
-        };
-        fetch('/api/tasks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newTask)
-        })
-        .then(resp => resp.json())
-        .then(task => {
-            window.renderTasks(() => {
+        api.createTask(status).then(task => {
+            renderTasks(() => {
                 setTimeout(() => {
-                    const col = document.getElementById(status === 'todo' ? 'todo-col' : status === 'in_progress' ? 'inprogress-col' : 'done-col');
+                    const col = columns[status];
                     if (!col) return;
                     const tasks = col.querySelectorAll('.task');
                     for (let el of tasks) {
@@ -121,82 +153,54 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    document.querySelectorAll('.add-task').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const status = btn.getAttribute('data-status');
-            addTask(status);
-        });
-    });
-
-    // Patch renderTasks to optionally focus a new task for editing
-    window.renderTasks = function(focusCallback, focusTaskId) {
-        fetch('/api/tasks').then(resp => resp.json()).then(tasks => {
-            const columns = {
-                'todo': document.getElementById('todo-col'),
-                'in_progress': document.getElementById('inprogress-col'),
-                'done': document.getElementById('done-col')
-            };
+    // --- Render ---
+    function renderTasks(focusCallback, focusTaskId) {
+        api.getTasks().then(tasks => {
             Object.values(columns).forEach(col => {
-                while (col.children.length > 1) {
-                    col.removeChild(col.lastChild);
-                }
+                while (col.children.length > 1) col.removeChild(col.lastChild);
             });
             tasks.forEach(task => {
                 const el = document.createElement('div');
                 el.className = 'task';
                 el.dataset.id = task.id;
-                // Task text span for editing
+                // --- Task Text ---
                 let textSpan;
                 if (focusTaskId && task.id === focusTaskId && !task.text) {
-                    textSpan = document.createElement('textarea');
-                    textSpan.className = 'edit-input';
-                    textSpan.value = '';
-                    textSpan.style.width = '95%';
-                    textSpan.style.height = '4em';
-                    textSpan.style.resize = 'vertical';
-                    setTimeout(() => textSpan.focus(), 100);
-                    textSpan.addEventListener('blur', function() {
+                    textSpan = createTextarea('', function() {
                         if (textSpan.value.trim() !== '') {
-                            fetch(`/api/tasks/${task.id}/text`, {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ text: textSpan.value })
-                            }).then(() => window.renderTasks());
+                            api.updateTaskText(task.id, textSpan.value).then(() => renderTasks());
                         } else {
-                            window.renderTasks();
+                            renderTasks();
                         }
+                    }, function(e) {
+                        if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textSpan.blur();
+                        else if (e.key === 'Escape') renderTasks();
                     });
-                    textSpan.addEventListener('keydown', function(e) {
-                        if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
-                            textSpan.blur();
-                        } else if (e.key === 'Escape') {
-                            window.renderTasks();
-                        }
-                    });
+                    setTimeout(() => textSpan.focus(), 100);
                 } else {
-                    textSpan = document.createElement('span');
+                    // Render as <p> for consistency
+                    textSpan = document.createElement('p');
                     textSpan.className = 'task-text';
                     if (!task.text) {
                         textSpan.textContent = 'Click to add text';
                         textSpan.style.fontStyle = 'italic';
                         textSpan.style.color = '#888';
+                        textSpan.style.display = 'block';
                     } else {
-                        // Render markdown using marked.js
-                        if (window.marked) {
-                            textSpan.innerHTML = window.marked.parse(task.text);
-                        } else {
-                            textSpan.textContent = task.text;
-                        }
+                        if (window.marked) textSpan.innerHTML = window.marked.parse(task.text);
+                        else textSpan.textContent = task.text;
                     }
                     textSpan.style.cursor = 'pointer';
                 }
-                el.innerHTML = `<span class='task-id'>${task.id}</span>`;
+                // Render task id and text on separate lines
+                const idDiv = document.createElement('div');
+                idDiv.className = 'task-id';
+                idDiv.textContent = task.id;
+                el.appendChild(idDiv);
                 el.appendChild(textSpan);
-                // Tag management UI
+                // --- Tags ---
                 const tagsDiv = document.createElement('div');
                 tagsDiv.className = 'tags';
-                // Render each tag as a label with remove button
                 (task.tags || []).forEach(tag => {
                     const tagLabel = document.createElement('span');
                     tagLabel.className = 'tag-label';
@@ -208,11 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     removeBtn.onclick = function(e) {
                         e.stopPropagation();
                         const newTags = (task.tags || []).filter(t => t !== tag);
-                        fetch(`/api/tasks/${task.id}/tags`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ tags: newTags })
-                        }).then(() => window.renderTasks());
+                        api.updateTaskTags(task.id, newTags).then(() => renderTasks());
                     };
                     tagLabel.appendChild(removeBtn);
                     tagsDiv.appendChild(tagLabel);
@@ -223,57 +223,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     addTagInput.className = 'add-tag-input';
                     addTagInput.type = 'text';
                     addTagInput.placeholder = 'Add tag...';
-                    // Suggestion dropdown
-                    const suggestionBox = document.createElement('div');
-                    suggestionBox.className = 'tag-suggestion-box';
-                    suggestionBox.style.position = 'absolute';
-                    suggestionBox.style.border = '1px solid #ccc';
-                    suggestionBox.style.borderRadius = '8px';
-                    suggestionBox.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-                    suggestionBox.style.zIndex = '10';
-                    suggestionBox.style.display = 'none';
-                    suggestionBox.style.minWidth = '100px';
-                    suggestionBox.style.maxHeight = '120px';
-                    suggestionBox.style.overflowY = 'auto';
-                    tagsDiv.style.position = 'relative';
                     let tagSuggestions = [];
                     addTagInput.onfocus = function(e) {
                         e.stopPropagation();
-                        fetch('/api/tags/suggestions').then(resp => resp.json()).then(tags => {
-                            tagSuggestions = tags;
-                        });
+                        api.getTagSuggestions().then(tags => { tagSuggestions = tags; });
                     };
-                    addTagInput.oninput = function() {
-                        const val = addTagInput.value.trim().toLowerCase();
-                        suggestionBox.innerHTML = '';
-                        if (!val) {
-                            suggestionBox.style.display = 'none';
-                            return;
-                        }
-                        const matches = tagSuggestions.filter(tag => tag.toLowerCase().includes(val) && !(task.tags || []).includes(tag));
-                        if (matches.length === 0) {
-                            suggestionBox.style.display = 'none';
-                            return;
-                        }
-                        matches.forEach(tag => {
-                            const item = document.createElement('div');
-                            item.textContent = tag;
-                            item.className = 'tag-suggestion-item';
-                            item.style.padding = '4px 8px';
-                            item.style.cursor = 'pointer';
-                            item.onmousedown = function(e) {
-                                e.preventDefault();
-                                addTagInput.value = tag;
-                                addTagInput.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
-                                suggestionBox.style.display = 'none';
-                            };
-                            suggestionBox.appendChild(item);
-                        });
-                        suggestionBox.style.display = 'block';
-                    };
-                    addTagInput.onblur = function() {
-                        setTimeout(() => { suggestionBox.style.display = 'none'; }, 100);
-                    };
+                    const suggestionBox = createTagSuggestionBox(addTagInput, task, tagSuggestions);
                     addTagInput.onkeydown = function(e) {
                         if (e.key === 'Enter' && addTagInput.value.trim()) {
                             const newTag = addTagInput.value.trim();
@@ -283,21 +238,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return;
                             }
                             const newTags = [...(task.tags || []), newTag];
-                            fetch(`/api/tasks/${task.id}/tags`, {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ tags: newTags })
-                            }).then(() => window.renderTasks());
+                            api.updateTaskTags(task.id, newTags).then(() => renderTasks());
                             addTagInput.value = '';
                             suggestionBox.style.display = 'none';
                         }
                     };
-                    addTagInput.addEventListener('click', function(e) { e.stopPropagation(); });
+                    addTagInput.addEventListener('click', e => e.stopPropagation());
+                    tagsDiv.style.position = 'relative';
                     tagsDiv.appendChild(addTagInput);
                     tagsDiv.appendChild(suggestionBox);
                 }
                 el.appendChild(tagsDiv);
-                // Make the whole card clickable for editing, except tags
+                // --- Edit Handler ---
                 el.addEventListener('click', function(e) {
                     if (
                         e.target.classList.contains('tags') ||
@@ -305,46 +257,26 @@ document.addEventListener('DOMContentLoaded', function() {
                         (e.target.classList && e.target.classList.contains('add-tag-input')) ||
                         e.target.tagName === 'INPUT'
                     ) return;
-                    // Only allow one edit at a time
                     if (el.querySelector('textarea.edit-input')) return;
-                    // Disable drag while editing
                     el.removeAttribute('draggable');
-                    el.ondragstart = function(ev) { ev.preventDefault(); };
-                    // Replace textSpan with textarea for editing
+                    el.ondragstart = ev => ev.preventDefault();
                     const oldText = task.text;
-                    const textarea = document.createElement('textarea');
-                    textarea.className = 'edit-input';
-                    textarea.value = oldText;
-                    textarea.style.width = '95%';
-                    textarea.style.height = '4em';
-                    textarea.style.resize = 'vertical';
-                    textSpan.replaceWith(textarea);
-                    textarea.focus();
-                    textarea.addEventListener('blur', function() {
-                        // Restore drag after editing
+                    const textarea = createTextarea(oldText, function() {
                         el.setAttribute('draggable', 'true');
                         el.ondragstart = null;
                         if (textarea.value.trim() !== '') {
-                            fetch(`/api/tasks/${task.id}/text`, {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ text: textarea.value })
-                            }).then(() => window.renderTasks());
+                            api.updateTaskText(task.id, textarea.value).then(() => renderTasks());
                         } else {
-                            window.renderTasks();
+                            renderTasks();
                         }
-                    });
-                    textarea.addEventListener('keydown', function(e) {
-                        if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
-                            textarea.blur();
-                        } else if (e.key === 'Escape') {
-                            // Restore drag after editing
+                    }, function(e) {
+                        if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textarea.blur();
+                        else if (e.key === 'Escape') {
                             el.setAttribute('draggable', 'true');
                             el.ondragstart = null;
-                            window.renderTasks();
+                            renderTasks();
                         }
-                    });
-                    textarea.addEventListener('paste', function(e) {
+                    }, function(e) {
                         const items = e.clipboardData.items;
                         for (let i = 0; i < items.length; i++) {
                             if (items[i].type.indexOf('image') !== -1) {
@@ -363,14 +295,32 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         }
                     });
+                    textSpan.replaceWith(textarea);
+                    textarea.focus();
                 });
                 columns[task.status].appendChild(el);
             });
             makeDraggable();
             if (focusCallback) focusCallback();
         });
-    };
+    }
 
-    setupDropZones();
-    window.renderTasks();
-});
+    // --- Entry Point ---
+    document.addEventListener('DOMContentLoaded', function() {
+        columns = {
+            'todo': document.getElementById('todo-col'),
+            'in_progress': document.getElementById('inprogress-col'),
+            'done': document.getElementById('done-col')
+        };
+        setupDropZones();
+        document.querySelectorAll('.add-task').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const status = btn.getAttribute('data-status');
+                addTask(status);
+            });
+        });
+        window.renderTasks = renderTasks;
+        renderTasks();
+    });
+})();
