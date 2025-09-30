@@ -55,6 +55,75 @@ HTML_TEMPLATE = """
 </html>
 """
 
+KANBAN_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kandown - Kanban Board</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .board {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        .column {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 16px;
+            width: 260px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        .column h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+        .task {
+            background: #e3eafc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            color: #333;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Kanban Board</h1>
+    <div class="board">
+        <div class="column">
+            <h2>To Do</h2>
+            <div class="task">Write documentation</div>
+            <div class="task">Design UI mockups</div>
+            <div class="task">Set up CI/CD</div>
+        </div>
+        <div class="column">
+            <h2>In Progress</h2>
+            <div class="task">Implement markdown rendering</div>
+            <div class="task">Add CLI options</div>
+        </div>
+        <div class="column">
+            <h2>Done</h2>
+            <div class="task">Initialize project</div>
+            <div class="task">Create README</div>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
 @app.route('/')
 def index():
     """Render the markdown file content on the index page."""
@@ -74,6 +143,11 @@ def index():
     except Exception as e:
         return render_template_string(HTML_TEMPLATE, 
                                     content=f"<h1>Error reading file</h1><p>Error: {str(e)}</p>")
+
+@app.route('/board')
+def board():
+    """Render a static 3-column kanban board."""
+    return render_template_string(KANBAN_TEMPLATE)
 
 def set_markdown_file(file_path):
     """Set the markdown file path for the application."""
