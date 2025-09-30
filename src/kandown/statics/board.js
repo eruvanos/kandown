@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    let editingTaskId = null;
+    let inputEl = null;
+
     function makeDraggable() {
         document.querySelectorAll('.task').forEach(function(card) {
             card.setAttribute('draggable', 'true');
@@ -27,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status })
                 }).then(resp => resp.json()).then(() => {
-                    // Re-render board after update
                     if (window.renderTasks) {
                         window.renderTasks();
                     }
@@ -36,9 +38,61 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Patch renderTasks to add draggable and data-id
+    function handleEdit(taskId, textEl) {
+        if (editingTaskId) return; // Only one edit at a time
+        editingTaskId = taskId;
+        const oldText = textEl.textContent;
+        inputEl = document.createElement('textarea');
+        inputEl.value = oldText;
+        inputEl.className = 'edit-input';
+        inputEl.style.width = '95%';
+        inputEl.style.height = '4em';
+        inputEl.style.resize = 'vertical';
+        textEl.replaceWith(inputEl);
+        inputEl.focus();
+
+        function finishEdit(save) {
+            if (!editingTaskId) return;
+            const newText = inputEl.value;
+            if (save && newText !== oldText && newText.trim() !== '') {
+                fetch(`/api/tasks/${taskId}/text`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: newText })
+                }).then(resp => resp.json()).then(() => {
+                    editingTaskId = null;
+                    inputEl = null;
+                    window.renderTasks();
+                });
+            } else {
+                editingTaskId = null;
+                inputEl = null;
+                window.renderTasks();
+            }
+        }
+
+        inputEl.addEventListener('blur', function() {
+            finishEdit(true);
+        });
+
+        document.addEventListener('mousedown', function docClick(e) {
+            if (inputEl && !inputEl.contains(e.target)) {
+                finishEdit(true);
+                document.removeEventListener('mousedown', docClick);
+            }
+        });
+
+        inputEl.addEventListener('keydown', function(e) {
+            // Enter inserts newline, Ctrl+Enter or Cmd+Enter saves
+            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+                finishEdit(true);
+            } else if (e.key === 'Escape') {
+                finishEdit(false);
+            }
+        });
+    }
+
     window.renderTasks = function() {
-        console.log("Rendering tasks...");
         fetch('/api/tasks').then(resp => resp.json()).then(tasks => {
             const columns = {
                 'todo': document.getElementById('todo-col'),
@@ -54,7 +108,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 const el = document.createElement('div');
                 el.className = 'task';
                 el.dataset.id = task.id;
-                el.innerHTML = `<span class='task-id'>${task.id}</span>${task.text}<div class='tags'>${task.tags.join(', ')}</div>`;
+                // Task text span for editing
+                const textSpan = document.createElement('span');
+                textSpan.className = 'task-text';
+                textSpan.textContent = task.text;
+                textSpan.style.cursor = 'pointer';
+                textSpan.style.whiteSpace = 'pre-line'; // preserve line breaks
+                textSpan.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    handleEdit(task.id, textSpan);
+                });
+                el.innerHTML = `<span class='task-id'>${task.id}</span>`;
+                el.appendChild(textSpan);
+                const tagsDiv = document.createElement('div');
+                tagsDiv.className = 'tags';
+                tagsDiv.textContent = task.tags.join(', ');
+                el.appendChild(tagsDiv);
                 columns[task.status].appendChild(el);
             });
             makeDraggable();
@@ -64,4 +133,3 @@ document.addEventListener('DOMContentLoaded', function() {
     setupDropZones();
     window.renderTasks();
 });
-
