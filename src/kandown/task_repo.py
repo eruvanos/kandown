@@ -133,6 +133,8 @@ class YamlTaskRepository(TaskRepository):
 
     def _save(self):
         with open(self.yaml_path, 'w', encoding='utf-8') as f:
+            f.write("# Project page: https://github.com/eruvanos/kandown\n")
+            f.write("# To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown demo.yml\n")
             yaml.safe_dump(self.tasks, f, allow_unicode=True)
 
     def save(self, task):
