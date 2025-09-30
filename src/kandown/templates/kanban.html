@@ -56,14 +56,37 @@
             margin: 4px 0;
         }
         .tags {
-            font-size: 0.9em;
-            color: #555;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
             margin-top: 4px;
+            margin-bottom: 8px;
         }
-        .task-id {
-            font-size: 0.8em;
+        .tag-label {
+            background: #e0e0e0;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            margin-right: 2px;
+        }
+        .remove-tag {
+            background: none;
+            border: none;
+            margin-left: 4px;
+            cursor: pointer;
+            font-size: 1em;
             color: #888;
-            float: right;
+        }
+        .add-tag-input {
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.85em;
+            margin-left: 4px;
+            margin-top: 2px;
+            min-width: 60px;
         }
         .add-task {
             float: right;
@@ -76,20 +99,124 @@
         .add-task:hover {
             color: #007bff;
         }
+        /* Floating dark mode toggle button */
+        .darkmode-toggle {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 1000;
+            background: #2c3e50;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            cursor: pointer;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .darkmode-toggle.light {
+            background: #fff;
+            color: #2c3e50;
+            border: 1px solid #ccc;
+        }
+        /* Dark mode styles */
+        body.darkmode {
+            background: #181a1b;
+            color: #e0e0e0;
+        }
+        body.darkmode .column {
+            background: #23272b;
+            color: #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        body.darkmode .task {
+            background: #31363b;
+            color: #e0e0e0;
+        }
+        body.darkmode .add-task {
+            color: #e0e0e0;
+        }
+        body.darkmode .add-task:hover {
+            color: #90caf9;
+        }
+        body.darkmode .tags {
+            color: #b0b0b0;
+        }
+        body.darkmode .task-id {
+            color: #888;
+        }
+        body.darkmode .darkmode-toggle {
+            background: #fff;
+            color: #23272b;
+            border: 1px solid #ccc;
+        }
+        body.darkmode .column h2 {
+            color: #fff;
+            text-shadow: 0 1px 4px #23272b;
+        }
+        body.darkmode .tag-label {
+            background: #444;
+            color: #e0e0e0;
+        }
+        body.darkmode .add-tag-input {
+            background: #23272b;
+            color: #e0e0e0;
+            border: 1px solid #666;
+        }
+        body.darkmode .remove-tag {
+            color: #bbb;
+        }
+        .tag-suggestion-box {
+            background: #fff;
+            color: #222;
+        }
+        body.darkmode .tag-suggestion-box {
+            background: #23272b;
+            color: #e0e0e0;
+            border: 1px solid #444;
+        }
+        body.darkmode .tag-suggestion-box div {
+            color: #e0e0e0;
+        }
+        body.darkmode .tag-suggestion-box div:hover {
+            background: #444;
+        }
     </style>
 </head>
 <body>
     <h1 style="text-align:center;">Kanban Board</h1>
     <div class="board">
         <div class="column" id="todo-col">
-            <h2>To Do <span class="add-task" data-status="todo" title="Add task">&#x2795;</span></h2>
+            <h2>📝 To Do <span class="add-task" data-status="todo" title="Add task">&#x2795;</span></h2>
         </div>
         <div class="column" id="inprogress-col">
-            <h2>In Progress <span class="add-task" data-status="in_progress" title="Add task">&#x2795;</span></h2>
+            <h2>⏳ In Progress <span class="add-task" data-status="in_progress" title="Add task">&#x2795;</span></h2>
         </div>
         <div class="column" id="done-col">
-            <h2>Done <span class="add-task" data-status="done" title="Add task">&#x2795;</span></h2>
+            <h2>✅ Done <span class="add-task" data-status="done" title="Add task">&#x2795;</span></h2>
         </div>
     </div>
+    <button id="darkmode-toggle" class="darkmode-toggle" title="Toggle dark mode">🌙</button>
+    <script>
+    const toggleBtn = document.getElementById('darkmode-toggle');
+    function setDarkMode(on) {
+        document.body.classList.toggle('darkmode', on);
+        toggleBtn.textContent = on ? '☀️' : '🌙';
+        toggleBtn.classList.toggle('light', on);
+    }
+    // Load mode from localStorage
+    let dark = localStorage.getItem('darkmode') === 'true';
+    setDarkMode(dark);
+    toggleBtn.onclick = function() {
+        dark = !dark;
+        setDarkMode(dark);
+        localStorage.setItem('darkmode', dark);
+    };
+    </script>
 </body>
 </html>

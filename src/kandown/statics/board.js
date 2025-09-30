@@ -193,13 +193,118 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 el.innerHTML = `<span class='task-id'>${task.id}</span>`;
                 el.appendChild(textSpan);
+                // Tag management UI
                 const tagsDiv = document.createElement('div');
                 tagsDiv.className = 'tags';
-                tagsDiv.textContent = task.tags.join(', ');
+                // Render each tag as a label with remove button
+                (task.tags || []).forEach(tag => {
+                    const tagLabel = document.createElement('span');
+                    tagLabel.className = 'tag-label';
+                    tagLabel.textContent = tag;
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-tag';
+                    removeBtn.type = 'button';
+                    removeBtn.textContent = '×';
+                    removeBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        const newTags = (task.tags || []).filter(t => t !== tag);
+                        fetch(`/api/tasks/${task.id}/tags`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ tags: newTags })
+                        }).then(() => window.renderTasks());
+                    };
+                    tagLabel.appendChild(removeBtn);
+                    tagsDiv.appendChild(tagLabel);
+                });
+                // Add tag input (only if not editing text)
+                if (!el.querySelector('textarea.edit-input')) {
+                    const addTagInput = document.createElement('input');
+                    addTagInput.className = 'add-tag-input';
+                    addTagInput.type = 'text';
+                    addTagInput.placeholder = 'Add tag...';
+                    // Suggestion dropdown
+                    const suggestionBox = document.createElement('div');
+                    suggestionBox.className = 'tag-suggestion-box';
+                    suggestionBox.style.position = 'absolute';
+                    suggestionBox.style.border = '1px solid #ccc';
+                    suggestionBox.style.borderRadius = '8px';
+                    suggestionBox.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                    suggestionBox.style.zIndex = '10';
+                    suggestionBox.style.display = 'none';
+                    suggestionBox.style.minWidth = '100px';
+                    suggestionBox.style.maxHeight = '120px';
+                    suggestionBox.style.overflowY = 'auto';
+                    tagsDiv.style.position = 'relative';
+                    let tagSuggestions = [];
+                    addTagInput.onfocus = function(e) {
+                        e.stopPropagation();
+                        fetch('/api/tags/suggestions').then(resp => resp.json()).then(tags => {
+                            tagSuggestions = tags;
+                        });
+                    };
+                    addTagInput.oninput = function() {
+                        const val = addTagInput.value.trim().toLowerCase();
+                        suggestionBox.innerHTML = '';
+                        if (!val) {
+                            suggestionBox.style.display = 'none';
+                            return;
+                        }
+                        const matches = tagSuggestions.filter(tag => tag.toLowerCase().includes(val) && !(task.tags || []).includes(tag));
+                        if (matches.length === 0) {
+                            suggestionBox.style.display = 'none';
+                            return;
+                        }
+                        matches.forEach(tag => {
+                            const item = document.createElement('div');
+                            item.textContent = tag;
+                            item.className = 'tag-suggestion-item';
+                            item.style.padding = '4px 8px';
+                            item.style.cursor = 'pointer';
+                            item.onmousedown = function(e) {
+                                e.preventDefault();
+                                addTagInput.value = tag;
+                                addTagInput.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
+                                suggestionBox.style.display = 'none';
+                            };
+                            suggestionBox.appendChild(item);
+                        });
+                        suggestionBox.style.display = 'block';
+                    };
+                    addTagInput.onblur = function() {
+                        setTimeout(() => { suggestionBox.style.display = 'none'; }, 100);
+                    };
+                    addTagInput.onkeydown = function(e) {
+                        if (e.key === 'Enter' && addTagInput.value.trim()) {
+                            const newTag = addTagInput.value.trim();
+                            if ((task.tags || []).includes(newTag)) {
+                                addTagInput.value = '';
+                                suggestionBox.style.display = 'none';
+                                return;
+                            }
+                            const newTags = [...(task.tags || []), newTag];
+                            fetch(`/api/tasks/${task.id}/tags`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ tags: newTags })
+                            }).then(() => window.renderTasks());
+                            addTagInput.value = '';
+                            suggestionBox.style.display = 'none';
+                        }
+                    };
+                    addTagInput.addEventListener('click', function(e) { e.stopPropagation(); });
+                    tagsDiv.appendChild(addTagInput);
+                    tagsDiv.appendChild(suggestionBox);
+                }
                 el.appendChild(tagsDiv);
                 // Make the whole card clickable for editing, except tags
                 el.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('tags') || e.target.tagName === 'A') return;
+                    if (
+                        e.target.classList.contains('tags') ||
+                        e.target.tagName === 'A' ||
+                        (e.target.classList && e.target.classList.contains('add-tag-input')) ||
+                        e.target.tagName === 'INPUT'
+                    ) return;
                     // Only allow one edit at a time
                     if (el.querySelector('textarea.edit-input')) return;
                     // Disable drag while editing

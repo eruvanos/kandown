@@ -23,6 +23,10 @@ class TaskRepository(ABC):
     def update_text(self, id, text=None):
         pass
 
+    @abstractmethod
+    def update_tags(self, id, tags=None):
+        pass
+
 class InMemoryTaskRepository(TaskRepository):
     def __init__(self):
         self.tasks = []
@@ -69,6 +73,14 @@ class InMemoryTaskRepository(TaskRepository):
             if task['id'] == id:
                 if text is not None:
                     task['text'] = text
+                return task
+        return None
+
+    def update_tags(self, id, tags=None):
+        for task in self.tasks:
+            if task['id'] == id:
+                if tags is not None:
+                    task['tags'] = tags
                 return task
         return None
 
@@ -130,3 +142,11 @@ class YamlTaskRepository(TaskRepository):
                 return task
         return None
 
+    def update_tags(self, id, tags=None):
+        for task in self.tasks:
+            if task['id'] == id:
+                if tags is not None:
+                    task['tags'] = tags
+                self._save()
+                return task
+        return None

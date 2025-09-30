@@ -67,4 +67,29 @@ def create_app(yaml_file=None):
         created = repo.save(task)
         return jsonify(created), 201
 
+    @app.route('/api/tasks/<id>/tags', methods=['PATCH'])
+    def update_task_tags(id):
+        """Update a task's tags by id."""
+        data = request.get_json()
+        tags = data.get('tags') if data else None
+        if not isinstance(tags, list):
+            return jsonify({'error': 'Missing or invalid tags'}), 400
+        # Optionally validate each tag is a string
+        if not all(isinstance(tag, str) for tag in tags):
+            return jsonify({'error': 'Tags must be strings'}), 400
+        task = repo.update_tags(id, tags=tags)
+        if not task:
+            return jsonify({'error': 'Task not found'}), 404
+        return jsonify(task)
+
+    @app.route('/api/tags/suggestions')
+    def tag_suggestions():
+        """Return a list of unique tags from all tasks."""
+        all_tasks = repo.all()
+        tags = set()
+        for task in all_tasks:
+            for tag in task.get('tags', []):
+                tags.add(tag)
+        return jsonify(sorted(tags))
+
     return app
