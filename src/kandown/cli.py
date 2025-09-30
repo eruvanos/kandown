@@ -2,7 +2,7 @@
 
 import os
 import click
-from .app import create_app, set_markdown_file
+from .app import create_app
 
 @click.command()
 @click.argument('markdown_file', type=click.Path(exists=True))
@@ -22,8 +22,7 @@ def main(markdown_file, host, port, debug):
     click.echo(f"Server will be available at: http://{host}:{port}")
     
     # Set the markdown file and create the app
-    set_markdown_file(markdown_file)
-    app = create_app(markdown_file)
+    app = create_app()
     
     # Run the Flask app
     app.run(host=host, port=port, debug=debug)

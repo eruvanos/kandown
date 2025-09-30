@@ -2,10 +2,7 @@
 
 import os
 import markdown
-from flask import Flask, render_template_string
-
-# Global variable to store the markdown file path
-markdown_file_path = None
+from flask import Flask, render_template_string, jsonify, send_file
 
 app = Flask(__name__)
 
@@ -62,6 +59,11 @@ KANBAN_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kandown - Kanban Board</title>
+    <!-- PyScript CSS -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2025.8.1/core.css">
+    <!-- This script tag bootstraps PyScript -->
+    <script type="module" src="https://pyscript.net/releases/2025.8.1/core.js"></script>
+
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -98,64 +100,90 @@ KANBAN_TEMPLATE = """
             color: #333;
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
+        .tags {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 4px;
+        }
+        .task-id {
+            font-size: 0.8em;
+            color: #888;
+            float: right;
+        }
     </style>
 </head>
 <body>
     <h1 style="text-align:center;">Kanban Board</h1>
     <div class="board">
-        <div class="column">
+        <div class="column" id="todo-col">
             <h2>To Do</h2>
-            <div class="task">Write documentation</div>
-            <div class="task">Design UI mockups</div>
-            <div class="task">Set up CI/CD</div>
         </div>
-        <div class="column">
+        <div class="column" id="inprogress-col">
             <h2>In Progress</h2>
-            <div class="task">Implement markdown rendering</div>
-            <div class="task">Add CLI options</div>
         </div>
-        <div class="column">
+        <div class="column" id="done-col">
             <h2>Done</h2>
-            <div class="task">Initialize project</div>
-            <div class="task">Create README</div>
         </div>
     </div>
+    <mpy-script src="/board.py"></mpy-script>
 </body>
 </html>
 """
 
+class TaskRepository:
+    def __init__(self):
+        self.tasks = []
+        self.counter = 1
+        # Pre-populate with initial tasks
+        for t in [
+            {"text": "Write documentation", "status": "todo", "tags": ["docs", "writing"]},
+            {"text": "Design UI mockups", "status": "todo", "tags": ["design"]},
+            {"text": "Set up CI/CD", "status": "todo", "tags": ["devops"]},
+            {"text": "Implement markdown rendering", "status": "in_progress", "tags": ["backend", "markdown"]},
+            {"text": "Add CLI options", "status": "in_progress", "tags": ["cli"]},
+            {"text": "Initialize project", "status": "done", "tags": ["setup"]},
+            {"text": "Create README", "status": "done", "tags": ["docs"]}
+        ]:
+            self.save(t)
+
+    def save(self, task):
+        if 'id' not in task:
+            task = dict(task)
+            task['id'] = f"K-{self.counter:03d}"
+            self.counter += 1
+        self.tasks.append(task)
+        return task
+
+    def get(self, id):
+        for task in self.tasks:
+            if task['id'] == id:
+                return task
+        return None
+
+    def all(self):
+        return list(self.tasks)
+
+# Instantiate the repository
+repo = TaskRepository()
+
 @app.route('/')
 def index():
-    """Render the markdown file content on the index page."""
-    if not markdown_file_path or not os.path.exists(markdown_file_path):
-        return render_template_string(HTML_TEMPLATE, 
-                                    content="<h1>No markdown file specified or file not found</h1><p>Please provide a valid markdown file.</p>")
-    
-    try:
-        with open(markdown_file_path, 'r', encoding='utf-8') as f:
-            markdown_content = f.read()
-        
-        # Convert markdown to HTML
-        html_content = markdown.markdown(markdown_content, extensions=['tables', 'fenced_code'])
-        
-        return render_template_string(HTML_TEMPLATE, content=html_content)
-    
-    except Exception as e:
-        return render_template_string(HTML_TEMPLATE, 
-                                    content=f"<h1>Error reading file</h1><p>Error: {str(e)}</p>")
-
-@app.route('/board')
-def board():
-    """Render a static 3-column kanban board."""
+    """Render the kanban board as the index page."""
     return render_template_string(KANBAN_TEMPLATE)
 
-def set_markdown_file(file_path):
-    """Set the markdown file path for the application."""
-    global markdown_file_path
-    markdown_file_path = file_path
+@app.route('/api/tasks')
+def get_tasks():
+    """Return all tasks as JSON."""
+    return jsonify(repo.all())
 
-def create_app(markdown_file=None):
+@app.route('/board.py')
+def serve_board_py():
+    """Serve the PyScript file for the kanban board."""
+    return send_file(
+        os.path.join(os.path.dirname(__file__), 'board.py'),
+        mimetype='text/x-python'
+    )
+
+def create_app():
     """Create and configure the Flask app."""
-    if markdown_file:
-        set_markdown_file(markdown_file)
     return app
