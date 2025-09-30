@@ -42,6 +42,21 @@ class InMemoryTaskRepository(TaskRepository):
             {"text": "Create README", "status": "done", "tags": ["docs"]}
         ]:
             self.save(t)
+        # After pre-population, set counter to highest existing id + 1
+        self._update_counter()
+
+    def _update_counter(self):
+        max_id = 0
+        for task in self.tasks:
+            tid = task.get('id', '')
+            if tid.startswith('K-'):
+                try:
+                    num = int(tid[2:])
+                    if num > max_id:
+                        max_id = num
+                except ValueError:
+                    continue
+        self.counter = max_id + 1 if max_id > 0 else 1
 
     def save(self, task):
         if 'id' not in task:
@@ -49,6 +64,7 @@ class InMemoryTaskRepository(TaskRepository):
             task['id'] = f"K-{self.counter:03d}"
             self.counter += 1
         self.tasks.append(task)
+        self._update_counter()
         return task
 
     def get(self, id):
@@ -90,6 +106,20 @@ class YamlTaskRepository(TaskRepository):
         self.tasks = []
         self.counter = 1
         self._load()
+        self._update_counter()
+
+    def _update_counter(self):
+        max_id = 0
+        for task in self.tasks:
+            tid = task.get('id', '')
+            if tid.startswith('K-'):
+                try:
+                    num = int(tid[2:])
+                    if num > max_id:
+                        max_id = num
+                except ValueError:
+                    continue
+        self.counter = max_id + 1 if max_id > 0 else 1
 
     def _load(self):
         if os.path.exists(self.yaml_path):
@@ -100,7 +130,6 @@ class YamlTaskRepository(TaskRepository):
                     self.save(t)
         else:
             self.tasks = []
-            self.counter = 1
 
     def _save(self):
         with open(self.yaml_path, 'w', encoding='utf-8') as f:
