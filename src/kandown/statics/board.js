@@ -182,12 +182,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         textSpan.style.fontStyle = 'italic';
                         textSpan.style.color = '#888';
                     } else {
-                        textSpan.textContent = task.text;
+                        // Render markdown using marked.js
+                        if (window.marked) {
+                            textSpan.innerHTML = window.marked.parse(task.text);
+                        } else {
+                            textSpan.textContent = task.text;
+                        }
                     }
                     textSpan.style.cursor = 'pointer';
-                    textSpan.addEventListener('click', function() {
-                        window.renderTasks(() => {}, task.id);
-                    });
                 }
                 el.innerHTML = `<span class='task-id'>${task.id}</span>`;
                 el.appendChild(textSpan);
@@ -195,6 +197,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 tagsDiv.className = 'tags';
                 tagsDiv.textContent = task.tags.join(', ');
                 el.appendChild(tagsDiv);
+                // Make the whole card clickable for editing, except tags
+                el.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('tags') || e.target.tagName === 'A') return;
+                    // Only allow one edit at a time
+                    if (el.querySelector('textarea.edit-input')) return;
+                    // Replace textSpan with textarea for editing
+                    const oldText = task.text;
+                    const textarea = document.createElement('textarea');
+                    textarea.className = 'edit-input';
+                    textarea.value = oldText;
+                    textarea.style.width = '95%';
+                    textarea.style.height = '4em';
+                    textarea.style.resize = 'vertical';
+                    textSpan.replaceWith(textarea);
+                    textarea.focus();
+                    textarea.addEventListener('blur', function() {
+                        if (textarea.value.trim() !== '') {
+                            fetch(`/api/tasks/${task.id}/text`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ text: textarea.value })
+                            }).then(() => window.renderTasks());
+                        } else {
+                            window.renderTasks();
+                        }
+                    });
+                    textarea.addEventListener('keydown', function(e) {
+                        if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+                            textarea.blur();
+                        } else if (e.key === 'Escape') {
+                            window.renderTasks();
+                        }
+                    });
+                });
                 columns[task.status].appendChild(el);
             });
             makeDraggable();
