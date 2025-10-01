@@ -193,6 +193,46 @@
         body.darkmode .tag-suggestion-box div:hover {
             background: #444;
         }
+        /* Hourglass icon and tooltip */
+        .task-hourglass {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            font-size: 1.1em;
+            color: #888;
+            cursor: pointer;
+            z-index: 2;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        .task-hourglass:hover + .hourglass-tooltip,
+        .task-hourglass:focus + .hourglass-tooltip {
+            display: block;
+        }
+        .hourglass-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 32px;
+            right: 8px;
+            background: #fff;
+            color: #222;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.95em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            white-space: nowrap;
+            z-index: 10;
+        }
+        body.darkmode .task-hourglass {
+            color: #bbb;
+        }
+        body.darkmode .hourglass-tooltip {
+            background: #23272b;
+            color: #e0e0e0;
+            border: 1px solid #444;
+        }
     </style>
 </head>
 <body>

@@ -20,6 +20,17 @@ def create_app(yaml_file):
 
     repo = YamlTaskRepository(yaml_file)
 
+    def _map_task_fields(task):
+        # Map backend date fields to frontend expected names
+        mapped = dict(task)
+        if "created" in mapped:
+            mapped["created_at"] = mapped["created"]
+        if "updated" in mapped:
+            mapped["updated_at"] = mapped["updated"]
+        if "closed" in mapped:
+            mapped["closed_at"] = mapped["closed"]
+        return mapped
+
     @app.route("/")
     def index():
         """Render the kanban board as the index page."""
@@ -28,7 +39,7 @@ def create_app(yaml_file):
     @app.route("/api/tasks")
     def get_tasks():
         """Return all tasks as JSON."""
-        return jsonify(repo.all())
+        return jsonify([_map_task_fields(t) for t in repo.all()])
 
     @app.route("/statics/<path:filename>")
     def serve_static(filename):
@@ -46,7 +57,7 @@ def create_app(yaml_file):
         task = repo.update_status(id, status=status)
         if not task:
             return jsonify({"error": "Task not found"}), 404
-        return jsonify(task)
+        return jsonify(_map_task_fields(task))
 
     @app.route("/api/tasks/<id>/text", methods=["PATCH"])
     def update_task_text(id):
@@ -58,7 +69,7 @@ def create_app(yaml_file):
         task = repo.update_text(id, text=text)
         if not task:
             return jsonify({"error": "Task not found"}), 404
-        return jsonify(task)
+        return jsonify(_map_task_fields(task))
 
     @app.route("/api/tasks", methods=["POST"])
     def add_task():

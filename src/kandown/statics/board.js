@@ -406,6 +406,37 @@
                     textSpan.replaceWith(textarea);
                     textarea.focus();
                 });
+
+                // --- Hourglass Icon with Tooltip ---
+                // Only show if not collapsed
+                if (!(task.status === 'done' && doneCollapsed[task.id])) {
+                    // Create hourglass icon
+                    const hourglass = document.createElement('span');
+                    hourglass.className = 'task-hourglass';
+                    hourglass.tabIndex = 0;
+                    hourglass.textContent = '\u23F3'; // Unicode hourglass not done
+                    // Tooltip
+                    const tooltip = document.createElement('span');
+                    tooltip.className = 'hourglass-tooltip';
+                    let dateStr = '';
+                    if (task.status === 'done' && task.closed_at) {
+                        dateStr = `Closed: ${formatDate(task.closed_at)}`;
+                    } else if (task.updated_at) {
+                        dateStr = `Last updated: ${formatDate(task.updated_at)}`;
+                    } else {
+                        dateStr = 'No date available';
+                    }
+                    tooltip.textContent = dateStr;
+                    // Positioning
+                    el.style.position = 'relative';
+                    hourglass.onmouseenter = () => { tooltip.style.display = 'block'; };
+                    hourglass.onmouseleave = () => { tooltip.style.display = 'none'; };
+                    hourglass.onfocus = () => { tooltip.style.display = 'block'; };
+                    hourglass.onblur = () => { tooltip.style.display = 'none'; };
+                    el.appendChild(hourglass);
+                    el.appendChild(tooltip);
+                }
+
                 columns[task.status].appendChild(el);
             });
             makeDraggable();
@@ -431,4 +462,12 @@
         window.renderTasks = renderTasks;
         renderTasks();
     });
+
+    // Helper to format date
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
 })();
