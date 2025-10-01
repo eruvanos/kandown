@@ -1,22 +1,24 @@
-# kandown
+# Kandown
 
-A markdown backed kanban board easy to use
+A simple, markdown-inspired Kanban board powered by YAML and Flask.
 
 ## Overview
 
-Kandown is a simple Flask-based web application that renders markdown files in a clean, readable format through a web interface. It's perfect for viewing markdown-based kanban boards, documentation, or any markdown content through a browser.
+Kandown is a lightweight web application for visualizing and managing 
+tasks in a Kanban board format. 
+Tasks are stored in a YAML file, making it easy to edit, version, and share your board.
+The app features a clean, responsive web UI and a CLI for quick setup.
 
 ## Features
 
-- 📝 **Markdown rendering**: Full support for markdown syntax including tables and code blocks
-- 🚀 **Simple CLI**: Easy-to-use command line interface
-- 🌐 **Web interface**: Clean, responsive web UI for viewing content
-- ⚡ **Fast setup**: Quick installation and setup with uv package manager
-- 🎨 **Clean styling**: Beautiful, readable typography and layout
+- 🗂️ **Kanban board UI**: Drag-and-drop tasks between columns (To Do, In Progress, Done)
+- 📄 **YAML-backed storage**: All tasks are stored in a simple YAML file
+- 🔄 **REST API**: List tasks and update their status via HTTP endpoints
+- 🚀 **CLI**: Start the server, choose host/port/debug, auto-create YAML file if missing
 
 ## Installation
 
-This project uses [uv](https://docs.astral.sh/uv/) as the package manager. Install the package in development mode:
+This project uses [uv](https://docs.astral.sh/uv/) for fast Python dependency management.
 
 ```bash
 git clone <repository-url>
@@ -26,62 +28,76 @@ uv sync
 
 ## Usage
 
-### Basic usage
-
-Run the kandown server with a markdown file:
+### Start the Kanban server
 
 ```bash
-uv run kandown your-file.md
+uv run kandown [OPTIONS] [YAML_FILE]
 ```
 
-Then open your browser to `http://127.0.0.1:8000` to view the rendered content.
+- If no YAML file is provided, defaults to `backlog.yaml` (auto-created if missing).
+- Open your browser to `http://127.0.0.1:8080` (default) to view the board.
 
-### CLI Options
+#### CLI Options
 
-```bash
-uv run kandown [OPTIONS] MARKDOWN_FILE
-
+```
 Options:
   --host TEXT     Host to bind to (default: 127.0.0.1)
-  --port INTEGER  Port to bind to (default: 8000) 
+  --port INTEGER  Port to bind to (default: 8080)
   --debug         Enable debug mode
   --help          Show help message
 ```
 
-### Example
+#### Examples
 
 ```bash
-# Start server on default port 5000
-uv run kandown sample.md
+# Start server with default YAML file
+uv run kandown
 
-# Start server on custom port with debug mode
-uv run kandown sample.md --port 8080 --debug
+# Start server with a custom YAML file and debug mode
+uv run kandown demo.yml --port 8080 --debug
 
-# Start server accessible from other machines
-uv run kandown sample.md --host 0.0.0.0 --port 8080
+# Make server accessible from other machines
+uv run kandown backlog.yaml --host 0.0.0.0 --port 8080
 ```
 
-## Development
+## API
 
-### Project structure
+- `GET /api/tasks` — List all tasks as JSON
+- `PATCH /api/tasks/<id>` — Update a task's status (body: `{"status": "In Progress"}`)
+
+## Project Structure
 
 ```
 kandown/
 ├── src/kandown/
-│   ├── __init__.py      # Package initialization
-│   ├── app.py           # Flask application
-│   └── cli.py           # Command line interface
-├── pyproject.toml       # Project configuration
-├── sample.md           # Sample markdown file
-└── README.md           # This file
+│   ├── app.py         # Flask app and API
+│   ├── cli.py         # Command line interface
+│   ├── task_repo.py   # YAML-backed task repository
+│   ├── templates/
+│   │   └── kanban.html  # Kanban board template
+│   └── statics/
+│       └── board.js     # Board UI logic
+├── tests/
+│   └── test_task_repo.py # Unit tests
+├── backlog.yaml       # Default YAML file
+├── demo.yml           # Example board
+├── pyproject.toml     # Project config
+└── README.md          # This file
 ```
 
-### Dependencies
+## Development
+
+- Modify `templates/kanban.html` and `statics/board.js` for custom UI
+- Extend `task_repo.py` for new task features
+- Run tests with `uv run pytest`
+
+## Dependencies
 
 - **Flask**: Web framework
-- **Markdown**: Markdown to HTML conversion
-- **Click**: Command line interface
+- **PyYAML**: YAML parsing
+- **Click**: CLI
+- **pytest**: Testing
 
 ## License
 
-This project is open source and available under the MIT License.
+MIT License
