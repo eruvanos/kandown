@@ -1,5 +1,5 @@
 from pyscript import display, window
-from js import document, fetch
+from js import document, fetch, Object
 import json
 from datetime import datetime
 
@@ -12,47 +12,73 @@ done_collapsed = {}
 # --- API ---
 async def get_tasks():
     resp = await fetch('/api/tasks')
+    if resp is None:
+        print('Error: fetch /api/tasks returned None')
+        return []
     data = await resp.text()
     return json.loads(data)
 
 async def update_task_status(id, status):
+    headers = Object()
+    headers['Content-Type'] = 'application/json'
     resp = await fetch(f'/api/tasks/{id}', {
         'method': 'PATCH',
-        'headers': {'Content-Type': 'application/json'},
+        'headers': headers,
         'body': json.dumps({'status': status})
     })
+    if resp is None:
+        print(f'Error: fetch /api/tasks/{id} returned None')
+        return None
     data = await resp.text()
     return json.loads(data)
 
 async def update_task_text(id, text):
+    headers = Object()
+    headers['Content-Type'] = 'application/json'
     resp = await fetch(f'/api/tasks/{id}/text', {
         'method': 'PATCH',
-        'headers': {'Content-Type': 'application/json'},
+        'headers': headers,
         'body': json.dumps({'text': text})
     })
+    if resp is None:
+        print(f'Error: fetch /api/tasks/{id}/text returned None')
+        return None
     data = await resp.text()
     return json.loads(data)
 
 async def create_task(status):
+    headers = Object()
+    headers['Content-Type'] = 'application/json'
     resp = await fetch('/api/tasks', {
         'method': 'POST',
-        'headers': {'Content-Type': 'application/json'},
+        'headers': headers,
         'body': json.dumps({'text': '', 'status': status, 'tags': []})
     })
+    if resp is None:
+        print('Error: fetch /api/tasks (POST) returned None')
+        return None
     data = await resp.text()
     return json.loads(data)
 
 async def get_tag_suggestions():
     resp = await fetch('/api/tags/suggestions')
+    if resp is None:
+        print('Error: fetch /api/tags/suggestions returned None')
+        return []
     data = await resp.text()
     return json.loads(data)
 
 async def update_task_tags(id, tags):
+    headers = Object()
+    headers['Content-Type'] = 'application/json'
     resp = await fetch(f'/api/tasks/{id}/tags', {
         'method': 'PATCH',
-        'headers': {'Content-Type': 'application/json'},
+        'headers': headers,
         'body': json.dumps({'tags': tags})
     })
+    if resp is None:
+        print(f'Error: fetch /api/tasks/{id}/tags returned None')
+        return None
     data = await resp.text()
     return json.loads(data)
 
@@ -167,13 +193,15 @@ def make_draggable():
         if not col:
             continue
         col.addEventListener('dragover', lambda e: e.preventDefault())
-        def drop(e, s=status):
+        async def drop(e, s=status):
+            print('Dropped on', s)
             e.preventDefault()
             id = e.dataTransfer.getData('text/plain')
             if not id:
                 return
-            window.update_task_status(id, s)
-            window.render_tasks()
+            await update_task_status(id, s)
+            await render_tasks()
+        # Use PyScript's create_proxy to wrap async handler for JS event
         col.addEventListener('drop', drop)
 
 # --- Entry Point ---
