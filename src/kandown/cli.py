@@ -10,7 +10,7 @@ from .app import create_app
 @click.option(
     "--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)"
 )
-@click.option("--port", default=5000, help="Port to bind to (default: 5000)")
+@click.option("--port", default=8080, help="Port to bind to (default: 5000)")
 @click.option("--debug", is_flag=True, help="Enable debug mode")
 def main(yaml_file, host, port, debug):
     """Start the Kandown server with a YAML file for tasks.

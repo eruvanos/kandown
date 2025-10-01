@@ -25,7 +25,7 @@
     };
 
     // --- Helpers ---
-    function createTextarea(value, onBlur, onKeyDown, onPaste) {
+    function createTextarea(value, onBlur, onKeyDown) {
         const textarea = document.createElement('textarea');
         textarea.className = 'edit-input';
         textarea.value = value || '';
@@ -34,11 +34,30 @@
         textarea.style.resize = 'vertical';
         if (onBlur) textarea.addEventListener('blur', onBlur);
         if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
-        if (onPaste) textarea.addEventListener('paste', onPaste);
+        // Always attach paste handler for base64 image markdown
+        textarea.addEventListener('paste', function(e) {
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const base64 = event.target.result;
+                        const md = `![](${base64})`;
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                    };
+                    reader.readAsDataURL(file);
+                    e.preventDefault();
+                    break;
+                }
+            }
+        });
         return textarea;
     }
 
-    function createTagSuggestionBox(input, task, tagSuggestions) {
+    function createTagSuggestionBox(input, task, getTagSuggestions) {
         const box = document.createElement('div');
         box.className = 'tag-suggestion-box';
         box.style.position = 'absolute';
@@ -50,9 +69,10 @@
         box.style.minWidth = '100px';
         box.style.maxHeight = '120px';
         box.style.overflowY = 'auto';
-        input.oninput = function() {
+        box.updateSuggestions = function() {
             const val = input.value.trim().toLowerCase();
             box.innerHTML = '';
+            const tagSuggestions = getTagSuggestions();
             if (!val) { box.style.display = 'none'; return; }
             const matches = tagSuggestions.filter(tag => tag.toLowerCase().includes(val) && !(task.tags || []).includes(tag));
             if (matches.length === 0) { box.style.display = 'none'; return; }
@@ -93,7 +113,10 @@
                 e.preventDefault();
                 const id = e.dataTransfer.getData('text/plain');
                 if (!id) return;
-                api.updateTaskStatus(id, status).then(() => renderTasks());
+                api.updateTaskStatus(id, status).then(() => {
+                    renderTasks();
+                    if (status === 'done') showConfetti();
+                });
             });
         });
     }
@@ -152,6 +175,60 @@
                 }, 100);
             }, task.id);
         });
+    }
+
+    // --- Confetti ---
+    function showConfetti() {
+        // Simple confetti effect using canvas
+        const canvas = document.createElement('canvas');
+        canvas.style.position = 'fixed';
+        canvas.style.left = '0';
+        canvas.style.top = '0';
+        canvas.style.pointerEvents = 'none';
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.zIndex = '9999';
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+        const confettiCount = 80;
+        const confetti = Array.from({length: confettiCount}, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * -canvas.height,
+            r: Math.random() * 6 + 4,
+            d: Math.random() * confettiCount,
+            color: `hsl(${Math.random()*360},100%,60%)`,
+            tilt: Math.random() * 10 - 10
+        }));
+        let angle = 0;
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confetti.forEach(c => {
+                ctx.beginPath();
+                ctx.ellipse(c.x, c.y, c.r, c.r/2, c.tilt, 0, 2 * Math.PI);
+                ctx.fillStyle = c.color;
+                ctx.fill();
+            });
+            update();
+        }
+        function update() {
+            angle += 0.01;
+            confetti.forEach(c => {
+                c.y += (Math.cos(angle + c.d) + 3 + c.r/2) * 0.8;
+                c.x += Math.sin(angle);
+                c.tilt = Math.sin(angle - c.d);
+            });
+        }
+        let frame = 0;
+        function animate() {
+            draw();
+            frame++;
+            if (frame < 90) {
+                requestAnimationFrame(animate);
+            } else {
+                document.body.removeChild(canvas);
+            }
+        }
+        animate();
     }
 
     // --- Render ---
@@ -267,11 +344,16 @@
                     addTagInput.type = 'text';
                     addTagInput.placeholder = 'Add tag...';
                     let tagSuggestions = [];
+                    // Fetch tag suggestions immediately when input is created
+                    api.getTagSuggestions().then(tags => { tagSuggestions = tags; });
                     addTagInput.onfocus = function(e) {
                         e.stopPropagation();
                         api.getTagSuggestions().then(tags => { tagSuggestions = tags; });
                     };
-                    const suggestionBox = createTagSuggestionBox(addTagInput, task, tagSuggestions);
+                    const suggestionBox = createTagSuggestionBox(addTagInput, task, () => tagSuggestions);
+                    addTagInput.oninput = function() {
+                        suggestionBox.updateSuggestions();
+                    };
                     addTagInput.onkeydown = function(e) {
                         if (e.key === 'Enter' && addTagInput.value.trim()) {
                             const newTag = addTagInput.value.trim();
@@ -319,24 +401,6 @@
                             el.setAttribute('draggable', 'true');
                             el.ondragstart = null;
                             renderTasks();
-                        }
-                    }, function(e) {
-                        const items = e.clipboardData.items;
-                        for (let i = 0; i < items.length; i++) {
-                            if (items[i].type.indexOf('image') !== -1) {
-                                const file = items[i].getAsFile();
-                                const reader = new FileReader();
-                                reader.onload = function(event) {
-                                    const base64 = event.target.result;
-                                    const md = `![](${base64})`;
-                                    const start = textarea.selectionStart;
-                                    const end = textarea.selectionEnd;
-                                    textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
-                                };
-                                reader.readAsDataURL(file);
-                                e.preventDefault();
-                                break;
-                            }
                         }
                     });
                     textSpan.replaceWith(textarea);

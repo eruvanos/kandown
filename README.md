@@ -34,7 +34,7 @@ Run the kandown server with a markdown file:
 uv run kandown your-file.md
 ```
 
-Then open your browser to `http://127.0.0.1:5000` to view the rendered content.
+Then open your browser to `http://127.0.0.1:8000` to view the rendered content.
 
 ### CLI Options
 
@@ -43,7 +43,7 @@ uv run kandown [OPTIONS] MARKDOWN_FILE
 
 Options:
   --host TEXT     Host to bind to (default: 127.0.0.1)
-  --port INTEGER  Port to bind to (default: 5000) 
+  --port INTEGER  Port to bind to (default: 8000) 
   --debug         Enable debug mode
   --help          Show help message
 ```
