@@ -34,7 +34,7 @@ def create_app(yaml_file):
     @app.route("/")
     def index():
         """Render the kanban board as the index page."""
-        return render_template("kanban.html")
+        return render_template("kanban_py.html")
 
     @app.route("/api/tasks")
     def get_tasks():
