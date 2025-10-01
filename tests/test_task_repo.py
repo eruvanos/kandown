@@ -51,3 +51,32 @@ def test_empty_all(tmp_path):
     repo, _ = make_repo_with_tasks(tmp_path)
     assert repo.all() == []
 
+def test_created_and_updated_fields(tmp_path):
+    repo, _ = make_repo_with_tasks(tmp_path)
+    task = {"text": "Test date fields", "status": "todo"}
+    saved = repo.save(task)
+    assert "created" in saved
+    assert "updated" in saved
+    assert saved["created"] == saved["updated"]
+    # Update text and check updated changes
+    updated = repo.update_text(saved["id"], "Changed text")
+    assert updated["updated"] != updated["created"]
+
+def test_closed_field_on_status_change(tmp_path):
+    repo, _ = make_repo_with_tasks(tmp_path)
+    task = repo.save({"text": "Close test", "status": "todo"})
+    # Initially no closed field
+    assert "closed" not in task
+    # Change status to done
+    done_task = repo.update_status(task["id"], "done")
+    assert done_task["status"] == "done"
+    assert "closed" in done_task
+    closed_time = done_task["closed"]
+    # Change status away from done
+    reopened = repo.update_status(task["id"], "todo")
+    assert reopened["status"] == "todo"
+    assert "closed" not in reopened
+    # Change back to done, closed should be set again
+    done_again = repo.update_status(task["id"], "done")
+    assert "closed" in done_again
+    assert done_again["closed"] != closed_time

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import os
 import yaml
+import datetime
 
 
 class TaskRepository(ABC):
@@ -146,8 +147,21 @@ class YamlTaskRepository(TaskRepository):
         Returns:
             dict: The saved task with an assigned ID.
         """
+        now = datetime.datetime.now().isoformat()
         if "id" not in task:
             task = dict(task)
+            task["created"] = now
+            task["updated"] = now
+        else:
+            # If re-saving an existing task, don't overwrite created
+            if "created" not in task:
+                task["created"] = now
+            task["updated"] = now
+        if "closed" in task and task.get("status") != "done":
+            del task["closed"]
+        if task.get("status") == "done" and "closed" not in task:
+            task["closed"] = now
+        if "id" not in task:
             task["id"] = f"K-{self.counter:03d}"
             self.counter += 1
         self.tasks.append(task)
@@ -186,10 +200,17 @@ class YamlTaskRepository(TaskRepository):
         Returns:
             dict or None: The updated task if found, else None.
         """
+        now = datetime.datetime.now().isoformat()
         for task in self.tasks:
             if task["id"] == id:
                 if status is not None:
+                    previous_status = task.get("status")
                     task["status"] = status
+                    task["updated"] = now
+                    if status == "done" and previous_status != "done":
+                        task["closed"] = now
+                    elif previous_status == "done" and status != "done":
+                        task.pop("closed", None)
                 self._save()
                 return task
         return None
@@ -203,10 +224,12 @@ class YamlTaskRepository(TaskRepository):
         Returns:
             dict or None: The updated task if found, else None.
         """
+        now = datetime.datetime.now().isoformat()
         for task in self.tasks:
             if task["id"] == id:
                 if text is not None:
                     task["text"] = text
+                    task["updated"] = now
                 self._save()
                 return task
         return None
@@ -222,10 +245,12 @@ class YamlTaskRepository(TaskRepository):
         Returns:
             dict or None: The updated task if found, else None.
         """
+        now = datetime.datetime.now().isoformat()
         for task in self.tasks:
             if task["id"] == id:
                 if tags is not None:
                     task["tags"] = tags
+                    task["updated"] = now
                 self._save()
                 return task
         return None
