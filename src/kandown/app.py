@@ -1,27 +1,46 @@
 """Flask application for rendering markdown files."""
 
 import os
-from flask import (
-    Flask,
-    render_template,
-    jsonify,
-    request,
-    send_from_directory,
-)
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from .task_repo import YamlTaskRepository
 
 
-def create_app(yaml_file):
-    """Create and configure the Flask app using the factory pattern."""
-    from .task_repo import YamlTaskRepository
+class TaskModel(BaseModel):
+    id: str
+    text: Optional[str] = None
+    status: str
+    tags: List[str] = []
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    closed_at: Optional[str] = None
 
-    app = Flask(
-        __name__, template_folder=os.path.join(os.path.dirname(__file__), "templates")
-    )
+class TaskCreateModel(BaseModel):
+    text: Optional[str] = ""
+    status: str
+    tags: List[str] = Field(default_factory=list)
 
-    repo = YamlTaskRepository(yaml_file)
+class TaskStatusModel(BaseModel):
+    status: str
 
-    def _map_task_fields(task):
-        # Map backend date fields to frontend expected names
+class TaskTextModel(BaseModel):
+    text: str
+
+class TaskTagsModel(BaseModel):
+    tags: List[str]
+
+def create_app(yaml_path=None):
+
+    app = FastAPI()
+    statics_dir = os.path.join(os.path.dirname(__file__), "statics")
+    app.mount("/statics", StaticFiles(directory=statics_dir), name="statics")
+
+    repo = YamlTaskRepository(yaml_path or os.environ.get("KANDOWN_YAML", "demo.yml"))
+
+    def _map_task_fields(task: dict) -> dict:
         mapped = dict(task)
         if "created" in mapped:
             mapped["created_at"] = mapped["created"]
@@ -31,84 +50,69 @@ def create_app(yaml_file):
             mapped["closed_at"] = mapped["closed"]
         return mapped
 
-    @app.route("/")
+    @app.get("/")
     def index():
-        """Render the kanban board as the index page."""
-        return render_template("kanban.html")
+        # Serve kanban.html as main page
+        template_path = os.path.join(os.path.dirname(__file__), "templates", "kanban.html")
+        if not os.path.exists(template_path):
+            raise HTTPException(status_code=404, detail="Template not found")
+        with open(template_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        return HTMLResponse(content=html)
 
-    @app.route("/api/tasks")
+    @app.get("/api/tasks", response_model=List[TaskModel])
     def get_tasks():
-        """Return all tasks as JSON."""
-        return jsonify([_map_task_fields(t) for t in repo.all()])
+        tasks = [_map_task_fields(t) for t in repo.all()]
+        return tasks
 
-    @app.route("/statics/<path:filename>")
-    def serve_static(filename):
-        """Serve files from the statics directory."""
-        statics_dir = os.path.join(os.path.dirname(__file__), "statics")
-        return send_from_directory(statics_dir, filename)
-
-    @app.route("/api/tasks/<id>", methods=["PATCH"])
-    def update_task(id):
-        """Update a task's status by id."""
-        data = request.get_json()
-        status = data.get("status") if data else None
+    @app.patch("/api/tasks/{id}", response_model=TaskModel)
+    def update_task(id: str, body: TaskStatusModel):
+        status = body.status
         if not status:
-            return jsonify({"error": "Missing status"}), 400
+            raise HTTPException(status_code=400, detail="Missing status")
         task = repo.update_status(id, status=status)
         if not task:
-            return jsonify({"error": "Task not found"}), 404
-        return jsonify(_map_task_fields(task))
+            raise HTTPException(status_code=404, detail="Task not found")
+        return _map_task_fields(task)
 
-    @app.route("/api/tasks/<id>/text", methods=["PATCH"])
-    def update_task_text(id):
-        """Update a task's text by id."""
-        data = request.get_json()
-        text = data.get("text") if data else None
+    @app.patch("/api/tasks/{id}/text", response_model=TaskModel)
+    def update_task_text(id: str, body: TaskTextModel):
+        text = body.text
         if not text:
-            return jsonify({"error": "Missing text"}), 400
+            raise HTTPException(status_code=400, detail="Missing text")
         task = repo.update_text(id, text=text)
         if not task:
-            return jsonify({"error": "Task not found"}), 404
-        return jsonify(_map_task_fields(task))
+            raise HTTPException(status_code=404, detail="Task not found")
+        return _map_task_fields(task)
 
-    @app.route("/api/tasks", methods=["POST"])
-    def add_task():
-        """Add a new task."""
-        data = request.get_json()
-        text = data.get("text") if data else ""
-        status = data.get("status") if data else None
-        tags = data.get("tags") if data else None
-        if not status or not isinstance(tags, list):
-            return jsonify(
-                {"error": "Missing or invalid fields: text, status, tags"}
-            ), 400
-        task = {"text": text, "status": status, "tags": tags}
+    @app.post("/api/tasks", response_model=TaskModel, status_code=201)
+    def add_task(body: TaskCreateModel):
+        if not body.status or not isinstance(body.tags, list):
+            raise HTTPException(status_code=400, detail="Missing or invalid fields: text, status, tags")
+        task = {"text": body.text, "status": body.status, "tags": body.tags}
         created = repo.save(task)
-        return jsonify(created), 201
+        return _map_task_fields(created)
 
-    @app.route("/api/tasks/<id>/tags", methods=["PATCH"])
-    def update_task_tags(id):
-        """Update a task's tags by id."""
-        data = request.get_json()
-        tags = data.get("tags") if data else None
+    @app.patch("/api/tasks/{id}/tags", response_model=TaskModel)
+    def update_task_tags(id: str, body: TaskTagsModel):
+        tags = body.tags
         if not isinstance(tags, list):
-            return jsonify({"error": "Missing or invalid tags"}), 400
-        # Optionally validate each tag is a string
+            raise HTTPException(status_code=400, detail="Missing or invalid tags")
         if not all(isinstance(tag, str) for tag in tags):
-            return jsonify({"error": "Tags must be strings"}), 400
+            raise HTTPException(status_code=400, detail="Tags must be strings")
         task = repo.update_tags(id, tags=tags)
         if not task:
-            return jsonify({"error": "Task not found"}), 404
-        return jsonify(task)
+            raise HTTPException(status_code=404, detail="Task not found")
+        return _map_task_fields(task)
 
-    @app.route("/api/tags/suggestions")
+    @app.get("/api/tags/suggestions", response_model=List[str])
     def tag_suggestions():
-        """Return a list of unique tags from all tasks."""
         all_tasks = repo.all()
         tags = set()
         for task in all_tasks:
             for tag in task.get("tags", []):
                 tags.add(tag)
-        return jsonify(sorted(tags))
+        return sorted(tags)
 
     return app
+

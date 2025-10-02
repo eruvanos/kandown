@@ -2,6 +2,7 @@
 
 import os
 import click
+import uvicorn
 from .app import create_app
 
 
@@ -35,11 +36,9 @@ def main(yaml_file, host, port, debug):
     click.echo(f"Using YAML file: {yaml_file}")
     click.echo(f"Server will be available at: http://{host}:{port}")
 
-    # Set the markdown file and create the app
-    app = create_app(yaml_file=yaml_file)
+    # Run the FastAPI app using uvicorn
 
-    # Run the Flask app
-    app.run(host=host, port=port, debug=debug)
+    uvicorn.run("kandown.app:create_app", factory=True, host=host, port=port, reload=debug, log_level="debug" if debug else "info")
 
 
 if __name__ == "__main__":
