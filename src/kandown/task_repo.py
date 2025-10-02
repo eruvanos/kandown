@@ -42,9 +42,7 @@ class TaskRepository(ABC):
         pass
 
     @abstractmethod
-    def update_status(
-        self, id: str, status: str | None = None
-    ) -> dict[str, object] | None:
+    def update_status(self, id: str, status: str | None = None) -> dict[str, object] | None:
         """
         Update the status of a task.
         Args:
@@ -68,14 +66,24 @@ class TaskRepository(ABC):
         pass
 
     @abstractmethod
-    def update_tags(
-        self, id: str, tags: list[str] | None = None
-    ) -> dict[str, object] | None:
+    def update_tags(self, id: str, tags: list[str] | None = None) -> dict[str, object] | None:
         """
         Update the tags of a task.
         Args:
             id (str): The ID of the task.
             tags (list, optional): The new tags.
+        Returns:
+            dict or None: The updated task if found, else None.
+        """
+        pass
+
+    @abstractmethod
+    def update_order(self, id: str, order: int) -> dict[str, object] | None:
+        """
+        Update the order of a task.
+        Args:
+            id (str): The ID of the task.
+            order (int): The new order value.
         Returns:
             dict or None: The updated task if found, else None.
         """
@@ -189,9 +197,7 @@ class YamlTaskRepository(TaskRepository):
         """
         return list(self.tasks)
 
-    def update_status(
-        self, id: str, status: str | None = None
-    ) -> dict[str, object] | None:
+    def update_status(self, id: str, status: str | None = None) -> dict[str, object] | None:
         """
         Update the status of a task.
         Args:
@@ -234,9 +240,7 @@ class YamlTaskRepository(TaskRepository):
                 return task
         return None
 
-    def update_tags(
-        self, id: str, tags: list[str] | None = None
-    ) -> dict[str, object] | None:
+    def update_tags(self, id: str, tags: list[str] | None = None) -> dict[str, object] | None:
         """
         Update the tags of a task.
         Args:
@@ -254,3 +258,41 @@ class YamlTaskRepository(TaskRepository):
                 self._save()
                 return task
         return None
+
+    def update_order(self, id: str, order: int) -> dict[str, object] | None:
+        """
+        Update the order of a task.
+        Args:
+            id (str): The ID of the task.
+            order (int): The new order value.
+        Returns:
+            dict or None: The updated task if found, else None.
+        """
+        now = datetime.datetime.now().isoformat()
+        for task in self.tasks:
+            if task["id"] == id:
+                task["order"] = order
+                task["updated"] = now
+                self._save()
+                return task
+        return None
+
+    def batch_update(self, updates: dict[str, dict]) -> list[dict[str, object]]:
+        """
+        Batch update multiple tasks by id and attribute dicts.
+        Args:
+            updates (dict): Mapping of id to attribute dicts.
+        Returns:
+            list: List of updated tasks.
+        """
+        now = datetime.datetime.now().isoformat()
+        updated = []
+        for task in self.tasks:
+            attrs = updates.get(task["id"])
+            if attrs:
+                for k, v in attrs.items():
+                    task[k] = v
+                task["updated"] = now
+                updated.append(task)
+        self._save()
+        return updated

@@ -14,9 +14,7 @@ def create_app(yaml_file):
     """Create and configure the Flask app using the factory pattern."""
     from .task_repo import YamlTaskRepository
 
-    app = Flask(
-        __name__, template_folder=os.path.join(os.path.dirname(__file__), "templates")
-    )
+    app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), "templates"))
 
     repo = YamlTaskRepository(yaml_file)
 
@@ -79,9 +77,7 @@ def create_app(yaml_file):
         status = data.get("status") if data else None
         tags = data.get("tags") if data else None
         if not status or not isinstance(tags, list):
-            return jsonify(
-                {"error": "Missing or invalid fields: text, status, tags"}
-            ), 400
+            return jsonify({"error": "Missing or invalid fields: text, status, tags"}), 400
         task = {"text": text, "status": status, "tags": tags}
         created = repo.save(task)
         return jsonify(created), 201
@@ -110,5 +106,14 @@ def create_app(yaml_file):
             for tag in task.get("tags", []):
                 tags.add(tag)
         return jsonify(sorted(tags))
+
+    @app.route("/api/tasks", methods=["PATCH"])
+    def batch_update_tasks():
+        """Batch update tasks by id and attributes."""
+        data = request.get_json()
+        if not isinstance(data, dict):
+            return jsonify({"error": "Payload must be a dict of id to attribute dicts"}), 400
+        updated = repo.batch_update(data)
+        return jsonify([_map_task_fields(t) for t in updated])
 
     return app

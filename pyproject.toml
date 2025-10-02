@@ -21,6 +21,9 @@ kandown = "kandown.cli:main"
 requires = ["uv_build>=0.8.22,<0.9.0"]
 build-backend = "uv_build"
 
+[tool.ruff]
+line-length = 120
+
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",

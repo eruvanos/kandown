@@ -22,6 +22,9 @@
         updateTaskTags: (id, tags) => fetch(`/api/tasks/${id}/tags`, {
             method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({tags})
         }).then(r => r.json()),
+        updateTaskOrder: (id, order) => fetch(`/api/tasks/${id}/order`, {
+            method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({order})
+        }).then(r => r.json()),
     };
 
     // --- Helpers ---
@@ -97,29 +100,138 @@
     }
 
     // --- Drag & Drop ---
+    let dragSrcId = null;
+    let dragOverIndex = null;
+    let dragOverCol = null;
+    let placeholderEl = null;
+
     function makeDraggable() {
-        document.querySelectorAll('.task').forEach(function(card) {
+        document.querySelectorAll('.task').forEach(function(card, idx) {
             card.setAttribute('draggable', 'true');
             card.addEventListener('dragstart', function(e) {
+                dragSrcId = card.dataset.id;
+                dragOverIndex = null;
+                dragOverCol = null;
+                e.dataTransfer.effectAllowed = 'move';
                 e.dataTransfer.setData('text/plain', card.dataset.id);
+                card.classList.add('dragging');
+            });
+            card.addEventListener('dragend', function(e) {
+                dragSrcId = null;
+                dragOverIndex = null;
+                dragOverCol = null;
+                card.classList.remove('dragging');
+                removePlaceholder();
             });
         });
     }
+
+    function removePlaceholder() {
+        if (placeholderEl && placeholderEl.parentNode) {
+            placeholderEl.parentNode.removeChild(placeholderEl);
+        }
+        placeholderEl = null;
+    }
+
     function setupDropZones() {
         Object.entries(columns).forEach(([status, col]) => {
-            if (!col) return; // Defensive: skip if column not found
-            col.addEventListener('dragover', e => e.preventDefault());
+            if (!col) return;
+            col.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                const tasks = Array.from(col.querySelectorAll('.task'));
+                let insertIdx = tasks.length;
+                for (let i = 0; i < tasks.length; i++) {
+                    const rect = tasks[i].getBoundingClientRect();
+                    if (e.clientY < rect.top + rect.height / 2) {
+                        insertIdx = i;
+                        break;
+                    }
+                }
+                dragOverIndex = insertIdx;
+                dragOverCol = col;
+                showPlaceholder(col, insertIdx);
+            });
+            col.addEventListener('dragleave', function(e) {
+                removePlaceholder();
+            });
             col.addEventListener('drop', function(e) {
                 e.preventDefault();
-                const id = e.dataTransfer.getData('text/plain');
+                removePlaceholder();
+                const id = dragSrcId || e.dataTransfer.getData('text/plain');
                 if (!id) return;
-                api.updateTaskStatus(id, status).then(() => {
-                    renderTasks();
-                    if (status === 'done') showConfetti();
+                const tasks = Array.from(col.querySelectorAll('.task'));
+                let newOrder = [];
+                for (let i = 0; i < tasks.length; i++) {
+                    if (i === dragOverIndex) newOrder.push(id);
+                    if (tasks[i].dataset.id !== id) newOrder.push(tasks[i].dataset.id);
+                }
+                if (dragOverIndex === tasks.length) newOrder.push(id);
+                // Fetch all tasks to get the original status
+                api.getTasks().then(allTasks => {
+                    const draggedTask = allTasks.find(t => t.id === id);
+                    const originalStatus = draggedTask ? draggedTask.status : null;
+                    updateColumnOrder(status, newOrder, id, originalStatus);
                 });
             });
         });
     }
+
+    function showPlaceholder(col, idx) {
+        removePlaceholder();
+        const tasks = Array.from(col.querySelectorAll('.task'));
+        placeholderEl = document.createElement('div');
+        placeholderEl.className = 'task-placeholder';
+        placeholderEl.style.height = '0';
+        placeholderEl.style.borderTop = '3px solid #2196f3';
+        placeholderEl.style.margin = '2px 0';
+        placeholderEl.style.transition = 'border-color 0.2s';
+        if (idx >= tasks.length) {
+            col.appendChild(placeholderEl);
+        } else {
+            col.insertBefore(placeholderEl, tasks[idx]);
+        }
+    }
+
+    function updateColumnOrder(status, newOrder, movedId, originalStatus) {
+        // Build batch update payload
+        const payload = {};
+        newOrder.forEach((id, idx) => {
+            payload[id] = { order: idx };
+        });
+        // If the moved task changed columns, update its status too
+        if (movedId && originalStatus && originalStatus !== status) {
+            payload[movedId].status = status;
+        }
+        fetch('/api/tasks', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(r => r.json()).then(() => {
+            renderTasks();
+        });
+    }
+
+    // --- CSS for animation, placeholder, and tag input visibility ---
+    const style = document.createElement('style');
+    style.textContent = `
+        .task {
+            transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+        }
+        .task.dragging {
+            opacity: 0.5;
+        }
+        .task-placeholder {
+            border-top: 3px solid #2196f3;
+            margin: 2px 0;
+        }
+        .add-tag-input {
+            display: none;
+        }
+        .task.show-tag-input .add-tag-input {
+            display: inline-block;
+        }
+    `;
+    document.head.appendChild(style);
 
     // --- Editing ---
     function handleEdit(taskId, textEl) {
@@ -234,6 +346,8 @@
     // --- Render ---
     function renderTasks(focusCallback, focusTaskId) {
         api.getTasks().then(tasks => {
+            // Sort tasks by order before rendering
+            tasks.sort((a, b) => (a.order || 0) - (b.order || 0));
             Object.values(columns).forEach(col => {
                 while (col.children.length > 1) col.removeChild(col.lastChild);
             });
@@ -345,7 +459,6 @@
                     addTagInput.placeholder = 'Add tag...';
                     let tagSuggestions = [];
                     // Fetch tag suggestions immediately when input is created
-                    api.getTagSuggestions().then(tags => { tagSuggestions = tags; });
                     addTagInput.onfocus = function(e) {
                         e.stopPropagation();
                         api.getTagSuggestions().then(tags => { tagSuggestions = tags; });
@@ -372,6 +485,15 @@
                     tagsDiv.style.position = 'relative';
                     tagsDiv.appendChild(addTagInput);
                     tagsDiv.appendChild(suggestionBox);
+                    // Show addTagInput only on hover for non-collapsed tasks
+                    if (!el.classList.contains('collapsed')) {
+                        el.addEventListener('mouseenter', function() {
+                            el.classList.add('show-tag-input');
+                        });
+                        el.addEventListener('mouseleave', function() {
+                            el.classList.remove('show-tag-input');
+                        });
+                    }
                 }
                 el.appendChild(tagsDiv);
                 // --- Edit Handler ---
