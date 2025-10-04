@@ -25,6 +25,9 @@
         updateTaskOrder: (id, order) => fetch(`/api/tasks/${id}/order`, {
             method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({order})
         }).then(r => r.json()),
+        deleteTask: (id) => fetch(`/api/tasks/${id}`, {
+            method: 'DELETE'
+        }).then(r => r.json()),
     };
 
     // --- Helpers ---
@@ -289,6 +292,18 @@
         });
     }
 
+    // --- Shortcut for adding a new backlog task ---
+    document.addEventListener('keydown', function(e) {
+        // Use 'N' key (key: 'n', case-insensitive)
+        if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            // Ignore if typing in input or textarea
+            const active = document.activeElement;
+            if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) return;
+            addTask('todo');
+            e.preventDefault();
+        }
+    });
+
     // --- Confetti ---
     function showConfetti() {
         // Simple confetti effect using canvas
@@ -378,6 +393,24 @@
                 const idDiv = document.createElement('div');
                 idDiv.className = 'task-id';
                 idDiv.textContent = task.id;
+                // --- Delete Button (now after ID) ---
+                const deleteBtn = document.createElement('span');
+                deleteBtn.className = 'delete-task-btn';
+                deleteBtn.title = 'Delete task';
+                deleteBtn.innerHTML = '&#10060;'; // Red cross
+                deleteBtn.style.marginLeft = '8px';
+                deleteBtn.style.color = '#e53935';
+                deleteBtn.style.fontSize = '14px';
+                deleteBtn.style.cursor = 'pointer';
+                deleteBtn.style.verticalAlign = 'middle';
+                deleteBtn.style.position = 'static';
+                deleteBtn.style.zIndex = '20';
+                deleteBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    showDeleteModal(task.id);
+                };
+                idDiv.appendChild(deleteBtn);
+                el.appendChild(idDiv);
                 // --- Task Text ---
                 let textSpan;
                 if (focusTaskId && task.id === focusTaskId && !task.text) {
@@ -597,6 +630,106 @@
             if (focusCallback) focusCallback();
         });
     }
+
+    // --- Delete Modal ---
+    function showDeleteModal(taskId) {
+        let modal = document.getElementById('delete-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'delete-modal';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(0,0,0,0.3)';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = '99999';
+            const box = document.createElement('div');
+            box.className = 'delete-modal-box';
+            // Remove inline background, rely on CSS
+            box.style.padding = '32px';
+            box.style.borderRadius = '12px';
+            box.style.boxShadow = '0 2px 16px rgba(0,0,0,0.15)';
+            box.style.textAlign = 'center';
+            box.innerHTML = '<h3>Delete Task?</h3><p>This action cannot be undone.</p>';
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = 'Delete';
+            confirmBtn.style.background = '#e53935';
+            confirmBtn.style.color = '#fff';
+            confirmBtn.style.border = 'none';
+            confirmBtn.style.padding = '8px 24px';
+            confirmBtn.style.margin = '16px';
+            confirmBtn.style.borderRadius = '6px';
+            confirmBtn.style.cursor = 'pointer';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.style.background = '#eee';
+            cancelBtn.style.color = '#333';
+            cancelBtn.style.border = 'none';
+            cancelBtn.style.padding = '8px 24px';
+            cancelBtn.style.margin = '16px';
+            cancelBtn.style.borderRadius = '6px';
+            cancelBtn.style.cursor = 'pointer';
+            box.appendChild(confirmBtn);
+            box.appendChild(cancelBtn);
+            modal.appendChild(box);
+            document.body.appendChild(modal);
+            confirmBtn.onclick = function() {
+                api.deleteTask(taskId).then(() => {
+                    document.body.removeChild(modal);
+                    renderTasks();
+                });
+            };
+            cancelBtn.onclick = function() {
+                document.body.removeChild(modal);
+            };
+        }
+    }
+
+    // --- CSS for delete button and modal darkmode ---
+    style.textContent += `
+        .delete-task-btn:hover {
+            color: #b71c1c;
+            transform: scale(1.2);
+        }
+        .task-id .delete-task-btn {
+            font-size: 14px;
+            margin-left: 8px;
+            vertical-align: middle;
+            position: static;
+        }
+        #delete-modal .delete-modal-box {
+            background: #fff;
+            color: #222;
+        }
+        body.darkmode #delete-modal {
+            background: rgba(20, 20, 20, 0.7);
+        }
+        body.darkmode #delete-modal .delete-modal-box {
+            background: #23272e !important;
+            color: #f3f3f3;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+        }
+        body.darkmode #delete-modal h3,
+        body.darkmode #delete-modal p {
+            color: #f3f3f3;
+        }
+        body.darkmode #delete-modal button {
+            background: #444;
+            color: #f3f3f3;
+            border: none;
+        }
+        body.darkmode #delete-modal button:hover {
+            background: #e53935;
+            color: #fff;
+        }
+        body.darkmode #delete-modal button:active {
+            background: #b71c1c;
+        }
+    `;
 
     // --- Entry Point ---
     document.addEventListener('DOMContentLoaded', function() {

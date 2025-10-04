@@ -89,6 +89,17 @@ class TaskRepository(ABC):
         """
         pass
 
+    @abstractmethod
+    def delete(self, id: str) -> bool:
+        """
+        Delete a task by its ID.
+        Args:
+            id (str): The ID of the task.
+        Returns:
+            bool: True if the task was deleted, False if not found.
+        """
+        pass
+
 
 class YamlTaskRepository(TaskRepository):
     """
@@ -276,6 +287,21 @@ class YamlTaskRepository(TaskRepository):
                 self._save()
                 return task
         return None
+
+    def delete(self, id: str) -> bool:
+        """
+        Delete a task by its ID.
+        Args:
+            id (str): The ID of the task.
+        Returns:
+            bool: True if the task was deleted, False if not found.
+        """
+        for i, task in enumerate(self.tasks):
+            if task.get("id") == id:
+                del self.tasks[i]
+                self._save()
+                return True
+        return False
 
     def batch_update(self, updates: dict[str, dict]) -> list[dict[str, object]]:
         """

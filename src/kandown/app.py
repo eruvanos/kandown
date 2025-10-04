@@ -116,4 +116,13 @@ def create_app(yaml_file):
         updated = repo.batch_update(data)
         return jsonify([_map_task_fields(t) for t in updated])
 
+    @app.route("/api/tasks/<id>", methods=["DELETE"])
+    def delete_task(id):
+        """Delete a task by id."""
+        deleted = repo.delete(id)
+        if deleted:
+            return jsonify({"success": True}), 200
+        else:
+            return jsonify({"error": "Task not found"}), 404
+
     return app
