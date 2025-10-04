@@ -1,5 +1,14 @@
 // Kanban Board Refactored
 (function() {
+    // change marked rendering to support interactive checkboxes
+    if (window.marked) {
+        const renderer = new marked.Renderer();
+        renderer.checkbox = function ({checked}){
+           return `<input ${checked === true ? 'checked="" ' : ''} type="checkbox"/>`;
+        };
+        marked.setOptions({ renderer });
+    };
+
     // --- State ---
     let editingTaskId = null;
     let inputEl = null;
@@ -434,7 +443,19 @@
                         textSpan.style.color = '#888';
                         textSpan.style.display = 'block';
                     } else {
-                        if (window.marked) textSpan.innerHTML = window.marked.parse(task.text);
+                        if (window.marked) {
+                            textSpan.innerHTML = window.marked.parse(task.text);
+
+                            // Attach checkbox click handler for interactive checkboxes
+                            setTimeout(() => {
+                                const checkboxes = textSpan.querySelectorAll('input[type="checkbox"]');
+                                checkboxes.forEach(cb => {
+                                    cb.addEventListener('click', handleCheckboxClick);
+                                });
+                            }, 0);
+
+
+                        }
                         else textSpan.textContent = task.text;
                     }
                     textSpan.style.cursor = 'pointer';
@@ -763,4 +784,45 @@
         if (isNaN(d)) return dateStr;
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     }
+
+     function handleCheckboxClick(ev) {
+        // Find the closest task card
+        const taskEl = ev.target.closest('.task');
+        if (!taskEl) return;
+        const taskId = taskEl.dataset.id;
+        // Find the task text element
+        const textEl = taskEl.querySelector('.task-text');
+        if (!textEl) return;
+        // Get all checkboxes in this card
+        const allCheckboxes = textEl.querySelectorAll('input[type="checkbox"]');
+        const checkIndex = Array.from(allCheckboxes).findIndex(el => el === ev.target);
+        if (checkIndex === -1) return;
+        // Get the original markdown from the API (or store it in a data attribute)
+        api.getTasks().then(tasks => {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task || !task.text) return;
+            // Split markdown into lines
+            const lines = task.text.split(/\r?\n/);
+            let todoIdx = 0;
+            for (let i = 0; i < lines.length; i++) {
+                if (/^\s*- \[[ x]\] .*/.test(lines[i])) {
+                    if (todoIdx === checkIndex) {
+                        // Toggle checkbox state for this line only
+                        lines[i] = lines[i].includes('[ ]')
+                            ? lines[i].replace('[ ]', '[x]')
+                            : lines[i].replace('[x]', '[ ]');
+                        break;
+                    }
+                    todoIdx++;
+                }
+            }
+            const newText = lines.join('\n');
+            api.updateTaskText(taskId, newText).then(() => {
+                renderTasks();
+            });
+        });
+    }
+
+
+
 })();
