@@ -460,10 +460,21 @@
                     addTagInput.type = 'text';
                     addTagInput.placeholder = 'Add tag...';
                     let tagSuggestions = [];
+                    let tagInputFocused = false;
+                    let mouseOverCard = false;
                     // Fetch tag suggestions immediately when input is created
                     addTagInput.onfocus = function(e) {
-                        e.stopPropagation();
+                        tagInputFocused = true;
+                        el.classList.add('show-tag-input');
                         api.getTagSuggestions().then(tags => { tagSuggestions = tags; });
+                    };
+                    addTagInput.onblur = function(e) {
+                        tagInputFocused = false;
+                        setTimeout(() => {
+                            if (!mouseOverCard) {
+                                el.classList.remove('show-tag-input');
+                            }
+                        }, 0);
                     };
                     const suggestionBox = createTagSuggestionBox(addTagInput, task, () => tagSuggestions);
                     addTagInput.oninput = function() {
@@ -475,10 +486,23 @@
                             if ((task.tags || []).includes(newTag)) {
                                 addTagInput.value = '';
                                 suggestionBox.style.display = 'none';
+                                addTagInput.focus();
                                 return;
                             }
                             const newTags = [...(task.tags || []), newTag];
-                            api.updateTaskTags(task.id, newTags).then(() => renderTasks());
+                            api.updateTaskTags(task.id, newTags).then(() => {
+                                renderTasks(() => {
+                                    setTimeout(() => {
+                                        const col = columns[task.status];
+                                        if (!col) return;
+                                        const el2 = col.querySelector(`[data-id='${task.id}']`);
+                                        if (el2) {
+                                            const input = el2.querySelector('.add-tag-input');
+                                            if (input) input.focus();
+                                        }
+                                    }, 0);
+                                });
+                            });
                             addTagInput.value = '';
                             suggestionBox.style.display = 'none';
                         }
@@ -487,13 +511,19 @@
                     tagsDiv.style.position = 'relative';
                     tagsDiv.appendChild(addTagInput);
                     tagsDiv.appendChild(suggestionBox);
-                    // Show addTagInput only on hover for non-collapsed tasks
+                    // Show addTagInput only on hover for non-collapsed tasks, but keep visible if focused
                     if (!el.classList.contains('collapsed')) {
                         el.addEventListener('mouseenter', function() {
+                            mouseOverCard = true;
                             el.classList.add('show-tag-input');
                         });
                         el.addEventListener('mouseleave', function() {
-                            el.classList.remove('show-tag-input');
+                            mouseOverCard = false;
+                            setTimeout(() => {
+                                if (!tagInputFocused) {
+                                    el.classList.remove('show-tag-input');
+                                }
+                            }, 0);
                         });
                     }
                 }
