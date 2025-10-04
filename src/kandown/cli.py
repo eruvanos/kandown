@@ -7,10 +7,8 @@ from .app import create_app
 
 @click.command()
 @click.argument("yaml_file", required=False, type=click.Path())
-@click.option(
-    "--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)"
-)
-@click.option("--port", default=8080, help="Port to bind to (default: 5000)")
+@click.option("--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
+@click.option("--port", default=5001, help="Port to bind to (default: 5000)")
 @click.option("--debug", is_flag=True, help="Enable debug mode")
 def main(yaml_file, host, port, debug):
     """Start the Kandown server with a YAML file for tasks.
@@ -22,9 +20,7 @@ def main(yaml_file, host, port, debug):
         click.echo("No YAML file provided, using default: backlog.yaml")
     yaml_file = os.path.abspath(yaml_file)
     if not os.path.exists(yaml_file):
-        create = click.confirm(
-            f"YAML file '{yaml_file}' does not exist. Create it?", default=True
-        )
+        create = click.confirm(f"YAML file '{yaml_file}' does not exist. Create it?", default=True)
         if create:
             with open(yaml_file, "w", encoding="utf-8") as f:
                 f.write("[]\n")

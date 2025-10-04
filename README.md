@@ -1,6 +1,9 @@
+
 # Kandown
 
 A simple, markdown-inspired Kanban board powered by YAML and Flask.
+
+![screenshot.png](docs/screenshot.png)
 
 ## Overview
 
@@ -36,14 +39,14 @@ kandown [OPTIONS] [YAML_FILE]
 ```
 
 - If no YAML file is provided, defaults to `backlog.yaml` (auto-created if missing).
-- Open your browser to `http://127.0.0.1:8080` (default) to view the board.
+- Open your browser to `http://127.0.0.1:5001` (default) to view the board.
 
 #### CLI Options
 
 ```
 Options:
   --host TEXT     Host to bind to (default: 127.0.0.1)
-  --port INTEGER  Port to bind to (default: 8080)
+  --port INTEGER  Port to bind to (default: 5001)
   --debug         Enable debug mode
   --help          Show help message
 ```
@@ -55,7 +58,7 @@ Options:
 kandown
 
 # Start server with a custom YAML file on a custom port
-kandown --port 8080 demo.yml
+kandown --port 5001 demo.yml
 ```
 
 ## Project Structure
@@ -86,10 +89,10 @@ To set up Kandown as a task server open the IDE settings and navigate to `Tools 
 Add a new generic server with the following details:
 
 - **General Settings**:
-  - URL: `http://localhost:8080` (or your server URL)
+  - URL: `http://localhost:5001` (or your server URL)
   - Login Anonymously: Checked
 - **Server Configuration**:
-  - Task List URL: `http://localhost:8080/api/tasks`
+  - Task List URL: `http://localhost:5001/api/tasks`
   - Tasks: $
   - id: `id`
   - summary: `text`
