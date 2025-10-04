@@ -33,7 +33,7 @@
         textarea.className = 'edit-input';
         textarea.value = value || '';
         textarea.style.width = '95%';
-        textarea.style.height = '4em';
+        textarea.style.height = '12em';
         textarea.style.resize = 'vertical';
         if (onBlur) textarea.addEventListener('blur', onBlur);
         if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
