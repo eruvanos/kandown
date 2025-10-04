@@ -47,6 +47,7 @@
         textarea.style.width = '95%';
         textarea.style.height = '12em';
         textarea.style.resize = 'vertical';
+        textarea.style.margin = '8px 0';
         if (onBlur) textarea.addEventListener('blur', onBlur);
         if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
         // Always attach paste handler for base64 image markdown
