@@ -469,6 +469,11 @@
                     if (task.text && task.text.trim()) {
                         title = task.text.split('\n')[0].trim();
                         if (!title) title = 'No title';
+                        // Truncate long titles
+                        const maxTitleLength = 35;
+                        if (title.length > maxTitleLength) {
+                            title = title.slice(0, maxTitleLength - 3) + '...';
+                        }
                     }
                     // Inline row for ID and title
                     const rowDiv = document.createElement('div');
