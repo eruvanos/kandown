@@ -374,6 +374,10 @@
                     el.style.position = 'relative';
                     el.appendChild(arrowBtn);
                 }
+                // --- Task ID ---
+                const idDiv = document.createElement('div');
+                idDiv.className = 'task-id';
+                idDiv.textContent = task.id;
                 // --- Task Text ---
                 let textSpan;
                 if (focusTaskId && task.id === focusTaskId && !task.text) {
@@ -402,13 +406,9 @@
                     }
                     textSpan.style.cursor = 'pointer';
                 }
-                // Render task id and text on separate lines
-                const idDiv = document.createElement('div');
-                idDiv.className = 'task-id';
-                idDiv.textContent = task.id;
                 // --- Collapsed logic for 'done' column ---
                 if (task.status === 'done' && doneCollapsed[task.id]) {
-                    // Only show id, arrow, and strikethrough title in one row
+                    // Only show arrow, and strikethrough title in one row
                     el.classList.add('collapsed');
                     // Title extraction
                     let title = 'No title';
@@ -431,6 +431,8 @@
                     columns[task.status].appendChild(el);
                     return;
                 }
+                // For all other cards, show ID at the top
+                el.appendChild(idDiv);
                 el.appendChild(textSpan);
                 // --- Tags ---
                 const tagsDiv = document.createElement('div');
