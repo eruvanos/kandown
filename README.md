@@ -14,6 +14,7 @@ The app features a clean, responsive web UI started by the CLI.
 - 🗂️ **Kanban board UI**: Drag-and-drop tasks between columns (To Do, In Progress, Done)
 - ✏️ **Markdown support**: Write task descriptions using Markdown syntax
 - 🖼️ **Image embedding**: Embed images in task descriptions, supporting paste from clipboard
+- ✅ **Interactive checkboxes**: Clickable checkboxes in task descriptions
 - 📄 **YAML-backed storage**: All tasks are stored in a simple YAML file
 - 🔄 **Jetbrains IDE integration**: View and track tasks directly from JetBrains IDEs
 - 🚀 **CLI**: Start the server, choose host/port/debug, auto-create YAML file if missing
