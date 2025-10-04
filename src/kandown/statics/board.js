@@ -691,6 +691,12 @@
 
     // --- CSS for delete button and modal darkmode ---
     style.textContent += `
+        .delete-task-btn {
+            display: none;
+        }
+        .task:hover .delete-task-btn {
+            display: inline;
+        }
         .delete-task-btn:hover {
             color: #b71c1c;
             transform: scale(1.2);

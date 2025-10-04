@@ -7,7 +7,7 @@ A simple, markdown-inspired Kanban board powered by YAML and Flask.
 Kandown is a lightweight web application for visualizing and managing 
 tasks in a Kanban board format. 
 Tasks are stored in a YAML file, making it easy to edit, version, and share your board.
-The app features a clean, responsive web UI and a CLI for quick setup.
+The app features a clean, responsive web UI started by the CLI.
 
 ## Features
 

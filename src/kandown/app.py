@@ -125,4 +125,14 @@ def create_app(yaml_file):
         else:
             return jsonify({"error": "Task not found"}), 404
 
+    @app.route("/api/settings", methods=["PATCH"])
+    def update_settings():
+        """Update kanban board settings."""
+        updates = request.get_json(force=True)
+        if not isinstance(updates, dict):
+            return jsonify({"error": "Invalid payload"}), 400
+        repo.settings.update(updates)
+        repo._save()
+        return jsonify(repo.settings)
+
     return app

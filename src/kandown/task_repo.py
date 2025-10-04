@@ -114,6 +114,7 @@ class YamlTaskRepository(TaskRepository):
         """
         self.yaml_path: str = yaml_path
         self.tasks: list[dict[str, object]] = []
+        self.settings: dict[str, object] = {}
         self.counter: int = 1
         self._load()
         self._update_counter()
@@ -136,27 +137,31 @@ class YamlTaskRepository(TaskRepository):
 
     def _load(self) -> None:
         """
-        Load tasks from the YAML file. If the file does not exist, initialize with an empty list.
+        Load tasks and settings from the YAML file. Supports both list and dict formats.
         """
         if os.path.exists(self.yaml_path):
             with open(self.yaml_path, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f) or []
-                self.tasks = []
-                for t in data:
-                    self.save(t)
+                data = yaml.safe_load(f)
+                if isinstance(data, dict):
+                    self.settings = data.get("settings", {})
+                    self.tasks = data.get("tasks", [])
+                else:
+                    self.settings = {}
+                    self.tasks = []
         else:
+            self.settings = {}
             self.tasks = []
 
     def _save(self) -> None:
         """
-        Save all tasks to the YAML file, including project metadata comments.
+        Save settings and tasks to the YAML file, including project metadata comments.
         """
         with open(self.yaml_path, "w", encoding="utf-8") as f:
             f.write("# Project page: https://github.com/eruvanos/kandown\n")
             f.write(
                 "# To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown demo.yml\n"
             )
-            yaml.safe_dump(self.tasks, f, allow_unicode=True)
+            yaml.safe_dump({"settings": self.settings, "tasks": self.tasks}, f, allow_unicode=True)
 
     def save(self, task: dict[str, object]) -> dict[str, object]:
         """
