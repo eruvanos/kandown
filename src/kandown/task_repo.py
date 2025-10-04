@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import os
 import yaml
 import datetime
+from atomicwrites import atomic_write
 
 
 class TaskRepository(ABC):
@@ -154,9 +155,9 @@ class YamlTaskRepository(TaskRepository):
 
     def _save(self) -> None:
         """
-        Save settings and tasks to the YAML file, including project metadata comments.
+        Save settings and tasks to the YAML file, including project metadata comments, using atomic file writing.
         """
-        with open(self.yaml_path, "w", encoding="utf-8") as f:
+        with atomic_write(self.yaml_path, mode="w", encoding="utf-8", overwrite=True) as f:
             f.write("# Project page: https://github.com/eruvanos/kandown\n")
             f.write(
                 "# To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown demo.yml\n"
@@ -327,3 +328,15 @@ class YamlTaskRepository(TaskRepository):
                 updated.append(task)
         self._save()
         return updated
+
+    def update_settings(self, updates: dict[str, object]) -> dict[str, object]:
+        """
+        Update settings and persist them to the YAML file.
+        Args:
+            updates (dict): Dictionary of settings to update.
+        Returns:
+            dict: The updated settings.
+        """
+        self.settings.update(updates)
+        self._save()
+        return self.settings

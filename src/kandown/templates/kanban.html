@@ -267,13 +267,23 @@
         toggleBtn.textContent = on ? '☀️' : '🌙';
         toggleBtn.classList.toggle('light', on);
     }
-    // Load mode from localStorage
-    let dark = localStorage.getItem('darkmode') === 'true';
-    setDarkMode(dark);
+    // Load mode from backend settings
+    let dark = false;
+    fetch('/api/settings')
+        .then(r => r.json())
+        .then(settings => {
+            dark = !!settings.darkmode;
+            setDarkMode(dark);
+        });
     toggleBtn.onclick = function() {
         dark = !dark;
         setDarkMode(dark);
-        localStorage.setItem('darkmode', dark);
+        // Persist to backend
+        fetch('/api/settings', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ darkmode: dark })
+        });
     };
     </script>
 </body>

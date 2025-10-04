@@ -12,6 +12,7 @@ dependencies = [
     "markdown>=3.6.0",
     "click>=8.1.0",
     "pyyaml>=6.0.3",
+    "atomicwrites>=1.4.1",
 ]
 
 [project.scripts]

@@ -131,8 +131,12 @@ def create_app(yaml_file):
         updates = request.get_json(force=True)
         if not isinstance(updates, dict):
             return jsonify({"error": "Invalid payload"}), 400
-        repo.settings.update(updates)
-        repo._save()
+        updated_settings = repo.update_settings(updates)
+        return jsonify(updated_settings)
+
+    @app.route("/api/settings", methods=["GET"])
+    def get_settings():
+        """Return current kanban board settings."""
         return jsonify(repo.settings)
 
     return app
