@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import os
 import yaml
 import datetime
+import threading
 from atomicwrites import atomic_write
 
 
@@ -117,6 +118,7 @@ class YamlTaskRepository(TaskRepository):
         self.tasks: list[dict[str, object]] = []
         self.settings: dict[str, object] = {}
         self.counter: int = 1
+        self.change_event: threading.Event = threading.Event()
         self._load()
         self._update_counter()
 
@@ -163,6 +165,9 @@ class YamlTaskRepository(TaskRepository):
                 "# To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown demo.yml\n"
             )
             yaml.safe_dump({"settings": self.settings, "tasks": self.tasks}, f, allow_unicode=True)
+        # Trigger change event after saving
+        self.change_event.set()
+        self.change_event.clear()
 
     def save(self, task: dict[str, object]) -> dict[str, object]:
         """

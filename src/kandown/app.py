@@ -7,6 +7,7 @@ from flask import (
     jsonify,
     request,
     send_from_directory,
+    Response,
 )
 
 
@@ -138,5 +139,24 @@ def create_app(yaml_file):
     def get_settings():
         """Return current kanban board settings."""
         return jsonify(repo.settings)
+
+    @app.route("/events")
+    def events():
+        """Server-sent events endpoint for real-time task updates."""
+
+        def event_stream():
+            while True:
+                # Wait for a change event
+                repo.change_event.wait(timeout=30)  # 30 second timeout to send keepalive
+
+                if repo.change_event.is_set():
+                    # Send update event with all tasks
+                    tasks = [_map_task_fields(t) for t in repo.all()]
+                    yield f"data: {jsonify(tasks).get_data(as_text=True)}\n\n"
+                else:
+                    # Send keepalive event
+                    yield 'data: {"type": "keepalive"}\n\n'
+
+        return Response(event_stream(), mimetype="text/event-stream")
 
     return app
