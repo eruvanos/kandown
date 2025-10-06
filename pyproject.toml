@@ -13,6 +13,7 @@ dependencies = [
     "click>=8.1.0",
     "pyyaml>=6.0.3",
     "atomicwrites>=1.4.1",
+    "pydantic>=2.11.10",
 ]
 
 [project.scripts]
@@ -22,11 +23,22 @@ kandown = "kandown.cli:main"
 requires = ["uv_build>=0.8.22,<0.9.0"]
 build-backend = "uv_build"
 
+
+[tool.pytest.ini_options]
+markers = [
+    "e2e: end to end tests",
+]
+
+[tools.pytest.ini_options]
+addopts = "--tracing retain-on-failure --headed --browser chromium"
+
+
 [tool.ruff]
 line-length = 120
 
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
+    "pytest-playwright>=0.7.1",
     "ruff>=0.13.2",
 ]

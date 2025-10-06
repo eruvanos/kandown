@@ -1,9 +1,15 @@
-from abc import ABC, abstractmethod
-import os
-import yaml
 import datetime
-import threading
+import os
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
+
+import yaml
 from atomicwrites import atomic_write
+
+from .models import BacklogData, Settings, Task
+
+ALLOWED_UPDATES = ("status", "text", "tags", "order")
+"""Allowed fields for task updates. These are the fields the user can modify."""
 
 
 class TaskRepository(ABC):
@@ -13,81 +19,56 @@ class TaskRepository(ABC):
     """
 
     @abstractmethod
-    def save(self, task: dict[str, object]) -> dict[str, object]:
+    def save(self, task: Task) -> Task:
         """
         Save a new task to the repository.
         Args:
-            task (dict): The task to save.
+            task (Task): The task to save.
         Returns:
-            dict: The saved task with an assigned ID.
+            Task: The saved task with an assigned ID.
         """
         pass
 
     @abstractmethod
-    def get(self, id: str) -> dict[str, object] | None:
+    def get(self, id: str) -> Optional[Task]:
         """
         Retrieve a task by its ID.
         Args:
             id (str): The ID of the task.
         Returns:
-            dict or None: The task if found, else None.
+            Task or None: The task if found, else None.
         """
         pass
 
     @abstractmethod
-    def all(self) -> list[dict[str, object]]:
+    def all(self) -> List[Task]:
         """
         Retrieve all tasks in the repository.
         Returns:
-            list: List of all tasks.
+            List[Task]: List of all tasks.
         """
         pass
 
     @abstractmethod
-    def update_status(self, id: str, status: str | None = None) -> dict[str, object] | None:
+    def update(self, id: str, **kwargs) -> Optional[Task]:
         """
-        Update the status of a task.
+        Update one or more attributes of a task.
         Args:
             id (str): The ID of the task.
-            status (str, optional): The new status.
+            **kwargs: Attributes to update.
         Returns:
-            dict or None: The updated task if found, else None.
+            Task or None: The updated task if found, else None.
         """
         pass
 
     @abstractmethod
-    def update_text(self, id: str, text: str | None = None) -> dict[str, object] | None:
+    def batch_update(self, updates: Dict[str, Dict[str, Any]]) -> List[Task]:
         """
-        Update the text of a task.
+        Batch update multiple tasks by id and attribute dicts.
         Args:
-            id (str): The ID of the task.
-            text (str, optional): The new text.
+            updates (Dict[str, Dict[str, Any]]): Mapping of id to attribute dicts.
         Returns:
-            dict or None: The updated task if found, else None.
-        """
-        pass
-
-    @abstractmethod
-    def update_tags(self, id: str, tags: list[str] | None = None) -> dict[str, object] | None:
-        """
-        Update the tags of a task.
-        Args:
-            id (str): The ID of the task.
-            tags (list, optional): The new tags.
-        Returns:
-            dict or None: The updated task if found, else None.
-        """
-        pass
-
-    @abstractmethod
-    def update_order(self, id: str, order: int) -> dict[str, object] | None:
-        """
-        Update the order of a task.
-        Args:
-            id (str): The ID of the task.
-            order (int): The new order value.
-        Returns:
-            dict or None: The updated task if found, else None.
+            List[Task]: List of updated tasks.
         """
         pass
 
@@ -102,10 +83,21 @@ class TaskRepository(ABC):
         """
         pass
 
+    @abstractmethod
+    def update_settings(self, updates: Dict[str, Any]) -> Settings:
+        """
+        Update settings and persist them to the repository.
+        Args:
+            updates (Dict[str, Any]): Dictionary of settings to update.
+        Returns:
+            Settings: The updated settings.
+        """
+        pass
+
 
 class YamlTaskRepository(TaskRepository):
     """
-    Task repository implementation using a YAML file for storage.
+    Task repository implementation using a YAML file for storage with Pydantic models.
     """
 
     def __init__(self, yaml_path: str) -> None:
@@ -115,12 +107,21 @@ class YamlTaskRepository(TaskRepository):
             yaml_path (str): Path to the YAML file.
         """
         self.yaml_path: str = yaml_path
-        self.tasks: list[dict[str, object]] = []
-        self.settings: dict[str, object] = {}
+        self.backlog_data: BacklogData = BacklogData()
         self.counter: int = 1
-        self.change_event: threading.Event = threading.Event()
+        # self.change_event: threading.Event = threading.Event()
         self._load()
         self._update_counter()
+
+    @property
+    def tasks(self) -> List[Task]:
+        """Get tasks from backlog data."""
+        return self.backlog_data.tasks
+
+    @property
+    def settings(self) -> Settings:
+        """Get settings from backlog data."""
+        return self.backlog_data.settings
 
     def _update_counter(self) -> None:
         """
@@ -128,10 +129,9 @@ class YamlTaskRepository(TaskRepository):
         """
         max_id: int = 0
         for task in self.tasks:
-            tid: str = task.get("id", "")
-            if tid.startswith("K-"):
+            if task.id and task.id.startswith("K-"):
                 try:
-                    num: int = int(tid[2:])
+                    num: int = int(task.id[2:])
                     if num > max_id:
                         max_id = num
                 except ValueError:
@@ -140,164 +140,164 @@ class YamlTaskRepository(TaskRepository):
 
     def _load(self) -> None:
         """
-        Load tasks and settings from the YAML file. Supports both list and dict formats.
+        Load tasks and settings from the YAML file using Pydantic models.
         """
         if os.path.exists(self.yaml_path):
             with open(self.yaml_path, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f)
-                if isinstance(data, dict):
-                    self.settings = data.get("settings", {})
-                    self.tasks = data.get("tasks", [])
-                else:
-                    self.settings = {}
-                    self.tasks = []
+                data = yaml.safe_load(f) or {}
+                try:
+                    if isinstance(data, dict):
+                        self.backlog_data = BacklogData.from_dict(data)
+                    else:
+                        # Handle legacy format (list of tasks)
+                        self.backlog_data = BacklogData(
+                            settings=Settings(),
+                            tasks=[Task.from_dict(task) for task in data] if isinstance(data, list) else [],
+                        )
+                except Exception as e:
+                    # Fallback for malformed data
+                    print(f"Warning: Could not parse YAML data: {e}. Using defaults.")
+                    self.backlog_data = BacklogData()
         else:
-            self.settings = {}
-            self.tasks = []
+            self.backlog_data = BacklogData()
 
     def _save(self) -> None:
         """
-        Save settings and tasks to the YAML file, including project metadata comments, using atomic file writing.
+        Save settings and tasks to the YAML file using Pydantic models.
         """
         with atomic_write(self.yaml_path, mode="w", encoding="utf-8", overwrite=True) as f:
             f.write("# Project page: https://github.com/eruvanos/kandown\n")
             f.write(
                 "# To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown demo.yml\n"
             )
-            yaml.safe_dump({"settings": self.settings, "tasks": self.tasks}, f, allow_unicode=True)
+            yaml.safe_dump(self.backlog_data.to_dict(), f, allow_unicode=True)
         # Trigger change event after saving
-        self.change_event.set()
-        self.change_event.clear()
+        # self.change_event.set()
 
-    def save(self, task: dict[str, object]) -> dict[str, object]:
+    def save(self, task: Task) -> Task:
         """
-        Save a new task to the repository, assigning an ID if necessary.
+        Save a task to the repository, assigning an ID if necessary (new task).
         Args:
-            task (dict): The task to save.
+            task (Task): The task to save.
         Returns:
-            dict: The saved task with an assigned ID.
+            Task: The saved task with an assigned ID.
         """
         now = datetime.datetime.now().isoformat()
-        if "id" not in task:
-            task = dict(task)
-            task["created"] = now
-            task["updated"] = now
-        else:
-            # If re-saving an existing task, don't overwrite created
-            if "created" not in task:
-                task["created"] = now
-            task["updated"] = now
-        if "closed" in task and task.get("status") != "done":
-            del task["closed"]
-        if task.get("status") == "done" and "closed" not in task:
-            task["closed"] = now
-        if "id" not in task:
-            task["id"] = f"K-{self.counter:03d}"
-            self.counter += 1
-        self.tasks.append(task)
-        self._save()
-        return task
 
-    def get(self, id: str) -> dict[str, object] | None:
+        # Create a copy to avoid modifying the original
+        task_data = task.model_dump()
+
+        if not task_data.get("id"):
+            task_data["created_at"] = now
+            task_data["updated_at"] = now
+            task_data["id"] = f"K-{self.counter:03d}"
+            self.counter += 1
+        else:
+            # If re-saving an existing task, don't overwrite created_at
+            if not task_data.get("created_at"):
+                task_data["created_at"] = now
+            task_data["updated_at"] = now
+
+        # Handle status-specific logic
+        if task_data.get("closed_at") and task_data.get("status") != "done":
+            task_data.pop("closed_at", None)
+        if task_data.get("status") == "done" and not task_data.get("closed_at"):
+            task_data["closed_at"] = now
+
+        saved_task = Task.from_dict(task_data)
+        self.tasks.append(saved_task)
+        self._save()
+        return saved_task
+
+    def get(self, id: str) -> Optional[Task]:
         """
         Retrieve a task by its ID.
         Args:
             id (str): The ID of the task.
         Returns:
-            dict or None: The task if found, else None.
+            Task or None: The task if found, else None.
         """
         for task in self.tasks:
-            if task["id"] == id:
+            if task.id == id:
                 return task
         return None
 
-    def all(self) -> list[dict[str, object]]:
+    def all(self) -> List[Task]:
         """
         Retrieve all tasks in the repository.
         Returns:
-            list: List of all tasks.
+            List[Task]: List of all tasks.
         """
         return list(self.tasks)
 
-    def update_status(self, id: str, status: str | None = None) -> dict[str, object] | None:
-        """
-        Update the status of a task.
-        Args:
-            id (str): The ID of the task.
-            status (str, optional): The new status.
-        Returns:
-            dict or None: The updated task if found, else None.
-        """
-        now = datetime.datetime.now().isoformat()
-        for task in self.tasks:
-            if task["id"] == id:
-                if status is not None:
-                    previous_status = task.get("status")
-                    task["status"] = status
-                    task["updated"] = now
-                    if status == "done" and previous_status != "done":
-                        task["closed"] = now
-                    elif previous_status == "done" and status != "done":
-                        task.pop("closed", None)
-                self._save()
-                return task
-        return None
+    @staticmethod
+    def _patch_task(task: Task, **kwargs) -> Task:
+        """Internal method to patch a task with given attributes.
 
-    def update_text(self, id: str, text: str | None = None) -> dict[str, object] | None:
-        """
-        Update the text of a task.
         Args:
-            id (str): The ID of the task.
-            text (str, optional): The new text.
+            task (Task): The task to patch.
+            **kwargs: Attributes to update.
         Returns:
-            dict or None: The updated task if found, else None.
+            Task or None: The updated task if input task is valid, else None.
         """
-        now = datetime.datetime.now().isoformat()
-        for task in self.tasks:
-            if task["id"] == id:
-                if text is not None:
-                    task["text"] = text
-                    task["updated"] = now
-                self._save()
-                return task
-        return None
+        if not task:
+            raise ValueError("Task to patch cannot be None")
 
-    def update_tags(self, id: str, tags: list[str] | None = None) -> dict[str, object] | None:
-        """
-        Update the tags of a task.
-        Args:
-            id (str): The ID of the task.
-            tags (list, optional): The new tags.
-        Returns:
-            dict or None: The updated task if found, else None.
-        """
         now = datetime.datetime.now().isoformat()
-        for task in self.tasks:
-            if task["id"] == id:
-                if tags is not None:
-                    task["tags"] = tags
-                    task["updated"] = now
-                self._save()
-                return task
-        return None
+        task_data = task.model_dump()
+        for key, value in kwargs.items():
+            # Only allow updates to specific fields
+            if key not in ALLOWED_UPDATES or value is None:
+                continue
 
-    def update_order(self, id: str, order: int) -> dict[str, object] | None:
+            # Special handling for status changes
+            if key == "status":
+                previous_status = task.status
+                if value == "done" and previous_status != "done":
+                    task_data["closed_at"] = now
+                elif value != "done":
+                    task_data.pop("closed_at", None)
+
+            task_data[key] = value
+        task_data["updated_at"] = now
+        return Task.from_dict(task_data)
+
+    def update(self, id: str, **kwargs) -> Optional[Task]:
         """
-        Update the order of a task.
+        Update one or more attributes of a task.
         Args:
             id (str): The ID of the task.
-            order (int): The new order value.
+            **kwargs: Attributes to update.
         Returns:
-            dict or None: The updated task if found, else None.
+            Task or None: The updated task if found, else None.
         """
-        now = datetime.datetime.now().isoformat()
-        for task in self.tasks:
-            if task["id"] == id:
-                task["order"] = order
-                task["updated"] = now
-                self._save()
-                return task
-        return None
+
+        for i, task in enumerate(self.tasks):
+            if task.id == id:
+                patched_task = YamlTaskRepository._patch_task(task, **kwargs)
+                self.tasks[i] = patched_task
+                break
+        self._save()
+        return patched_task
+
+    def batch_update(self, updates: Dict[str, Dict[str, Any]]) -> List[Task]:
+        """
+        Batch update multiple tasks by id and attribute dicts.
+        Args:
+            updates (Dict[str, Dict[str, Any]]): Mapping of id to attribute dicts.
+        Returns:
+            List[Task]: List of updated tasks.
+        """
+        updated = []
+
+        for i, task in enumerate(self.tasks):
+            if task.id in updates:
+                patched_task = YamlTaskRepository._patch_task(task, **updates[task.id])
+                self.tasks[i] = patched_task
+                updated.append(patched_task)
+        if updated:
+            self._save()
+        return updated
 
     def delete(self, id: str) -> bool:
         """
@@ -308,40 +308,22 @@ class YamlTaskRepository(TaskRepository):
             bool: True if the task was deleted, False if not found.
         """
         for i, task in enumerate(self.tasks):
-            if task.get("id") == id:
+            if task.id == id:
                 del self.tasks[i]
                 self._save()
                 return True
         return False
 
-    def batch_update(self, updates: dict[str, dict]) -> list[dict[str, object]]:
-        """
-        Batch update multiple tasks by id and attribute dicts.
-        Args:
-            updates (dict): Mapping of id to attribute dicts.
-        Returns:
-            list: List of updated tasks.
-        """
-        now = datetime.datetime.now().isoformat()
-        updated = []
-        for task in self.tasks:
-            attrs = updates.get(task["id"])
-            if attrs:
-                for k, v in attrs.items():
-                    task[k] = v
-                task["updated"] = now
-                updated.append(task)
-        self._save()
-        return updated
-
-    def update_settings(self, updates: dict[str, object]) -> dict[str, object]:
+    def update_settings(self, updates: Dict[str, Any]) -> Settings:
         """
         Update settings and persist them to the YAML file.
         Args:
-            updates (dict): Dictionary of settings to update.
+            updates (Dict[str, Any]): Dictionary of settings to update.
         Returns:
-            dict: The updated settings.
+            Settings: The updated settings.
         """
-        self.settings.update(updates)
+        settings_data = self.settings.model_dump()
+        settings_data.update(updates)
+        self.backlog_data.settings = Settings.from_dict(settings_data)
         self._save()
         return self.settings

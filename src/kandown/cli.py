@@ -1,6 +1,8 @@
 """Command line interface for Kandown."""
 
 import os
+from logging import basicConfig
+
 import click
 from .app import create_app
 
@@ -35,8 +37,9 @@ def main(yaml_file, host, port, debug):
     app = create_app(yaml_file=yaml_file)
 
     # Run the Flask app
-    app.run(host=host, port=port, debug=debug)
+    app.run(host=host, port=port, debug=debug, threaded=True)
 
 
 if __name__ == "__main__":
+    basicConfig()
     main()
