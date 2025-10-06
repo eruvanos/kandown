@@ -271,14 +271,14 @@ class YamlTaskRepository(TaskRepository):
         Returns:
             Task or None: The updated task if found, else None.
         """
-
         for i, task in enumerate(self.tasks):
             if task.id == id:
                 patched_task = YamlTaskRepository._patch_task(task, **kwargs)
                 self.tasks[i] = patched_task
-                break
+                self._save()
+                return patched_task
         self._save()
-        return patched_task
+        return None
 
     def batch_update(self, updates: Dict[str, Dict[str, Any]]) -> List[Task]:
         """
