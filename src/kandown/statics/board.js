@@ -245,7 +245,7 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
     if (movedId && originalStatus && originalStatus !== status) {
         payload[movedId].status = status;
         if (status === 'done') {
-            // showConfetti();
+            showConfetti();
         }
     }
     api.batchUpdateTasks(payload).then(() => {
