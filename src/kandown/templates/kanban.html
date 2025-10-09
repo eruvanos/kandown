@@ -76,7 +76,6 @@
             flex-wrap: wrap;
             gap: 4px;
             margin-top: 4px;
-            margin-bottom: 8px;
         }
         .tag-label {
             background: #e0e0e0;
@@ -98,15 +97,16 @@
         .add-tag-input {
             border: 1px solid #ccc;
             border-radius: 12px;
-            padding: 2px 8px;
             font-size: 0.85em;
             margin-left: 4px;
             margin-top: 2px;
+            padding: 2px 0 2px 10px;
             min-width: 60px;
-            display: none;
+            display: inline-block;
+            visibility: hidden;
         }
         .task.show-tag-input .add-tag-input {
-            display: inline-block;
+            visibility: visible;
         }
         .add-task {
             float: right;

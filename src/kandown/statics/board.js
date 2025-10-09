@@ -35,7 +35,7 @@ function createTextarea(value, onBlur, onKeyDown) {
     textarea.style.width = '95%';
     textarea.style.height = '12em';
     textarea.style.resize = 'vertical';
-    textarea.style.margin = '8px 0';
+    textarea.style.margin = '8px 8px';
     if (onBlur) textarea.addEventListener('blur', onBlur);
     if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
     textarea.addEventListener('paste', (e) => {
@@ -434,7 +434,7 @@ function renderTasks(focusCallback, focusTaskId) {
             deleteBtn.innerHTML = '&#10060;'; // Red cross
             deleteBtn.style.marginLeft = '8px';
             deleteBtn.style.color = '#e53935';
-            deleteBtn.style.fontSize = '14px';
+            deleteBtn.style.fontSize = '13px';
             deleteBtn.style.cursor = 'pointer';
             deleteBtn.style.verticalAlign = 'middle';
             deleteBtn.style.position = 'static';
