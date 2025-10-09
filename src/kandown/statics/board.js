@@ -418,6 +418,7 @@ function renderTasks(focusCallback, focusTaskId) {
                 chore: {icon: '⚙️', label: 'chore'},
                 feature: {icon: '⭐️', label: 'feature'},
                 epic: {icon: '🚀', label: 'epic'},
+                bug: {icon: '🐞', label: 'bug'},
                 request: {icon: '🗣️', label: 'request'},
                 experiment: {icon: '🧪', label: 'experiment'},
             };
