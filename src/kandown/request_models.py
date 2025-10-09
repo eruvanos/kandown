@@ -10,10 +10,11 @@ class TaskUpdateRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
-    status: Optional[str] = None
-    text: Optional[str] = Field(default=None, min_length=1)
-    tags: Optional[List[str]] = None
-    order: Optional[int] = None
+    status: str | None = None
+    text: str | None = Field(default=None, min_length=1)
+    tags: List[str] | None = None
+    order: int | None = None
+    type: TaskType | None = Field(None, alias="type")
 
 
 class TaskCreateRequest(BaseModel):

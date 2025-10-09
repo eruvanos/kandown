@@ -8,7 +8,7 @@ from atomicwrites import atomic_write
 
 from .models import BacklogData, Settings, Task
 
-ALLOWED_UPDATES = ("status", "text", "tags", "order")
+ALLOWED_UPDATES = ("status", "text", "tags", "order", "type")
 """Allowed fields for task updates. These are the fields the user can modify."""
 
 

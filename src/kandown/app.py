@@ -69,7 +69,9 @@ def create_app(yaml_file):
         """Update a task by id."""
         data = request.get_json()
         update = TaskUpdateRequest(**data)
-        task = repo.update(id, status=update.status, order=update.order, text=update.text, tags=update.tags)
+        task = repo.update(
+            id, status=update.status, order=update.order, text=update.text, tags=update.tags, type=update.type
+        )
 
         if not task:
             return jsonify({"error": "Task not found"}), 404

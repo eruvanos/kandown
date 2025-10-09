@@ -32,6 +32,7 @@ function createTextarea(value, onBlur, onKeyDown) {
     const textarea = document.createElement('textarea');
     textarea.className = 'edit-input';
     textarea.value = value || '';
+    textarea.style.background = '#e6e1d1';
     textarea.style.width = '95%';
     textarea.style.height = '12em';
     textarea.style.resize = 'vertical';
@@ -430,11 +431,42 @@ function renderTasks(focusCallback, focusTaskId) {
             typeBtn.style.background = 'transparent';
             typeBtn.style.cursor = 'pointer';
             typeBtn.style.verticalAlign = 'middle';
+            // Dropdown for type selection
+            const dropdown = document.createElement('div');
+            dropdown.className = 'type-dropdown';
+            dropdown.style.position = 'absolute';
+            dropdown.style.zIndex = '1000';
+            dropdown.style.display = 'none';
+            dropdown.style.border = '1px solid #ccc';
+            dropdown.style.borderRadius = '6px';
+            dropdown.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+            dropdown.style.marginTop = '4px';
+            Object.entries(typeMap).forEach(([key, {icon, label}]) => {
+                const option = document.createElement('div');
+                option.className = 'type-option';
+                option.style.padding = '8px 12px';
+                option.style.cursor = 'pointer';
+                option.innerHTML = `<span style="font-size:1.2em;">${icon}</span> ${label}`;
+                if (key === task.type) {
+                    option.classList.add('type-option-selected');
+                }
+                option.onclick = (e) => {
+                    e.stopPropagation();
+                    dropdown.style.display = 'none';
+                    api.updateTask(task.id, {type: key}).then(() => {
+                        renderTasks();
+                    });
+                };
+                dropdown.appendChild(option);
+            });
             typeBtn.onclick = function(e) {
                 e.stopPropagation();
-                alert(`Task type: ${typeInfo.label}`); // For now, just show type. Can be extended for type change.
+                const isOpen = dropdown.style.display === 'block';
+                document.querySelectorAll('.type-dropdown').forEach(d => d.style.display = 'none');
+                dropdown.style.display = isOpen ? 'none' : 'block';
             };
             headRow.append(typeBtn);
+            headRow.appendChild(dropdown);
 
             // --- Task ID ---
             const idDiv = document.createElement('div');

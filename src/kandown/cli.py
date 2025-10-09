@@ -4,7 +4,7 @@ import os
 from logging import basicConfig
 
 import click
-from .app import create_app
+from kandown.app import create_app
 
 
 @click.command()

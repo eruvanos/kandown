@@ -17,12 +17,14 @@
             display: flex;
             flex-direction: column;
         }
+
         .main-content {
             flex: 1;
             padding: 20px;
             display: flex;
             flex-direction: column;
         }
+
         .board {
             display: flex;
             gap: 32px;
@@ -33,10 +35,11 @@
             width: 90%;
             max-width: 100vw;
         }
+
         .column {
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             padding: 16px;
             min-width: 320px;
             min-height: 300px;
@@ -44,39 +47,46 @@
             flex-direction: column;
             flex: 1 1 0;
         }
+
         .column h2 {
             text-align: center;
             color: #2c3e50;
             margin-bottom: 16px;
         }
+
         .task {
             background: #e3eafc;
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
             color: #333;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-            transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .task.dragging {
             opacity: 0.5;
         }
+
         .task-placeholder {
             border-top: 3px solid #2196f3;
             margin: 2px 0;
         }
+
         .task img {
             max-width: 100%;
             height: auto;
             display: block;
             margin: 4px 0;
         }
+
         .tags {
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
             margin-top: 4px;
         }
+
         .tag-label {
             background: #e0e0e0;
             border-radius: 12px;
@@ -86,6 +96,7 @@
             align-items: center;
             margin-right: 2px;
         }
+
         .remove-tag {
             background: none;
             border: none;
@@ -94,6 +105,7 @@
             font-size: 1em;
             color: #888;
         }
+
         .add-tag-input {
             border: 1px solid #ccc;
             border-radius: 12px;
@@ -105,9 +117,11 @@
             display: inline-block;
             visibility: hidden;
         }
+
         .task.show-tag-input .add-tag-input {
             visibility: visible;
         }
+
         .add-task {
             float: right;
             cursor: pointer;
@@ -116,9 +130,11 @@
             color: #2c3e50;
             transition: color 0.2s;
         }
+
         .add-task:hover {
             color: #007bff;
         }
+
         /* Floating dark mode toggle button */
         .darkmode-toggle {
             position: fixed;
@@ -131,7 +147,7 @@
             border-radius: 50%;
             width: 56px;
             height: 56px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             cursor: pointer;
             font-size: 1.8em;
             display: flex;
@@ -139,73 +155,91 @@
             justify-content: center;
             transition: background 0.2s, color 0.2s;
         }
+
         .darkmode-toggle.light {
             background: #fff;
             color: #2c3e50;
             border: 1px solid #ccc;
         }
+
         /* Dark mode styles */
         body.darkmode {
             background: #181a1b;
             color: #e0e0e0;
         }
+
         body.darkmode .column {
             background: #23272b;
             color: #e0e0e0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
+
         body.darkmode .task {
             background: #31363b;
             color: #e0e0e0;
         }
+
         body.darkmode .add-task {
             color: #e0e0e0;
         }
+
         body.darkmode .add-task:hover {
             color: #90caf9;
         }
+
         body.darkmode .tags {
             color: #b0b0b0;
         }
+
         body.darkmode .task-id {
             color: #888;
         }
+
         body.darkmode .darkmode-toggle {
             background: #fff;
             color: #23272b;
             border: 1px solid #ccc;
         }
+
         body.darkmode .column h2 {
             color: #fff;
             text-shadow: 0 1px 4px #23272b;
         }
+
         body.darkmode .tag-label {
             background: #444;
             color: #e0e0e0;
         }
+
         body.darkmode .add-tag-input {
             background: #23272b;
             color: #e0e0e0;
             border: 1px solid #666;
         }
+
         body.darkmode .remove-tag {
             color: #bbb;
         }
+
         .tag-suggestion-box {
             background: #fff;
             color: #222;
         }
+
         body.darkmode .tag-suggestion-box {
             background: #23272b;
             color: #e0e0e0;
             border: 1px solid #444;
         }
+
         body.darkmode .tag-suggestion-box div {
             color: #e0e0e0;
         }
+
         body.darkmode .tag-suggestion-box div:hover {
             background: #444;
         }
+
         /* Hourglass icon and tooltip */
         .task-hourglass {
             position: absolute;
@@ -219,10 +253,12 @@
             border: none;
             padding: 0;
         }
+
         .task-hourglass:hover + .hourglass-tooltip,
         .task-hourglass:focus + .hourglass-tooltip {
             display: block;
         }
+
         .hourglass-tooltip {
             display: none;
             position: absolute;
@@ -234,98 +270,142 @@
             border-radius: 6px;
             padding: 6px 12px;
             font-size: 0.95em;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             white-space: nowrap;
             z-index: 10;
         }
+
         body.darkmode .task-hourglass {
             color: #bbb;
         }
+
         body.darkmode .hourglass-tooltip {
             background: #23272b;
             color: #e0e0e0;
             border: 1px solid #444;
         }
 
-         .delete-task-btn {
+        .delete-task-btn {
             display: none;
         }
+
         .task:hover .delete-task-btn {
             display: inline;
         }
+
         .delete-task-btn:hover {
             color: #b71c1c;
             transform: scale(1.2);
         }
+
         .task-id .delete-task-btn {
             font-size: 14px;
             margin-left: 8px;
             vertical-align: middle;
             position: static;
         }
+
         #delete-modal .delete-modal-box {
             background: #fff;
             color: #222;
         }
+
         body.darkmode #delete-modal {
             background: rgba(20, 20, 20, 0.7);
         }
+
         body.darkmode #delete-modal .delete-modal-box {
             background: #23272e !important;
             color: #f3f3f3;
-            box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
         }
+
         body.darkmode #delete-modal h3,
         body.darkmode #delete-modal p {
             color: #f3f3f3;
         }
+
         body.darkmode #delete-modal button {
             background: #444;
             color: #f3f3f3;
             border: none;
         }
+
         body.darkmode #delete-modal button:hover {
             background: #e53935;
             color: #fff;
         }
+
         body.darkmode #delete-modal button:active {
             background: #b71c1c;
+        }
+
+        .type-dropdown {
+            font-family: inherit;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        body.darkmode .type-dropdown {
+            background: #23272b;
+            border: 1px solid #444;
+        }
+
+        .type-option:hover {
+            background: #f3f4f6;
+        }
+
+        body.darkmode .type-option:hover {
+            background: #444;
+        }
+
+        .type-option-selected {
+            background: #e3e7fa;
+            font-weight: bold;
+        }
+
+        body.darkmode .type-option-selected {
+            background: #39424a;
         }
 
     </style>
 </head>
 <body>
-    <div class="main-content">
-        <h1 style="text-align:center;">Kanban Board</h1>
-        <div class="board">
-            <div class="column" id="todo-col">
-                <h2>📝 To Do <span class="add-task" data-status="todo" title="Add task">&#x2795;</span></h2>
-            </div>
-            <div class="column" id="inprogress-col">
-                <h2>⏳ In Progress <span class="add-task" data-status="in_progress" title="Add task">&#x2795;</span></h2>
-            </div>
-            <div class="column" id="done-col">
-                <h2>✅ Done <span class="add-task" data-status="done" title="Add task">&#x2795;</span></h2>
-            </div>
+<div class="main-content">
+    <h1 style="text-align:center;">Kanban Board</h1>
+    <div class="board">
+        <div class="column" id="todo-col">
+            <h2>📝 To Do <span class="add-task" data-status="todo" title="Add task">&#x2795;</span></h2>
+        </div>
+        <div class="column" id="inprogress-col">
+            <h2>⏳ In Progress <span class="add-task" data-status="in_progress" title="Add task">&#x2795;</span></h2>
+        </div>
+        <div class="column" id="done-col">
+            <h2>✅ Done <span class="add-task" data-status="done" title="Add task">&#x2795;</span></h2>
         </div>
     </div>
-    <button id="darkmode-toggle" class="darkmode-toggle" title="Toggle dark mode">🌙</button>
-    <footer style="text-align:center; margin-top:48px; color:#888; font-size:1em;">
-        <hr style="margin-bottom:16px;">
-        <div>
-            Project page: <a href="https://github.com/eruvanos/kandown" target="_blank" style="color:#2c3e50; text-decoration:underline;">github.com/eruvanos/kandown</a>
-        </div>
-        <div style="margin-top:8px; margin-bottom:16px; font-size:0.95em;">
-            Developed together with the <span style="font-weight:bold; color:#24292f;">GitHub Copilot</span> agent
-        </div>
-    </footer>
-    <script>
+</div>
+<button id="darkmode-toggle" class="darkmode-toggle" title="Toggle dark mode">🌙</button>
+<footer style="text-align:center; margin-top:48px; color:#888; font-size:1em;">
+    <hr style="margin-bottom:16px;">
+    <div>
+        Project page: <a href="https://github.com/eruvanos/kandown" target="_blank"
+                         style="color:#2c3e50; text-decoration:underline;">github.com/eruvanos/kandown</a>
+    </div>
+    <div style="margin-top:8px; margin-bottom:16px; font-size:0.95em;">
+        Developed together with the <span style="font-weight:bold; color:#24292f;">GitHub Copilot</span> agent
+    </div>
+</footer>
+<script>
     const toggleBtn = document.getElementById('darkmode-toggle');
+
     function setDarkMode(on) {
         document.body.classList.toggle('darkmode', on);
         toggleBtn.textContent = on ? '☀️' : '🌙';
         toggleBtn.classList.toggle('light', on);
     }
+
     // Load mode from backend settings
     let dark = false;
     fetch('/api/settings')
@@ -334,16 +414,16 @@
             dark = !!settings.darkmode;
             setDarkMode(dark);
         });
-    toggleBtn.onclick = function() {
+    toggleBtn.onclick = function () {
         dark = !dark;
         setDarkMode(dark);
         // Persist to backend
         fetch('/api/settings', {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ darkmode: dark })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({darkmode: dark})
         });
     };
-    </script>
+</script>
 </body>
 </html>
