@@ -404,29 +404,45 @@ function renderTasks(focusCallback, focusTaskId) {
             const el = document.createElement('div');
             el.className = 'task';
             el.dataset.id = task.id;
-            // --- Collapsible Arrow for 'done' column ---
-            let arrowBtn = null;
-            if (task.status === 'done') {
-                if (typeof doneCollapsed[task.id] === 'undefined') doneCollapsed[task.id] = true;
-                arrowBtn = document.createElement('span');
-                arrowBtn.className = 'collapse-arrow';
-                arrowBtn.style.position = 'absolute';
-                arrowBtn.style.top = '8px';
-                arrowBtn.style.right = '8px';
-                arrowBtn.style.cursor = 'pointer';
-                arrowBtn.textContent = doneCollapsed[task.id] ? '\u25B6' : '\u25BC'; // ▶ or ▼
-                arrowBtn.onclick = function (e) {
-                    e.stopPropagation();
-                    doneCollapsed[task.id] = !doneCollapsed[task.id];
-                    renderTasks();
-                };
-                el.style.position = 'relative';
-                el.appendChild(arrowBtn);
-            }
+
+            // Header row for type button, ID and delete button
+            const headRow = document.createElement('div');
+            headRow.className = 'task-id-row';
+            headRow.style.display = 'flex';
+            headRow.style.flexDirection = 'row';
+            headRow.style.alignItems = 'center';
+
+            // Type button before ID
+            const typeMap = {
+                chore: {icon: '⚙️', label: 'chore'},
+                feature: {icon: '⭐️', label: 'feature'},
+                epic: {icon: '🚀', label: 'epic'},
+                request: {icon: '🗣️', label: 'request'},
+                experiment: {icon: '🧪', label: 'experiment'},
+            };
+            const typeInfo = typeMap[task.type] || {icon: '', label: task.type || ''};
+            const typeBtn = document.createElement('button');
+            typeBtn.className = 'task-type-btn';
+            typeBtn.title = typeInfo.label;
+            typeBtn.innerHTML = `<span style="font-size:1.2em;">${typeInfo.icon}</span>`;
+            typeBtn.style.marginRight = '8px';
+            typeBtn.style.border = 'none';
+            typeBtn.style.background = 'transparent';
+            typeBtn.style.cursor = 'pointer';
+            typeBtn.style.verticalAlign = 'middle';
+            typeBtn.onclick = function(e) {
+                e.stopPropagation();
+                alert(`Task type: ${typeInfo.label}`); // For now, just show type. Can be extended for type change.
+            };
+            headRow.append(typeBtn);
+
             // --- Task ID ---
             const idDiv = document.createElement('div');
             idDiv.className = 'task-id';
             idDiv.textContent = task.id;
+            idDiv.style.display = 'inline-block';
+            headRow.append(idDiv);
+
             // --- Delete Button (now after ID) ---
             const deleteBtn = document.createElement('span');
             deleteBtn.className = 'delete-task-btn';
@@ -443,8 +459,8 @@ function renderTasks(focusCallback, focusTaskId) {
                 e.stopPropagation();
                 showDeleteModal(task.id);
             };
-            idDiv.appendChild(deleteBtn);
-            el.appendChild(idDiv);
+            headRow.append(deleteBtn);
+            el.appendChild(headRow);
             // --- Task Text ---
             let textSpan;
             if (focusTaskId && task.id === focusTaskId && !task.text) {
@@ -499,23 +515,25 @@ function renderTasks(focusCallback, focusTaskId) {
                         title = title.slice(0, maxTitleLength - 3) + '...';
                     }
                 }
-                // Inline row for ID and title
+                // Inline row for type button, ID, and title
                 const rowDiv = document.createElement('div');
                 rowDiv.style.display = 'flex';
                 rowDiv.style.alignItems = 'center';
                 rowDiv.style.gap = '8px';
+                rowDiv.appendChild(typeBtn);
                 rowDiv.appendChild(idDiv);
                 const titleDiv = document.createElement('div');
                 titleDiv.className = 'collapsed-title';
                 titleDiv.innerHTML = `<s>${title}</s>`;
                 titleDiv.style.display = 'inline-block';
                 rowDiv.appendChild(titleDiv);
+                rowDiv.appendChild(deleteBtn);
                 el.appendChild(rowDiv);
                 columns[task.status].appendChild(el);
                 return;
             }
-            // For all other cards, show ID at the top
-            el.appendChild(idDiv);
+            // For all other cards, show type button and ID at the top in the same row
+            el.appendChild(headRow);
             el.appendChild(textSpan);
             // --- Tags ---
             const tagsDiv = document.createElement('div');
@@ -829,3 +847,4 @@ function initBoardApp() {
 }
 
 window.addEventListener('DOMContentLoaded', initBoardApp);
+
