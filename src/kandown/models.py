@@ -1,7 +1,17 @@
 """Pydantic models for type-safe task and settings handling."""
 
+from enum import Enum
 from typing import Optional, Any, Dict, List
 from pydantic import BaseModel, Field, ConfigDict
+
+
+class TaskType(str, Enum):
+    chore = "chore"
+    feature = "feature"
+    bug = "bug"
+    epic = "epic"
+    request = "request"
+    experiment = "experiment"
 
 
 class Task(BaseModel):
@@ -21,6 +31,7 @@ class Task(BaseModel):
     created_at: Optional[str] = Field(default=None, description="Creation timestamp")
     updated_at: Optional[str] = Field(default=None, description="Last update timestamp")
     closed_at: Optional[str] = Field(default=None, description="Completion timestamp")
+    type: Optional[TaskType] = Field(default=TaskType.feature, description="Task type (e\.g\., chore)")
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert task to dictionary format for JSON serialization."""

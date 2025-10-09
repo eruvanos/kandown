@@ -50,7 +50,11 @@ def create_app(yaml_file):
             task_create = TaskCreateRequest(**data)
 
             new_task = Task(
-                text=task_create.text, status=task_create.status, tags=task_create.tags, order=task_create.order
+                text=task_create.text,
+                status=task_create.status,
+                tags=task_create.tags,
+                order=task_create.order,
+                type=task_create.type,
             )
 
             # todo add a explicit method to create new tasks

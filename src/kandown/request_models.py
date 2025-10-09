@@ -1,6 +1,8 @@
-from typing import Optional, List
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from kandown.models import TaskType
 
 
 class TaskUpdateRequest(BaseModel):
@@ -23,6 +25,7 @@ class TaskCreateRequest(BaseModel):
     status: str = Field(..., description="Initial task status")
     tags: List[str] = Field(default_factory=list, description="Task tags")
     order: Optional[int] = Field(default=None, description="Task order")
+    type: TaskType = Field(default=TaskType.feature, description="Task type (chore, feature, bug)")
 
 
 class SettingsUpdateRequest(BaseModel):
