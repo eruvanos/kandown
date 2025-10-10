@@ -16,5 +16,5 @@ This folder contains a implementation, which runs as a hostable web page.
 Clone the project
 
 ```bash
-  uv run python -m http.server 8080 -b 127.0.0.1 -d gh_pages/src
+  uv run python -m http.server 8080 -b 127.0.0.1 -d src
 ```

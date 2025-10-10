@@ -2,7 +2,7 @@
 A simple task manager web application using Puepy and PyScript.
 """
 
-from puepy import Application, Page, t
+from puepy import Application, Page, t, Component
 
 app = Application()
 
@@ -51,10 +51,11 @@ task_repo = TaskRepo()
 
 
 @t.component()
-class Card(Page):
+class Card(Component):
     props = ["text", "tags", "task_id", "on_dragstart"]
 
     def populate(self):
+        pass
         with t.div(
             classes=["kanban-task"],
             draggable="true",
@@ -63,10 +64,6 @@ class Card(Page):
         ):
             t.span(self.text)
             t.small(f"Tags: {', '.join(self.tags)}")
-
-    def on_task_dragstart(self, event):
-        task_id = event.target.getAttribute("task-id")
-        event.dataTransfer.setData("text/plain", str(task_id))
 
 
 @app.page()
@@ -98,6 +95,7 @@ class Home(Page):
                         with t.div(classes=["kanban-tasks"]):
                             for task in tasks:
                                 if task["status"] == col_key:
+                                    pass
                                     t.card(
                                         text=task["text"],
                                         tags=task["tags"],
@@ -108,6 +106,10 @@ class Home(Page):
     def on_column_dragover(self, event):
         event.preventDefault()
 
+    def on_task_dragstart(self, event):
+        task_id = event.target.getAttribute("task-id")
+        event.dataTransfer.setData("text/plain", str(task_id))
+
     def on_column_drop(self, event, new_status):
         event.preventDefault()
         task_id = event.dataTransfer.getData("text/plain")
@@ -117,5 +119,5 @@ class Home(Page):
             self.state["tasks"] = task_repo.all()
             self.redraw_tag(self)
 
-
 app.mount("#app")
+
