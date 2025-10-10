@@ -79,9 +79,42 @@ Pasting images from clipboard should be supported.
 > V1 decided for Vanilla JS, maybe add PuePy later if needed
 
 
+## Pivot Scope?
+
+Another idea which came up by colleagues is to make a "pivotal tracker"-like board.
+
+Key features would be:
+- UI
+  - inverted column order
+    - done
+    - current iteration
+    - backlog
+  - sidebar to show/hide columns
+- Story details
+  - title
+  - state (unstarted, started, finished, delivered, accepted, rejected)
+  - story type (feature, bug, chore, release)
+  - points (1, 2, 3, 5, 8,
+  - description (markdown)
+  - comments (markdown)
+  - attachments (images, files)
+  - tasks (checklist)
+  - blockers
+- Manage stories with multi-select and drag and drop
+- Epics (group stories)
+  Labels can be promoted to epics
 
 
+> What would be the benefit over Kandown?
+> - Dense view of stories
+> - less drag and drop, more click to change state
+>
+> 🤔 do iterations make sense for small projects?
 
+
+Existing tools (from https://bye-tracker.net/):
+- [Lite Tracker](https://litetracker.com/)
+- [BARD tracker](https://bardtracker.com/)
 
 
 
