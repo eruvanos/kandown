@@ -442,6 +442,9 @@ function renderTasks(focusCallback, focusTaskId) {
             dropdown.style.borderRadius = '6px';
             dropdown.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
             dropdown.style.marginTop = '4px';
+
+            let openTypeDropdown = null;
+            let closeTypeDropdownListener = null;
             Object.entries(typeMap).forEach(([key, {icon, label}]) => {
                 const option = document.createElement('div');
                 option.className = 'type-option';
@@ -454,6 +457,11 @@ function renderTasks(focusCallback, focusTaskId) {
                 option.onclick = (e) => {
                     e.stopPropagation();
                     dropdown.style.display = 'none';
+                    if (closeTypeDropdownListener) {
+                        window.removeEventListener('mousedown', closeTypeDropdownListener);
+                        closeTypeDropdownListener = null;
+                        openTypeDropdown = null;
+                    }
                     api.updateTask(task.id, {type: key}).then(() => {
                         renderTasks();
                     });
@@ -464,7 +472,26 @@ function renderTasks(focusCallback, focusTaskId) {
                 e.stopPropagation();
                 const isOpen = dropdown.style.display === 'block';
                 document.querySelectorAll('.type-dropdown').forEach(d => d.style.display = 'none');
-                dropdown.style.display = isOpen ? 'none' : 'block';
+                if (closeTypeDropdownListener) {
+                    window.removeEventListener('mousedown', closeTypeDropdownListener);
+                    closeTypeDropdownListener = null;
+                    openTypeDropdown = null;
+                }
+                if (!isOpen) {
+                    dropdown.style.display = 'block';
+                    openTypeDropdown = dropdown;
+                    closeTypeDropdownListener = function(event) {
+                        if (openTypeDropdown && !openTypeDropdown.contains(event.target) && event.target !== typeBtn) {
+                            openTypeDropdown.style.display = 'none';
+                            window.removeEventListener('mousedown', closeTypeDropdownListener);
+                            closeTypeDropdownListener = null;
+                            openTypeDropdown = null;
+                        }
+                    };
+                    window.addEventListener('mousedown', closeTypeDropdownListener);
+                } else {
+                    dropdown.style.display = 'none';
+                }
             };
             headRow.append(typeBtn);
             headRow.appendChild(dropdown);
@@ -533,6 +560,26 @@ function renderTasks(focusCallback, focusTaskId) {
                 }
                 textSpan.style.cursor = 'pointer';
             }
+            // --- Collapsible Arrow for 'done' column ---
+            let arrowBtn = null;
+            if (task.status === 'done') {
+                if (typeof doneCollapsed[task.id] === 'undefined') doneCollapsed[task.id] = true;
+                arrowBtn = document.createElement('span');
+                arrowBtn.className = 'collapse-arrow';
+                arrowBtn.style.position = 'absolute';
+                arrowBtn.style.top = '8px';
+                arrowBtn.style.right = '8px';
+                arrowBtn.style.cursor = 'pointer';
+                arrowBtn.textContent = doneCollapsed[task.id] ? '\u25B6' : '\u25BC'; // ▶ or ▼
+                arrowBtn.onclick = function (e) {
+                    e.stopPropagation();
+                    doneCollapsed[task.id] = !doneCollapsed[task.id];
+                    renderTasks();
+                };
+                el.style.position = 'relative';
+                el.appendChild(arrowBtn);
+            }
+
             // --- Collapsed logic for 'done' column ---
             if (task.status === 'done' && doneCollapsed[task.id]) {
                 // Only show arrow, and strikethrough title in one row
@@ -880,4 +927,3 @@ function initBoardApp() {
 }
 
 window.addEventListener('DOMContentLoaded', initBoardApp);
-
