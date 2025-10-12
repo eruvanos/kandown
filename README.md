@@ -62,26 +62,6 @@ kandown
 kandown --port 5001 demo.yml
 ```
 
-## Project Structure
-
-```
-kandown/
-├── src/kandown/
-│   ├── app.py         # Flask app and API
-│   ├── cli.py         # Command line interface
-│   ├── task_repo.py   # YAML-backed task repository
-│   ├── templates/
-│   │   └── kanban.html  # Kanban board template
-│   └── statics/
-│       └── board.js     # Board UI logic
-├── tests/
-│   └── test_task_repo.py # Unit tests
-├── backlog.yaml       # Backlog
-├── demo.yml           # Example board
-├── pyproject.toml     # Project config
-└── README.md          # This file
-```
-
 ## Jetbrains Task Integration
 
 You can integrate Kandown with Jetbrains IDEs using the [Tasks & Contexts](https://www.jetbrains.com/help/idea/managing-tasks-and-context.html) feature.
@@ -97,18 +77,6 @@ Add a new generic server with the following details:
   - Tasks: $
   - id: `id`
   - summary: `text`
-
-## Development
-
-- Run tests with `uv run pytest`
-- Lint code with `uv format`
-
-## Dependencies
-
-- **Flask**: Web framework
-- **PyYAML**: YAML parsing
-- **Click**: CLI
-- **pytest**: Testing
 
 ## License
 

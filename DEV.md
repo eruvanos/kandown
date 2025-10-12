@@ -79,6 +79,40 @@ Pasting images from clipboard should be supported.
 > V1 decided for Vanilla JS, maybe add PuePy later if needed
 
 
+## Project Structure
+
+```
+kandown/
+├── src/kandown/
+│   ├── app.py         # Flask app and API
+│   ├── cli.py         # Command line interface
+│   ├── task_repo.py   # YAML-backed task repository
+│   ├── templates/
+│   │   └── kanban.html  # Kanban board template
+│   └── statics/
+│       └── board.js     # Board UI logic
+├── tests/
+│   └── test_task_repo.py # Unit tests
+├── backlog.yaml       # Backlog
+├── demo.yml           # Example board
+├── pyproject.toml     # Project config
+└── README.md          # This file
+```
+
+
+## Development
+
+- Run tests with `uv run pytest`
+- Lint code with `uv format`
+
+## Dependencies
+
+- **Flask**: Web framework
+- **PyYAML**: YAML parsing
+- **Click**: CLI
+- **pytest**: Testing
+
+
 ## Pivot Scope?
 
 Another idea which came up by colleagues is to make a "pivotal tracker"-like board.
