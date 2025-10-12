@@ -1,5 +1,6 @@
 """Command line interface for Kandown."""
 
+import logging
 import os
 import socket
 from logging import basicConfig
@@ -21,6 +22,8 @@ def main(yaml_file, port, debug):
 
     yaml_file: Optional path to the YAML file to use for tasks. If not provided, defaults to 'backlog.yaml'.
     """
+    basicConfig(level=logging.ERROR if not debug else logging.INFO)
+
     if not yaml_file:
         yaml_file = Path("backlog.yaml")
         click.echo("No YAML file provided, using default: backlog.yaml")
@@ -66,5 +69,4 @@ def _find_free_port() -> int:
 
 
 if __name__ == "__main__":
-    basicConfig()
     main()
