@@ -16,7 +16,8 @@ The app features a clean, responsive web UI started by the CLI.
 
 - 🗂️ **Kanban board UI**: Drag-and-drop tasks between columns (To Do, In Progress, Done)
 - ✏️ **Markdown support**: Write task descriptions using Markdown syntax
-- 🖼️ **Image embedding**: Embed images in task descriptions, supporting paste from clipboard
+- 🖼️ **Paste images**: Task descriptions support pasting images from clipboard
+- 🗂️ **Image Storage**: Images can be embedded as base64 or saved to disk into an `.backlog` folder
 - ✅ **Interactive checkboxes**: Clickable checkboxes in task descriptions
 - 📄 **YAML-backed storage**: All tasks are stored in a simple YAML file
 - 🔄 **Jetbrains IDE integration**: View and track tasks directly from JetBrains IDEs

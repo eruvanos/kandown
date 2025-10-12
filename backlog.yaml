@@ -97,17 +97,17 @@ tasks:
   updated_at: '2025-10-12T20:59:04.466821'
 - created_at: '2025-10-05T00:41:57.059204'
   id: K-007
-  order: 10
+  order: 11
   status: todo
   tags: []
   text: Validate if we can have kandown in a pure puepy version accessing the filesystem.
     .
   type: experiment
   updated: '2025-10-05T22:59:37.200686'
-  updated_at: '2025-10-12T19:36:51.585652'
+  updated_at: '2025-10-12T21:03:39.655483'
 - created_at: '2025-10-05T00:42:26.424016'
   id: K-008
-  order: 7
+  order: 8
   status: todo
   tags:
   - v0.1
@@ -119,17 +119,17 @@ tasks:
     - [ ] publish'
   type: feature
   updated: '2025-10-06T20:55:15.406069'
-  updated_at: '2025-10-12T19:36:51.585771'
+  updated_at: '2025-10-12T21:03:39.655594'
 - created_at: '2025-10-05T00:42:55.951795'
   id: K-009
-  order: 8
+  order: 9
   status: todo
   tags: []
   text: '- [ ] re-add keyboard shortcuts
 
     - [ ] somewhere document the keyboard shortcuts'
   type: feature
-  updated_at: '2025-10-12T19:36:51.585809'
+  updated_at: '2025-10-12T21:03:39.655641'
 - closed_at: '2025-10-07T01:22:12.597958'
   created_at: '2025-10-05T00:43:39.477296'
   id: K-010
@@ -152,12 +152,12 @@ tasks:
   updated_at: '2025-10-12T20:59:04.466854'
 - created_at: '2025-10-05T00:46:58.411356'
   id: K-012
-  order: 9
+  order: 10
   status: todo
   tags: []
   text: Allow connections between tasks
   type: epic
-  updated_at: '2025-10-12T19:36:51.585830'
+  updated_at: '2025-10-12T21:03:39.655669'
 - closed_at: '2025-10-07T01:22:46.629149'
   created_at: '2025-10-07T01:22:28.535004'
   id: K-014
@@ -179,53 +179,53 @@ tasks:
 - created_at: '2025-10-07T01:24:23.424553'
   id: K-016
   order: 0
-  status: todo
+  status: in_progress
   tags: []
   text: fix flickering bug while drag and drop
   type: bug
-  updated_at: '2025-10-12T19:36:51.585847'
+  updated_at: '2025-10-12T21:03:47.255402'
 - created_at: '2025-10-07T01:24:47.768793'
   id: K-017
-  order: 3
+  order: 4
   status: todo
   tags: []
   text: fix tag input field does not disappear after usage
   type: bug
-  updated_at: '2025-10-12T19:36:51.585863'
+  updated_at: '2025-10-12T21:03:39.655685'
 - created_at: '2025-10-07T01:27:47.814031'
   id: K-018
-  order: 5
+  order: 6
   status: todo
   tags: []
   text: evaluate if we could also have a Pivotal tracker like experience🤔
   type: experiment
-  updated_at: '2025-10-12T19:36:51.585880'
+  updated_at: '2025-10-12T21:03:39.655701'
 - created_at: '2025-10-07T01:33:34.938879'
   id: K-020
-  order: 6
+  order: 7
   status: todo
   tags: []
   text: 'Setting to:
 
     Auto archive done tasks after x days'
   type: experiment
-  updated_at: '2025-10-12T19:36:51.585897'
+  updated_at: '2025-10-12T21:03:39.655732'
 - created_at: '2025-10-07T01:34:14.026741'
   id: K-021
-  order: 1
+  order: 2
   status: todo
   tags: []
   text: Add special divider cards, which can be used in the backlog
   type: feature
-  updated_at: '2025-10-12T19:36:51.585912'
+  updated_at: '2025-10-12T21:03:39.655750'
 - created_at: '2025-10-07T01:35:11.463963'
   id: K-022
-  order: 4
+  order: 5
   status: todo
   tags: []
   text: Settings to keep deleted tasks in an archived file
   type: feature
-  updated_at: '2025-10-12T19:36:51.585927'
+  updated_at: '2025-10-12T21:03:39.655767'
 - closed_at: '2025-10-09T23:53:26.371251'
   created_at: '2025-10-07T01:37:42.767201'
   id: K-023
@@ -274,7 +274,7 @@ tasks:
   updated_at: '2025-10-12T20:59:04.466936'
 - created_at: '2025-10-12T19:34:16.986235'
   id: K-028
-  order: 2
+  order: 3
   status: todo
   tags: []
   text: "Iterate on cli api, to maybe allow additional actions.\n\nThe solution should:\n\
@@ -282,4 +282,21 @@ tasks:
     \ --help`: subcommand help page\n- support direct cli\n  - `kandown <yaml>` should\
     \ still support basic serve options"
   type: experiment
-  updated_at: '2025-10-12T19:36:51.585949'
+  updated_at: '2025-10-12T21:03:39.655785'
+- created_at: '2025-10-12T21:01:52.344775'
+  id: K-030
+  order: 0
+  status: todo
+  tags: []
+  text: Add an action to clean up unreferenced files
+  type: feature
+  updated_at: '2025-10-12T21:03:39.655797'
+- created_at: '2025-10-12T21:03:03.019950'
+  id: K-031
+  order: 1
+  status: todo
+  tags: []
+  text: add button to extract embedded images from tasks and move them into attachment
+    folder
+  type: feature
+  updated_at: '2025-10-12T21:03:39.655810'
