@@ -78,26 +78,6 @@ class TaskAPI {
     }
 
     /**
-     * Updates the status of a task.
-     * @param {string} id
-     * @param {string} status
-     * @returns {Promise<Task>}
-     */
-    updateTaskStatus(id, status) {
-        return this.updateTask(id, {status});
-    }
-
-    /**
-     * Updates the order of a task.
-     * @param {string} id
-     * @param {number} order
-     * @returns {Promise<Task>}
-     */
-    updateTaskOrder(id, order) {
-        return this.updateTask(id, {order});
-    }
-
-    /**
      * Batch updates multiple tasks.
      * @param {{[id: string]: Partial<Task>}} updates
      * @returns {Promise<Task[]>}
@@ -122,4 +102,31 @@ class TaskAPI {
     }
 }
 
-export { TaskAPI };
+/**
+ * @class SettingsAPI
+ * @classdesc Handles all settings-related backend interactions.
+ */
+class SettingsAPI {
+    /**
+     * Fetches all settings.
+     * @returns {Promise<Object>}
+     */
+    static getSettings() {
+        return fetch('/api/settings').then(r => r.json());
+    }
+
+    /**
+     * Updates settings with the given object.
+     * @param {Object} update
+     * @returns {Promise<Object>}
+     */
+    static updateSettings(update) {
+        return fetch('/api/settings', {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(update)
+        }).then(r => r.json());
+    }
+}
+
+export { TaskAPI, SettingsAPI };

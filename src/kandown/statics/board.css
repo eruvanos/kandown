@@ -125,12 +125,45 @@ body {
     color: #007bff;
 }
 
-/* Floating dark mode toggle button */
-.darkmode-toggle {
+/* Floating controls container */
+.floating-controls {
     position: fixed;
     bottom: 32px;
     right: 32px;
-    z-index: 1000;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+}
+
+/* Settings button */
+.settings-toggle {
+    font-size: 1.2em;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.settings-toggle:hover {
+    background: #f0f0f0;
+}
+body.darkmode .settings-toggle {
+    background: #23272b;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+/* Dark mode toggle button */
+.darkmode-toggle {
+    font-size: 1.8em;
     background: #2c3e50;
     color: #fff;
     border: none;
@@ -139,16 +172,19 @@ body {
     height: 56px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     cursor: pointer;
-    font-size: 1.8em;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.2s, color 0.2s;
 }
-
 .darkmode-toggle.light {
     background: #fff;
     color: #2c3e50;
+    border: 1px solid #ccc;
+}
+body.darkmode .darkmode-toggle {
+    background: #fff;
+    color: #23272b;
     border: 1px solid #ccc;
 }
 
@@ -357,4 +393,49 @@ body.darkmode .type-option:hover {
 
 body.darkmode .type-option-selected {
     background: #39424a;
+}
+
+/* Modal styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background: rgba(0,0,0,0.3);
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: #fff;
+    margin: 10% auto;
+    padding: 32px 24px 24px 24px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    position: relative;
+    color: #222;
+}
+.close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 1.5em;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.close-btn:hover {
+    color: #e53935;
+}
+body.darkmode .modal-content {
+    background: #23272b;
+    color: #e0e0e0;
+}
+body.darkmode .close-btn {
+    color: #bbb;
 }

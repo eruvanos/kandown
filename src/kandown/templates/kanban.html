@@ -6,6 +6,7 @@
     <title>Kandown - Kanban Board</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" src="/statics/board.js"></script>
+    <script type="module" src="/statics/settings.js"></script>
     <link rel="icon" type="image/svg+xml" href="/statics/favicon.svg">
     <link rel="stylesheet" href="/statics/board.css">
 </head>
@@ -24,7 +25,30 @@
         </div>
     </div>
 </div>
-<button id="darkmode-toggle" class="darkmode-toggle" title="Toggle dark mode">🌙</button>
+<div class="floating-controls">
+    <button id="settings-toggle" class="settings-toggle" title="Settings">⚙️</button>
+    <button id="darkmode-toggle" class="darkmode-toggle" title="Toggle dark mode">🌙</button>
+</div>
+<div id="settings-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-btn" title="Close">&times;</span>
+    <h2>Settings</h2>
+    <div class="setting-item">
+      <div style="display:flex; align-items:center; margin-bottom:8px;">
+        <label for="random-port" class="setting-label" style="font-size:1.15em; font-weight:600;">Use random port</label>
+        <input type="checkbox" id="random-port" style="margin-left:16px; transform:scale(1.3);" />
+      </div>
+      <div class="setting-desc" style="margin-left:24px; background:rgba(247,247,250,0.27); border-radius:7px; padding:12px 16px; margin-bottom:12px;">
+        <strong>Description:</strong>
+        <div style="margin-top:6px; margin-bottom:8px;">
+          When enabled, Kandown will start the server on a random available port instead of the default port (5001).
+        </div>
+        <span style="font-size:0.95em; display:block; margin-bottom:4px;">Useful for avoiding port conflicts or running multiple instances.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
 <footer style="text-align:center; margin-top:48px; color:#888; font-size:1em;">
     <hr style="margin-bottom:16px;">
     <div>
@@ -35,33 +59,5 @@
         Developed together with the <span style="font-weight:bold; color:#24292f;">GitHub Copilot</span> agent
     </div>
 </footer>
-<script>
-    const toggleBtn = document.getElementById('darkmode-toggle');
-
-    function setDarkMode(on) {
-        document.body.classList.toggle('darkmode', on);
-        toggleBtn.textContent = on ? '☀️' : '🌙';
-        toggleBtn.classList.toggle('light', on);
-    }
-
-    // Load mode from backend settings
-    let dark = false;
-    fetch('/api/settings')
-        .then(r => r.json())
-        .then(settings => {
-            dark = !!settings.darkmode;
-            setDarkMode(dark);
-        });
-    toggleBtn.onclick = function () {
-        dark = !dark;
-        setDarkMode(dark);
-        // Persist to backend
-        fetch('/api/settings', {
-            method: 'PATCH',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({darkmode: dark})
-        });
-    };
-</script>
 </body>
 </html>
