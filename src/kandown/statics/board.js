@@ -273,7 +273,7 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
     // Build batch update payload
     const payload = {};
     newOrder.forEach((id, idx) => {
-        payload[id] = {order: idx};
+        payload[id] = {order: idx * 2}; // Use gaps of 2 to allow easy insertion
     });
     // If the moved task changed columns, update its status too
     if (movedId && originalStatus && originalStatus !== status) {
@@ -292,10 +292,11 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
 /**
  * Adds a new task to the board.
  * @param {string} status
+ * @param {number} [order]
  * @returns {void}
  */
-function addTask(status) {
-    TaskAPI.createTask(status).then(task => {
+function addTask(status, order) {
+    TaskAPI.createTask(status, order).then(task => {
         renderTasks(() => {
             setTimeout(() => {
                 const col = columns[status];
@@ -391,6 +392,7 @@ function renderTasks(focusCallback, focusTaskId) {
             const el = document.createElement('div');
             el.className = 'task';
             el.dataset.id = task.id;
+            el.dataset.order = task.order.toString() || '0';
 
             // Header row for type button, ID and delete button
             const headRow = document.createElement('div');
@@ -454,7 +456,7 @@ function renderTasks(focusCallback, focusTaskId) {
                 };
                 dropdown.appendChild(option);
             });
-            typeBtn.onclick = function(e) {
+            typeBtn.onclick = function (e) {
                 e.stopPropagation();
                 const isOpen = dropdown.style.display === 'block';
                 document.querySelectorAll('.type-dropdown').forEach(d => d.style.display = 'none');
@@ -466,7 +468,7 @@ function renderTasks(focusCallback, focusTaskId) {
                 if (!isOpen) {
                     dropdown.style.display = 'block';
                     openTypeDropdown = dropdown;
-                    closeTypeDropdownListener = function(event) {
+                    closeTypeDropdownListener = function (event) {
                         if (openTypeDropdown && !openTypeDropdown.contains(event.target) && event.target !== typeBtn) {
                             openTypeDropdown.style.display = 'none';
                             window.removeEventListener('mousedown', closeTypeDropdownListener);
@@ -767,6 +769,17 @@ function renderTasks(focusCallback, focusTaskId) {
                 el.appendChild(hourglass);
                 el.appendChild(tooltip);
             }
+
+            // --- Plus Button for creating a task beneath ---
+            const plusBtn = document.createElement('button');
+            plusBtn.className = 'add-beneath-btn';
+            plusBtn.title = 'Add task beneath';
+            plusBtn.innerHTML = '<span>+</span>';
+            plusBtn.onclick = function (e) {
+                e.stopPropagation();
+                addTask(task.status, (task.order || 0) + 1);
+            };
+            el.appendChild(plusBtn);
 
             columns[task.status].appendChild(el);
         });

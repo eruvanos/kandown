@@ -511,6 +511,37 @@ body.darkmode .type-option-selected {
   stroke-dashoffset: 25;
 }
 
+.add-beneath-btn {
+  display: flex;
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  /*border: 1px solid #bbb;*/
+  border: unset;
+  background: unset;
+  border-radius: 50%;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  z-index: 30;
+  justify-content: center;
+  align-items: center;
+  visibility: hidden;
+}
+
+.add-beneath-btn > span {
+  font-size: 1.8em;
+}
+
+.task:hover .add-beneath-btn {
+  visibility: visible;
+}
+
+body.darkmode .add-beneath-btn {
+  color: #eee;
+}
 
 body.darkmode .modal-content {
   background: #23272b;

@@ -17,13 +17,14 @@ class TaskAPI {
     /**
      * Creates a new task with the given status.
      * @param {string} status
+     * @param {number} order
      * @returns {Promise<Task>}
      */
-    static createTask(status) {
+    static createTask(status, order) {
         return fetch('/api/tasks', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: '', status, tags: []})
+            body: JSON.stringify({text: '', status, tags: [], order: order || 0})
         }).then(r => r.json());
     }
 
