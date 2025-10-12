@@ -2,7 +2,7 @@
 # To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown demo.yml
 settings:
   dark_mode: false
-  darkmode: false
+  darkmode: true
   random_port: false
   store_images_in_subfolder: true
 tasks:
@@ -104,7 +104,7 @@ tasks:
     .
   type: experiment
   updated: '2025-10-05T22:59:37.200686'
-  updated_at: '2025-10-12T23:03:37.010687'
+  updated_at: '2025-10-12T23:56:37.441242'
 - created_at: '2025-10-05T00:42:26.424016'
   id: K-008
   order: 14
@@ -119,10 +119,10 @@ tasks:
     - [ ] publish'
   type: feature
   updated: '2025-10-06T20:55:15.406069'
-  updated_at: '2025-10-12T23:03:37.010736'
+  updated_at: '2025-10-12T23:56:37.441299'
 - created_at: '2025-10-05T00:42:55.951795'
   id: K-009
-  order: 10
+  order: 6
   status: todo
   tags:
   - v0.1
@@ -130,7 +130,7 @@ tasks:
 
     - [ ] somewhere document the keyboard shortcuts'
   type: feature
-  updated_at: '2025-10-12T23:03:37.010753'
+  updated_at: '2025-10-12T23:56:37.441328'
 - closed_at: '2025-10-07T01:22:12.597958'
   created_at: '2025-10-05T00:43:39.477296'
   id: K-010
@@ -159,7 +159,7 @@ tasks:
   - v0.2
   text: Allow connections between tasks
   type: epic
-  updated_at: '2025-10-12T23:03:37.010764'
+  updated_at: '2025-10-12T23:56:37.441346'
 - closed_at: '2025-10-07T01:22:46.629149'
   created_at: '2025-10-07T01:22:28.535004'
   id: K-014
@@ -189,13 +189,13 @@ tasks:
   updated_at: '2025-10-12T23:41:36.424478'
 - created_at: '2025-10-07T01:24:47.768793'
   id: K-017
-  order: 6
+  order: 4
   status: todo
   tags:
   - v0.1
   text: fix tag input field does not disappear after usage
   type: bug
-  updated_at: '2025-10-12T23:03:37.010781'
+  updated_at: '2025-10-12T23:56:37.441365'
 - created_at: '2025-10-07T01:27:47.814031'
   id: K-018
   order: 30
@@ -203,7 +203,7 @@ tasks:
   tags: []
   text: evaluate if we could also have a Pivotal tracker like experience🤔
   type: experiment
-  updated_at: '2025-10-12T23:03:37.010790'
+  updated_at: '2025-10-12T23:56:37.441377'
 - created_at: '2025-10-07T01:33:34.938879'
   id: K-020
   order: 32
@@ -213,25 +213,25 @@ tasks:
 
     Auto archive done tasks after x days'
   type: experiment
-  updated_at: '2025-10-12T23:03:37.010800'
+  updated_at: '2025-10-12T23:56:37.441398'
 - created_at: '2025-10-07T01:34:14.026741'
   id: K-021
-  order: 4
-  status: todo
+  order: 0
+  status: in_progress
   tags:
   - v0.1
   text: Add special divider cards, which can be used in the backlog
   type: feature
-  updated_at: '2025-10-12T23:03:37.010809'
+  updated_at: '2025-10-12T23:58:00.009826'
 - created_at: '2025-10-07T01:35:11.463963'
   id: K-022
-  order: 24
+  order: 22
   status: todo
   tags:
   - v0.2
   text: Settings to keep deleted tasks in an archived file
   type: feature
-  updated_at: '2025-10-12T23:03:37.010818'
+  updated_at: '2025-10-12T23:56:37.441425'
 - closed_at: '2025-10-09T23:53:26.371251'
   created_at: '2025-10-07T01:37:42.767201'
   id: K-023
@@ -277,7 +277,7 @@ tasks:
   tags: []
   text: Add settings popup with basic random port setting
   type: feature
-  updated_at: '2025-10-12T23:41:36.424587'
+  updated_at: '2025-10-12T23:55:53.517200'
 - created_at: '2025-10-12T19:34:16.986235'
   id: K-028
   order: 28
@@ -288,16 +288,16 @@ tasks:
     \ --help`: subcommand help page\n- support direct cli\n  - `kandown <yaml>` should\
     \ still support basic serve options"
   type: experiment
-  updated_at: '2025-10-12T23:03:37.010829'
+  updated_at: '2025-10-12T23:56:37.441440'
 - created_at: '2025-10-12T21:01:52.344775'
   id: K-030
-  order: 2
+  order: 12
   status: todo
   tags:
   - v0.1
   text: Add an action to clean up unreferenced files
   type: feature
-  updated_at: '2025-10-12T23:03:37.010837'
+  updated_at: '2025-10-12T23:56:37.441451'
 - created_at: '2025-10-12T21:03:03.019950'
   id: K-031
   order: 26
@@ -307,16 +307,16 @@ tasks:
   text: add button to extract embedded images from tasks and move them into attachment
     folder
   type: feature
-  updated_at: '2025-10-12T23:03:37.010846'
+  updated_at: '2025-10-12T23:56:37.441463'
 - created_at: '2025-10-12T21:48:23.603078'
   id: K-032
-  order: 12
+  order: 8
   status: todo
   tags:
   - v0.1
   text: Support CMD+z for undo (especially for moving tasks around!
   type: feature
-  updated_at: '2025-10-12T23:03:37.010855'
+  updated_at: '2025-10-12T23:56:37.441474'
 - closed_at: '2025-10-12T22:32:38.472151'
   created_at: '2025-10-12T22:29:22.350779'
   id: K-035
@@ -335,16 +335,16 @@ tasks:
   text: "# Multiselect\n\n- [ ] hold CMD to show multiselect checkboxes\n- [ ] show\
     \ header with actions\n  - [ ] apply tag action\n  - [ ] delete action"
   type: feature
-  updated_at: '2025-10-12T23:03:37.010863'
+  updated_at: '2025-10-12T23:56:37.441486'
 - created_at: '2025-10-12T22:38:49.960568'
   id: K-037
-  order: 8
+  order: 2
   status: todo
   tags:
   - v0.1
   text: make tag suggestions acceptable via keyboard
   type: feature
-  updated_at: '2025-10-12T23:03:37.010871'
+  updated_at: '2025-10-12T23:56:37.441500'
 - created_at: '2025-10-12T22:39:58.674657'
   id: K-038
   order: 16
@@ -353,7 +353,7 @@ tasks:
   - v0.2
   text: Filter for types
   type: feature
-  updated_at: '2025-10-12T23:03:37.010880'
+  updated_at: '2025-10-12T23:56:37.441513'
 - closed_at: '2025-10-12T23:41:36.424603'
   created_at: '2025-10-12T22:40:40.386821'
   id: K-039
@@ -366,7 +366,7 @@ tasks:
   updated_at: '2025-10-12T23:41:36.424603'
 - created_at: '2025-10-12T22:43:04.653724'
   id: K-040
-  order: 0
+  order: 10
   status: todo
   tags:
   - v0.1
@@ -379,10 +379,10 @@ tasks:
 
     start with [K-030]'
   type: epic
-  updated_at: '2025-10-12T23:03:37.010896'
+  updated_at: '2025-10-12T23:56:37.441525'
 - created_at: '2025-10-12T23:08:17.797033'
   id: K-042
-  order: 25
+  order: 24
   status: todo
   tags: []
   text: '# Advanced TextArea
@@ -392,4 +392,4 @@ tasks:
 
     Add some simple autocompletion for checklists and lists in general.'
   type: feature
-  updated_at: '2025-10-12T23:09:27.552601'
+  updated_at: '2025-10-12T23:56:37.441544'
