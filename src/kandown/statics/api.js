@@ -19,7 +19,7 @@ class TaskAPI {
      * @param {string} status
      * @returns {Promise<Task>}
      */
-    createTask(status) {
+    static createTask(status) {
         return fetch('/api/tasks', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -31,7 +31,7 @@ class TaskAPI {
      * Fetches all tasks.
      * @returns {Promise<Task[]>}
      */
-    getTasks() {
+    static getTasks() {
         return fetch('/api/tasks').then(r => r.json());
     }
 
@@ -39,7 +39,7 @@ class TaskAPI {
      * Fetches tag suggestions.
      * @returns {Promise<string[]>}
      */
-    getTagSuggestions() {
+    static getTagSuggestions() {
         return fetch('/api/tags/suggestions').then(r => r.json());
     }
 
@@ -49,7 +49,7 @@ class TaskAPI {
      * @param {Partial<Task>} update
      * @returns {Promise<Task>}
      */
-    updateTask(id, update) {
+    static updateTask(id, update) {
         return fetch(`/api/tasks/${id}`, {
             method: 'PATCH',
             headers: {'Content-Type': 'application/json'},
@@ -63,8 +63,8 @@ class TaskAPI {
      * @param {string} text
      * @returns {Promise<Task>}
      */
-    updateTaskText(id, text) {
-        return this.updateTask(id, {text});
+    static updateTaskText(id, text) {
+        return TaskAPI.updateTask(id, {text});
     }
 
     /**
@@ -73,8 +73,8 @@ class TaskAPI {
      * @param {string[]} tags
      * @returns {Promise<Task>}
      */
-    updateTaskTags(id, tags) {
-        return this.updateTask(id, {tags});
+    static updateTaskTags(id, tags) {
+        return TaskAPI.updateTask(id, {tags});
     }
 
     /**
@@ -82,7 +82,7 @@ class TaskAPI {
      * @param {{[id: string]: Partial<Task>}} updates
      * @returns {Promise<Task[]>}
      */
-    batchUpdateTasks(updates) {
+    static batchUpdateTasks(updates) {
         return fetch('/api/tasks', {
             method: 'PATCH',
             headers: {'Content-Type': 'application/json'},
@@ -95,7 +95,7 @@ class TaskAPI {
      * @param {string} id
      * @returns {Promise<any>}
      */
-    deleteTask(id) {
+    static deleteTask(id) {
         return fetch(`/api/tasks/${id}`, {
             method: 'DELETE'
         }).then(r => r.json());
@@ -103,29 +103,48 @@ class TaskAPI {
 }
 
 /**
+ * @typedef {Object} Settings
+ * @property {boolean} dark_mode
+ * @property {boolean} random_port
+ * @property {boolean} store_images_in_subfolder
+ */
+
+/**
  * @class SettingsAPI
  * @classdesc Handles all settings-related backend interactions.
  */
 class SettingsAPI {
+    /** @type {Settings|null} */
+    static _settingsCache = null;
+
     /**
-     * Fetches all settings.
-     * @returns {Promise<Object>}
+     * Fetches all settings, using cache if available.
+     * @returns {Promise<Settings>}
      */
-    static getSettings() {
-        return fetch('/api/settings').then(r => r.json());
+    static async getSettings() {
+        if (SettingsAPI._settingsCache) {
+            return Promise.resolve(SettingsAPI._settingsCache);
+        }
+        const res = await fetch('/api/settings');
+        const settings = await res.json();
+        SettingsAPI._settingsCache = settings;
+        return settings;
     }
 
     /**
-     * Updates settings with the given object.
+     * Updates settings with the given object and updates the cache.
      * @param {Object} update
      * @returns {Promise<Object>}
      */
-    static updateSettings(update) {
-        return fetch('/api/settings', {
+    static async updateSettings(update) {
+        const res = await fetch('/api/settings', {
             method: 'PATCH',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(update)
-        }).then(r => r.json());
+        });
+        const newSettings = await res.json();
+        SettingsAPI._settingsCache = newSettings;
+        return newSettings;
     }
 }
 

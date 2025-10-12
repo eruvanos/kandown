@@ -1,9 +1,10 @@
-import { SettingsAPI } from './api.js';
+import {SettingsAPI} from './api.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
 const modal = document.getElementById('settings-modal');
 const closeBtn = document.querySelector('.close-btn');
 const randomPortCheckbox = document.getElementById('random-port');
+const storeImagesInSubfolderCheckbox = document.getElementById('store-images-in-subfolder');
 const darkModeToggleBtn = document.getElementById('darkmode-toggle');
 
 function setDarkMode(on) {
@@ -14,6 +15,7 @@ function setDarkMode(on) {
 
 let dark = false;
 let randomPort = false;
+let storeImagesInSubfolder = false;
 
 function loadSettings() {
     SettingsAPI.getSettings().then(settings => {
@@ -21,15 +23,17 @@ function loadSettings() {
         setDarkMode(dark);
         randomPort = !!settings.random_port;
         randomPortCheckbox.checked = randomPort;
+        storeImagesInSubfolder = !!settings.store_images_in_subfolder;
+        storeImagesInSubfolderCheckbox.checked = storeImagesInSubfolder;
     });
 }
 
 loadSettings();
 
-darkModeToggleBtn.onclick = function () {
+darkModeToggleBtn.onclick = async function () {
     dark = !dark;
     setDarkMode(dark);
-    SettingsAPI.updateSettings({ darkmode: dark });
+    await SettingsAPI.updateSettings({darkmode: dark});
 };
 
 settingsBtn.onclick = function () {
@@ -40,14 +44,18 @@ closeBtn.onclick = function () {
     modal.style.display = 'none';
 };
 
-window.onclick = function(event) {
+window.onclick = function (event) {
     if (event.target === modal) {
         modal.style.display = 'none';
     }
 };
 
-randomPortCheckbox.onchange = function () {
+randomPortCheckbox.onchange = async function () {
     randomPort = randomPortCheckbox.checked;
-    SettingsAPI.updateSettings({ random_port: randomPort });
+    await SettingsAPI.updateSettings({random_port: randomPort});
 };
 
+storeImagesInSubfolderCheckbox.onchange = async function () {
+    storeImagesInSubfolder = storeImagesInSubfolderCheckbox.checked;
+    await SettingsAPI.updateSettings({store_images_in_subfolder: storeImagesInSubfolder});
+}

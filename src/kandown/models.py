@@ -53,6 +53,13 @@ class Settings(BaseModel):
 
     dark_mode: bool = Field(default=False, description="Enable dark mode")
     random_port: bool = Field(default=False, description="Use random port on startup")
+    store_images_in_subfolder: bool = Field(
+        default=False,
+        description=(
+            "If enabled, images are stored as separate files in the .backlog subfolder instead of being embedded as base64 URLs in markdown. "
+            "Storing images in a subfolder makes them easier to manage and edit externally, while inline base64 embedding keeps the YAML file portable but makes image editing harder."
+        ),
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert settings to dictionary format for JSON serialization."""

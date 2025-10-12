@@ -1,5 +1,5 @@
 // Import dependencies
-import {TaskAPI} from './api.js';
+import {SettingsAPI, TaskAPI} from './api.js';
 
 /**
  * @typedef {import('./types.js').Task}
@@ -11,7 +11,6 @@ let editingTaskId = null;
 let inputEl = null;
 let columns = {};
 let doneCollapsed = {};
-const api = new TaskAPI();
 
 // --- Kanban Board Setup ---
 if (window.marked) {
@@ -26,9 +25,10 @@ if (window.marked) {
  * @param {string} value
  * @param {(this: HTMLTextAreaElement, ev: FocusEvent) => void} [onBlur]
  * @param {(this: HTMLTextAreaElement, ev: KeyboardEvent) => void} [onKeyDown]
+ * @param {string} [taskId] - The id of the task being edited
  * @returns {HTMLTextAreaElement}
  */
-function createTextarea(value, onBlur, onKeyDown) {
+function createTextarea(value, onBlur, onKeyDown, taskId) {
     const textarea = document.createElement('textarea');
     textarea.className = 'edit-input';
     textarea.value = value || '';
@@ -39,20 +39,49 @@ function createTextarea(value, onBlur, onKeyDown) {
     textarea.style.margin = '8px 8px';
     if (onBlur) textarea.addEventListener('blur', onBlur);
     if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
-    textarea.addEventListener('paste', (e) => {
+
+    textarea.addEventListener('paste', async (e) => {
+        const settings = await SettingsAPI.getSettings()
+        const storeImagesInSubfolder = settings.store_images_in_subfolder || false;
+
         const items = e.clipboardData.items;
         for (let i = 0; i < items.length; i++) {
             if (items[i].type.indexOf('image') !== -1) {
                 const file = items[i].getAsFile();
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const base64 = event.target.result;
-                    const md = `![](${base64})`;
-                    const start = textarea.selectionStart;
-                    const end = textarea.selectionEnd;
-                    textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
-                };
-                reader.readAsDataURL(file);
+                if (storeImagesInSubfolder && taskId) {
+                    // Upload image to backend
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    try {
+                        const res = await fetch(`/api/tasks/${taskId}/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            const url = data.link;
+                            const md = `![](${url})`;
+                            const start = textarea.selectionStart;
+                            const end = textarea.selectionEnd;
+                            textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                        } else {
+                            alert('Image upload failed.');
+                        }
+                    } catch (err) {
+                        alert('Image upload error.');
+                    }
+                } else {
+                    // Embed image as base64
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const base64 = event.target.result;
+                        const md = `![](${base64})`;
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                    };
+                    reader.readAsDataURL(file);
+                }
                 e.preventDefault();
                 break;
             }
@@ -197,7 +226,7 @@ function setupDropZones() {
             }
             if (dragOverIndex === tasks.length) newOrder.push(id);
             // Fetch all tasks to get the original status
-            api.getTasks().then(allTasks => {
+            TaskAPI.getTasks().then(allTasks => {
                 const draggedTask = allTasks.find(t => t.id === id);
                 const originalStatus = draggedTask ? draggedTask.status : null;
                 updateColumnOrder(status, newOrder, id, originalStatus);
@@ -249,7 +278,7 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
             showConfetti();
         }
     }
-    api.batchUpdateTasks(payload).then(() => {
+    TaskAPI.batchUpdateTasks(payload).then(() => {
         renderTasks();
     });
 }
@@ -282,7 +311,7 @@ function handleEdit(taskId, textEl) {
         if (!editingTaskId) return;
         const newText = inputEl.value;
         if (save && newText !== oldText && newText.trim() !== '') {
-            api.updateTaskText(taskId, newText).then(() => {
+            TaskAPI.updateTaskText(taskId, newText).then(() => {
                 editingTaskId = null;
                 inputEl = null;
                 renderTasks();
@@ -309,7 +338,7 @@ function handleEdit(taskId, textEl) {
  * @returns {void}
  */
 function addTask(status) {
-    api.createTask(status).then(task => {
+    TaskAPI.createTask(status).then(task => {
         renderTasks(() => {
             setTimeout(() => {
                 const col = columns[status];
@@ -395,7 +424,7 @@ function showConfetti() {
  * @returns {void}
  */
 function renderTasks(focusCallback, focusTaskId) {
-    api.getTasks().then(tasks => {
+    TaskAPI.getTasks().then(tasks => {
         // Sort tasks by order before rendering
         tasks.sort((a, b) => (a.order || 0) - (b.order || 0));
         Object.values(columns).forEach(col => {
@@ -462,7 +491,7 @@ function renderTasks(focusCallback, focusTaskId) {
                         closeTypeDropdownListener = null;
                         openTypeDropdown = null;
                     }
-                    api.updateTask(task.id, {type: key}).then(() => {
+                    TaskAPI.updateTask(task.id, {type: key}).then(() => {
                         renderTasks();
                     });
                 };
@@ -526,7 +555,7 @@ function renderTasks(focusCallback, focusTaskId) {
             if (focusTaskId && task.id === focusTaskId && !task.text) {
                 textSpan = createTextarea('', function () {
                     if (textSpan.value.trim() !== '') {
-                        api.updateTaskText(task.id, textSpan.value).then(() => renderTasks());
+                        TaskAPI.updateTaskText(task.id, textSpan.value).then(() => renderTasks());
                     } else {
                         renderTasks();
                     }
@@ -629,7 +658,7 @@ function renderTasks(focusCallback, focusTaskId) {
                 removeBtn.onclick = function (e) {
                     e.stopPropagation();
                     const newTags = (task.tags || []).filter(t => t !== tag);
-                    api.updateTaskTags(task.id, newTags).then(() => renderTasks());
+                    TaskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
                 };
                 tagLabel.appendChild(removeBtn);
                 tagsDiv.appendChild(tagLabel);
@@ -647,7 +676,7 @@ function renderTasks(focusCallback, focusTaskId) {
                 addTagInput.onfocus = function (e) {
                     tagInputFocused = true;
                     el.classList.add('show-tag-input');
-                    api.getTagSuggestions().then(tags => {
+                    TaskAPI.getTagSuggestions().then(tags => {
                         tagSuggestions = tags;
                     });
                 };
@@ -673,7 +702,7 @@ function renderTasks(focusCallback, focusTaskId) {
                             return;
                         }
                         const newTags = [...(task.tags || []), newTag];
-                        api.updateTaskTags(task.id, newTags).then(() => {
+                        TaskAPI.updateTaskTags(task.id, newTags).then(() => {
                             renderTasks(() => {
                                 setTimeout(() => {
                                     const col = columns[task.status];
@@ -728,7 +757,7 @@ function renderTasks(focusCallback, focusTaskId) {
                     el.setAttribute('draggable', 'true');
                     el.ondragstart = null;
                     if (textarea.value.trim() !== '') {
-                        api.updateTaskText(task.id, textarea.value).then(() => renderTasks());
+                        TaskAPI.updateTaskText(task.id, textarea.value).then(() => renderTasks());
                     } else {
                         renderTasks();
                     }
@@ -739,7 +768,7 @@ function renderTasks(focusCallback, focusTaskId) {
                         el.ondragstart = null;
                         renderTasks();
                     }
-                });
+                }, task.id);
                 textSpan.replaceWith(textarea);
                 textarea.focus();
             });
@@ -840,7 +869,7 @@ function showDeleteModal(taskId) {
         modal.appendChild(box);
         document.body.appendChild(modal);
         confirmBtn.onclick = function () {
-            api.deleteTask(taskId).then(() => {
+            TaskAPI.deleteTask(taskId).then(() => {
                 document.body.removeChild(modal);
                 renderTasks();
             });
@@ -881,7 +910,7 @@ function handleCheckboxClick(ev) {
     const checkIndex = Array.from(allCheckboxes).findIndex(el => el === ev.target);
     if (checkIndex === -1) return;
     // Get the original markdown from the API (or store it in a data attribute)
-    api.getTasks().then(tasks => {
+    TaskAPI.getTasks().then(tasks => {
         const task = tasks.find(t => t.id === taskId);
         if (!task || !task.text) return;
         // Split markdown into lines
@@ -900,7 +929,7 @@ function handleCheckboxClick(ev) {
             }
         }
         const newText = lines.join('\n');
-        api.updateTaskText(taskId, newText).then(() => {
+        TaskAPI.updateTaskText(taskId, newText).then(() => {
             renderTasks();
         });
     });

@@ -2,6 +2,9 @@
 
 import logging
 import os
+import random
+import string
+from pathlib import Path
 
 from flask import (
     Flask,
@@ -9,8 +12,10 @@ from flask import (
     render_template,
     request,
     send_from_directory,
+    url_for,
 )
 from pydantic import ValidationError
+from werkzeug.utils import secure_filename
 
 from .models import Task
 from .request_models import SettingsUpdateRequest, TaskCreateRequest, TaskUpdateRequest
@@ -22,6 +27,10 @@ logger = logging.getLogger(__name__)
 def create_app(repo: TaskRepository):
     """Create and configure the Flask app using the factory pattern."""
     app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), "templates"))
+
+    BACKLOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".backlog")
+    if not os.path.exists(BACKLOG_DIR):
+        os.makedirs(BACKLOG_DIR)
 
     @app.route("/")
     def index():
@@ -146,6 +155,37 @@ def create_app(repo: TaskRepository):
     def get_settings():
         """Return current kanban board settings."""
         return repo.settings.to_dict()
+
+    @app.route("/api/tasks/<task>/upload", methods=["POST"])
+    def upload_file(task):
+        """Upload a file for a specific task and store it under .backlog. Returns a link to fetch the file."""
+        # ensure file
+        if "file" not in request.files:
+            return {"error": "No file part in request"}, 400
+        file = request.files["file"]
+        if file.filename == "":
+            return {"error": "No selected file"}, 400
+
+        # sanitize and create unique filename
+        ext = Path(file.filename).suffix
+        rand_str = "".join(random.choices(string.ascii_letters + string.digits, k=8))
+        filename = secure_filename(f"{task}_{rand_str}{ext}")
+        # save file
+        file_path = os.path.join(BACKLOG_DIR, filename)
+        file.save(file_path)
+
+        # return link to fetch file
+        link = url_for("get_attachment", filename=filename)
+        return {"filename": filename, "link": link}, 201
+
+    @app.route("/api/attachment/<filename>", methods=["GET"])
+    def get_attachment(filename):
+        """Serve an uploaded file from .backlog."""
+        filename = secure_filename(filename)
+        file_path = os.path.join(BACKLOG_DIR, filename)
+        if not os.path.exists(file_path):
+            return {"error": "File not found"}, 404
+        return send_from_directory(BACKLOG_DIR, filename)
 
     # @app.route("/events")
     # def events():
