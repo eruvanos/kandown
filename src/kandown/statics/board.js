@@ -193,10 +193,17 @@ function removePlaceholder() {
  * @returns {void}
  */
 function setupDropZones() {
+
+    document.getElementById('board').addEventListener('dragover', function (e) {
+        e.preventDefault();
+        removePlaceholder()
+    });
+
     Object.entries(columns).forEach(([status, col]) => {
         if (!col) return;
         col.addEventListener('dragover', function (e) {
             e.preventDefault();
+            e.stopPropagation();
             const tasks = Array.from(col.querySelectorAll('.task'));
             let insertIdx = tasks.length;
             for (let i = 0; i < tasks.length; i++) {
@@ -209,9 +216,6 @@ function setupDropZones() {
             dragOverIndex = insertIdx;
             dragOverCol = col;
             showPlaceholder(col, insertIdx);
-        });
-        col.addEventListener('dragleave', function (e) {
-            removePlaceholder();
         });
         col.addEventListener('drop', function (e) {
             e.preventDefault();
