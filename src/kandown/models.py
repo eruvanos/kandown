@@ -51,7 +51,8 @@ class Settings(BaseModel):
         validate_assignment=True,
     )
 
-    dark_mode: Optional[bool] = Field(default=None, description="Enable dark mode")
+    dark_mode: bool = Field(default=False, description="Enable dark mode")
+    random_port: bool = Field(default=False, description="Use random port on startup")
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert settings to dictionary format for JSON serialization."""

@@ -1,26 +1,31 @@
 """Command line interface for Kandown."""
 
 import os
+import socket
 from logging import basicConfig
+from pathlib import Path
 
 import click
+
 from kandown.app import create_app
+from kandown.task_repo import YamlTaskRepository
 
 
 @click.command()
 @click.argument("yaml_file", required=False, type=click.Path())
-@click.option("--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
-@click.option("--port", default=5001, help="Port to bind to (default: 5000)")
+@click.option("--port", default=None, help="Port to bind to (default: 5001)")
 @click.option("--debug", is_flag=True, help="Enable debug mode")
-def main(yaml_file, host, port, debug):
+def main(yaml_file, port, debug):
     """Start the Kandown server with a YAML file for tasks.
 
     yaml_file: Optional path to the YAML file to use for tasks. If not provided, defaults to 'backlog.yaml'.
     """
     if not yaml_file:
-        yaml_file = "backlog.yaml"
+        yaml_file = Path("backlog.yaml")
         click.echo("No YAML file provided, using default: backlog.yaml")
-    yaml_file = os.path.abspath(yaml_file)
+    else:
+        yaml_file = Path(yaml_file)
+
     if not os.path.exists(yaml_file):
         create = click.confirm(f"YAML file '{yaml_file}' does not exist. Create it?", default=True)
         if create:
@@ -31,13 +36,31 @@ def main(yaml_file, host, port, debug):
             click.echo("Aborted: YAML file does not exist.")
             return
     click.echo(f"Using YAML file: {yaml_file}")
-    click.echo(f"Server will be available at: http://{host}:{port}")
+
+    task_repo = YamlTaskRepository(yaml_file)
 
     # Set the markdown file and create the app
-    app = create_app(yaml_file=yaml_file)
+    app = create_app(task_repo)
+
+    # check for port config
+    random_port = task_repo.settings.random_port
+    if random_port and port is None:
+        port = _find_free_port()
+
+    if port is None:
+        port = 5001  # default port
 
     # Run the Flask app
-    app.run(host=host, port=port, debug=debug, threaded=True)
+    click.echo(f"Server will be available at: http://127.0.0.1:{port}")
+    app.run(host="127.0.0.1", port=port, debug=debug, threaded=True)
+
+
+def _find_free_port() -> int:
+    sock = socket.socket()
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    return port
 
 
 if __name__ == "__main__":

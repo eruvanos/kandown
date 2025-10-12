@@ -14,17 +14,14 @@ from pydantic import ValidationError
 
 from .models import Task
 from .request_models import SettingsUpdateRequest, TaskCreateRequest, TaskUpdateRequest
+from .task_repo import TaskRepository
 
 logger = logging.getLogger(__name__)
 
 
-def create_app(yaml_file):
+def create_app(repo: TaskRepository):
     """Create and configure the Flask app using the factory pattern."""
-    from .task_repo import YamlTaskRepository
-
     app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), "templates"))
-
-    repo = YamlTaskRepository(yaml_file)
 
     @app.route("/")
     def index():

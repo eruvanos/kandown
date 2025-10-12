@@ -1,6 +1,6 @@
 import datetime
-import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
@@ -17,6 +17,9 @@ class TaskRepository(ABC):
     Abstract base class for a task repository.
     Defines the interface for saving, retrieving, updating, and listing tasks.
     """
+
+    tasks: List[Task]
+    settings: Settings
 
     @abstractmethod
     def save(self, task: Task) -> Task:
@@ -100,13 +103,13 @@ class YamlTaskRepository(TaskRepository):
     Task repository implementation using a YAML file for storage with Pydantic models.
     """
 
-    def __init__(self, yaml_path: str) -> None:
+    def __init__(self, yaml_path: Path) -> None:
         """
         Initialize the repository and load tasks from the YAML file.
         Args:
             yaml_path (str): Path to the YAML file.
         """
-        self.yaml_path: str = yaml_path
+        self.yaml_path = yaml_path
         self.backlog_data: BacklogData = BacklogData()
         self.counter: int = 1
         # self.change_event: threading.Event = threading.Event()
@@ -142,22 +145,23 @@ class YamlTaskRepository(TaskRepository):
         """
         Load tasks and settings from the YAML file using Pydantic models.
         """
-        if os.path.exists(self.yaml_path):
-            with open(self.yaml_path, "r", encoding="utf-8") as f:
+        if self.yaml_path.exists():
+            with self.yaml_path.open("r", encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
-                try:
-                    if isinstance(data, dict):
-                        self.backlog_data = BacklogData.from_dict(data)
-                    else:
-                        # Handle legacy format (list of tasks)
-                        self.backlog_data = BacklogData(
-                            settings=Settings(),
-                            tasks=[Task.from_dict(task) for task in data] if isinstance(data, list) else [],
-                        )
-                except Exception as e:
-                    # Fallback for malformed data
-                    print(f"Warning: Could not parse YAML data: {e}. Using defaults.")
-                    self.backlog_data = BacklogData()
+
+            try:
+                if isinstance(data, dict):
+                    self.backlog_data = BacklogData.from_dict(data)
+                else:
+                    # Handle legacy format (list of tasks)
+                    self.backlog_data = BacklogData(
+                        settings=Settings(),
+                        tasks=[Task.from_dict(task) for task in data] if isinstance(data, list) else [],
+                    )
+            except Exception as e:
+                # Fallback for malformed data
+                print(f"Warning: Could not parse YAML data: {e}. Using defaults.")
+                self.backlog_data = BacklogData()
         else:
             self.backlog_data = BacklogData()
 
