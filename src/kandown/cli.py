@@ -7,6 +7,7 @@ from logging import basicConfig
 from pathlib import Path
 
 import click
+from waitress import serve
 
 from kandown.app import create_app
 from kandown.storage import AttachmentResolver
@@ -26,7 +27,6 @@ def main(yaml_file, port, debug):
 
     if not yaml_file:
         yaml_file = Path("backlog.yaml")
-        click.echo("No YAML file provided, using default: backlog.yaml")
     else:
         yaml_file = Path(yaml_file)
 
@@ -57,7 +57,10 @@ def main(yaml_file, port, debug):
 
     # Run the Flask app
     click.echo(f"Server will be available at: http://127.0.0.1:{port}")
-    app.run(host="127.0.0.1", port=port, debug=debug, threaded=True)
+    if debug:
+        app.run(host="127.0.0.1", port=port, debug=debug, threaded=True)
+    else:
+        serve(app, host="127.0.0.1", port=port)
 
 
 def _find_free_port() -> int:
