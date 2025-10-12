@@ -288,53 +288,6 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
 }
 
 
-// --- Editing ---
-/**
- * Handles editing of a task's text.
- * @param {string} taskId
- * @param {HTMLElement} textEl
- * @returns {void}
- */
-function handleEdit(taskId, textEl) {
-    if (editingTaskId) return;
-    editingTaskId = taskId;
-    const oldText = textEl.textContent;
-    inputEl = createTextarea(oldText,
-        function () {
-            finishEdit(true);
-        },
-        function (e) {
-            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) finishEdit(true);
-            else if (e.key === 'Escape') finishEdit(false);
-        }
-    );
-    textEl.replaceWith(inputEl);
-    inputEl.focus();
-
-    function finishEdit(save) {
-        if (!editingTaskId) return;
-        const newText = inputEl.value;
-        if (save && newText !== oldText && newText.trim() !== '') {
-            TaskAPI.updateTaskText(taskId, newText).then(() => {
-                editingTaskId = null;
-                inputEl = null;
-                renderTasks();
-            });
-        } else {
-            editingTaskId = null;
-            inputEl = null;
-            renderTasks();
-        }
-    }
-
-    document.addEventListener('mousedown', function docClick(e) {
-        if (inputEl && !inputEl.contains(e.target)) {
-            finishEdit(true);
-            document.removeEventListener('mousedown', docClick);
-        }
-    });
-}
-
 //--- Add Task ---
 /**
  * Adds a new task to the board.
@@ -566,7 +519,7 @@ function renderTasks(focusCallback, focusTaskId) {
                 }, function (e) {
                     if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textSpan.blur();
                     else if (e.key === 'Escape') renderTasks();
-                });
+                }, task.id);
                 setTimeout(() => textSpan.focus(), 100);
             } else {
                 textSpan = document.createElement('p');

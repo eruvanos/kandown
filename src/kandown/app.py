@@ -13,24 +13,22 @@ from flask import (
     request,
     send_from_directory,
     url_for,
+    send_file,
 )
 from pydantic import ValidationError
 from werkzeug.utils import secure_filename
 
 from .models import Task
 from .request_models import SettingsUpdateRequest, TaskCreateRequest, TaskUpdateRequest
+from .storage import AttachmentResolver
 from .task_repo import TaskRepository
 
 logger = logging.getLogger(__name__)
 
 
-def create_app(repo: TaskRepository):
+def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
     """Create and configure the Flask app using the factory pattern."""
     app = Flask(__name__, template_folder=os.path.join(os.path.dirname(__file__), "templates"))
-
-    BACKLOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".backlog")
-    if not os.path.exists(BACKLOG_DIR):
-        os.makedirs(BACKLOG_DIR)
 
     @app.route("/")
     def index():
@@ -170,9 +168,9 @@ def create_app(repo: TaskRepository):
         ext = Path(file.filename).suffix
         rand_str = "".join(random.choices(string.ascii_letters + string.digits, k=8))
         filename = secure_filename(f"{task}_{rand_str}{ext}")
+
         # save file
-        file_path = os.path.join(BACKLOG_DIR, filename)
-        file.save(file_path)
+        file.save(attachment_resolver.resolve(filename))
 
         # return link to fetch file
         link = url_for("get_attachment", filename=filename)
@@ -182,10 +180,10 @@ def create_app(repo: TaskRepository):
     def get_attachment(filename):
         """Serve an uploaded file from .backlog."""
         filename = secure_filename(filename)
-        file_path = os.path.join(BACKLOG_DIR, filename)
-        if not os.path.exists(file_path):
+        file = attachment_resolver.resolve(filename)
+        if not file.exists():
             return {"error": "File not found"}, 404
-        return send_from_directory(BACKLOG_DIR, filename)
+        return send_file(file)
 
     # @app.route("/events")
     # def events():

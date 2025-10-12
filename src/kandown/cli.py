@@ -8,6 +8,7 @@ from pathlib import Path
 import click
 
 from kandown.app import create_app
+from kandown.storage import AttachmentResolver
 from kandown.task_repo import YamlTaskRepository
 
 
@@ -38,9 +39,10 @@ def main(yaml_file, port, debug):
     click.echo(f"Using YAML file: {yaml_file}")
 
     task_repo = YamlTaskRepository(yaml_file)
+    attachment_resolver = AttachmentResolver(yaml_file.parent / ".backlog")
 
     # Set the markdown file and create the app
-    app = create_app(task_repo)
+    app = create_app(task_repo, attachment_resolver)
 
     # check for port config
     random_port = task_repo.settings.random_port
