@@ -32,11 +32,6 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
     const textarea = document.createElement('textarea');
     textarea.className = 'edit-input';
     textarea.value = value || '';
-    textarea.style.background = '#e6e1d1';
-    textarea.style.width = '95%';
-    textarea.style.height = '12em';
-    textarea.style.resize = 'vertical';
-    textarea.style.margin = '8px 8px';
     if (onBlur) textarea.addEventListener('blur', onBlur);
     if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
 
@@ -100,15 +95,6 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
 function createTagSuggestionBox(input, task, getTagSuggestions) {
     const box = document.createElement('div');
     box.className = 'tag-suggestion-box';
-    box.style.position = 'absolute';
-    box.style.border = '1px solid #ccc';
-    box.style.borderRadius = '8px';
-    box.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-    box.style.zIndex = '10';
-    box.style.display = 'none';
-    box.style.minWidth = '100px';
-    box.style.maxHeight = '120px';
-    box.style.overflowY = 'auto';
     box.updateSuggestions = () => {
         const val = input.value.trim().toLowerCase();
         box.innerHTML = '';
@@ -126,8 +112,6 @@ function createTagSuggestionBox(input, task, getTagSuggestions) {
             const item = document.createElement('div');
             item.textContent = tag;
             item.className = 'tag-suggestion-item';
-            item.style.padding = '4px 8px';
-            item.style.cursor = 'pointer';
             item.onmousedown = (e) => {
                 e.preventDefault();
                 input.value = tag;
@@ -250,10 +234,6 @@ function showPlaceholder(col, idx) {
     const tasks = Array.from(col.querySelectorAll('.task'));
     placeholderEl = document.createElement('div');
     placeholderEl.className = 'task-placeholder';
-    placeholderEl.style.height = '0';
-    placeholderEl.style.borderTop = '3px solid #2196f3';
-    placeholderEl.style.margin = '2px 0';
-    placeholderEl.style.transition = 'border-color 0.2s';
     if (idx >= tasks.length) {
         col.appendChild(placeholderEl);
     } else {
@@ -397,9 +377,6 @@ function renderTasks(focusCallback, focusTaskId) {
             // Header row for type button, ID and delete button
             const headRow = document.createElement('div');
             headRow.className = 'task-id-row';
-            headRow.style.display = 'flex';
-            headRow.style.flexDirection = 'row';
-            headRow.style.alignItems = 'center';
 
             // Type button before ID
             const typeMap = {
@@ -414,31 +391,17 @@ function renderTasks(focusCallback, focusTaskId) {
             const typeBtn = document.createElement('button');
             typeBtn.className = 'task-type-btn';
             typeBtn.title = typeInfo.label;
-            typeBtn.innerHTML = `<span style="font-size:1.2em;">${typeInfo.icon}</span>`;
-            typeBtn.style.marginRight = '8px';
-            typeBtn.style.border = 'none';
-            typeBtn.style.background = 'transparent';
-            typeBtn.style.cursor = 'pointer';
-            typeBtn.style.verticalAlign = 'middle';
+            typeBtn.innerHTML = `<span class="task-type-icon">${typeInfo.icon}</span>`;
             // Dropdown for type selection
             const dropdown = document.createElement('div');
             dropdown.className = 'type-dropdown';
-            dropdown.style.position = 'absolute';
-            dropdown.style.zIndex = '1000';
-            dropdown.style.display = 'none';
-            dropdown.style.border = '1px solid #ccc';
-            dropdown.style.borderRadius = '6px';
-            dropdown.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            dropdown.style.marginTop = '4px';
 
             let openTypeDropdown = null;
             let closeTypeDropdownListener = null;
             Object.entries(typeMap).forEach(([key, {icon, label}]) => {
                 const option = document.createElement('div');
                 option.className = 'type-option';
-                option.style.padding = '8px 12px';
-                option.style.cursor = 'pointer';
-                option.innerHTML = `<span style="font-size:1.2em;">${icon}</span> ${label}`;
+                option.innerHTML = `<span class="type-icon">${icon}</span> ${label}`;
                 if (key === task.type) {
                     option.classList.add('type-option-selected');
                 }
@@ -488,7 +451,6 @@ function renderTasks(focusCallback, focusTaskId) {
             const idDiv = document.createElement('div');
             idDiv.className = 'task-id';
             idDiv.textContent = task.id;
-            idDiv.style.display = 'inline-block';
             headRow.append(idDiv);
 
             // --- Delete Button (now after ID) ---
@@ -496,13 +458,6 @@ function renderTasks(focusCallback, focusTaskId) {
             deleteBtn.className = 'delete-task-btn';
             deleteBtn.title = 'Delete task';
             deleteBtn.innerHTML = '&#10060;'; // Red cross
-            deleteBtn.style.marginLeft = '8px';
-            deleteBtn.style.color = '#e53935';
-            deleteBtn.style.fontSize = '13px';
-            deleteBtn.style.cursor = 'pointer';
-            deleteBtn.style.verticalAlign = 'middle';
-            deleteBtn.style.position = 'static';
-            deleteBtn.style.zIndex = '20';
             deleteBtn.onclick = function (e) {
                 e.stopPropagation();
                 showDeleteModal(task.id);
@@ -528,8 +483,7 @@ function renderTasks(focusCallback, focusTaskId) {
                 textSpan.className = 'task-text';
                 if (!task.text) {
                     textSpan.textContent = 'Click to add text';
-                    textSpan.style.fontStyle = 'italic';
-                    textSpan.style.color = '#888';
+                    textSpan.classList.add('task-text-placeholder');
                     textSpan.style.display = 'block';
                 } else {
                     if (window.marked) {
@@ -585,15 +539,12 @@ function renderTasks(focusCallback, focusTaskId) {
                 }
                 // Inline row for type button, ID, and title
                 const rowDiv = document.createElement('div');
-                rowDiv.style.display = 'flex';
-                rowDiv.style.alignItems = 'center';
-                rowDiv.style.gap = '8px';
+                rowDiv.className = 'collapsed-row';
                 rowDiv.appendChild(typeBtn);
                 rowDiv.appendChild(idDiv);
                 const titleDiv = document.createElement('div');
                 titleDiv.className = 'collapsed-title';
                 titleDiv.innerHTML = `<s>${title}</s>`;
-                titleDiv.style.display = 'inline-block';
                 rowDiv.appendChild(titleDiv);
                 rowDiv.appendChild(deleteBtn);
                 el.appendChild(rowDiv);
@@ -798,42 +749,16 @@ function showDeleteModal(taskId) {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'delete-modal';
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100vw';
-        modal.style.height = '100vh';
-        modal.style.background = 'rgba(0,0,0,0.3)';
-        modal.style.display = 'flex';
-        modal.style.alignItems = 'center';
-        modal.style.justifyContent = 'center';
-        modal.style.zIndex = '99999';
+        modal.className = 'modal-overlay';
         const box = document.createElement('div');
-        box.className = 'delete-modal-box';
-        // Remove inline background, rely on CSS
-        box.style.padding = '32px';
-        box.style.borderRadius = '12px';
-        box.style.boxShadow = '0 2px 16px rgba(0,0,0,0.15)';
-        box.style.textAlign = 'center';
+        box.className = 'modal-box';
         box.innerHTML = '<h3>Delete Task?</h3><p>This action cannot be undone.</p>';
         const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'modal-btn modal-btn-confirm';
         confirmBtn.textContent = 'Delete';
-        confirmBtn.style.background = '#e53935';
-        confirmBtn.style.color = '#fff';
-        confirmBtn.style.border = 'none';
-        confirmBtn.style.padding = '8px 24px';
-        confirmBtn.style.margin = '16px';
-        confirmBtn.style.borderRadius = '6px';
-        confirmBtn.style.cursor = 'pointer';
         const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'modal-btn modal-btn-cancel';
         cancelBtn.textContent = 'Cancel';
-        cancelBtn.style.background = '#eee';
-        cancelBtn.style.color = '#333';
-        cancelBtn.style.border = 'none';
-        cancelBtn.style.padding = '8px 24px';
-        cancelBtn.style.margin = '16px';
-        cancelBtn.style.borderRadius = '6px';
-        cancelBtn.style.cursor = 'pointer';
         box.appendChild(confirmBtn);
         box.appendChild(cancelBtn);
         modal.appendChild(box);

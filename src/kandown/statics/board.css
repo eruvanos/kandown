@@ -551,3 +551,224 @@ body.darkmode .modal-content {
 body.darkmode .close-btn {
   color: #bbb;
 }
+
+/* Task editing textarea */
+.edit-input {
+  background: #e6e1d1;
+  width: 95%;
+  min-height: 12em;
+  resize: vertical;
+  margin: 8px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+body.darkmode .edit-input {
+  background: #23272b;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+/* Task header and ID row */
+.task-id-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.task-type-btn {
+  margin-right: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  vertical-align: middle;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.task-type-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.darkmode .task-type-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.task-type-icon {
+  font-size: 1.2em;
+}
+
+.task-id {
+  display: inline-block;
+  font-weight: 500;
+  color: #666;
+  flex: 1;
+}
+
+body.darkmode .task-id {
+  color: #888;
+}
+
+/* Type dropdown styling improvements */
+.type-dropdown {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.type-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.type-icon {
+  font-size: 1.2em;
+  margin-right: 4px;
+}
+
+/* Tag suggestion box */
+.tag-suggestion-box {
+  position: absolute;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  display: none;
+  min-width: 100px;
+  max-height: 120px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+body.darkmode .tag-suggestion-box {
+  background: #23272b;
+  border-color: #444;
+}
+
+.tag-suggestion-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tag-suggestion-item:hover {
+  background: #f3f4f6;
+}
+
+body.darkmode .tag-suggestion-item:hover {
+  background: #444;
+}
+
+/* Modal overlay and box */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.modal-box {
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+}
+
+body.darkmode .modal-box {
+  background: #23272e;
+  color: #f3f3f3;
+}
+
+/* Modal buttons */
+.modal-btn {
+  border: none;
+  padding: 8px 24px;
+  margin: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: all 0.2s;
+}
+
+.modal-btn-confirm {
+  background: #e53935;
+  color: #fff;
+}
+
+.modal-btn-confirm:hover {
+  background: #b71c1c;
+}
+
+.modal-btn-cancel {
+  background: #eee;
+  color: #333;
+}
+
+.modal-btn-cancel:hover {
+  background: #ddd;
+}
+
+body.darkmode .modal-btn-cancel {
+  background: #444;
+  color: #f3f3f3;
+}
+
+body.darkmode .modal-btn-cancel:hover {
+  background: #555;
+}
+
+/* Collapsed title */
+.collapsed-title {
+  display: inline-block;
+  flex: 1;
+}
+
+/* Collapsed row */
+.collapsed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Task placeholder for drag and drop */
+.task-placeholder {
+  height: 0;
+  border-top: 3px solid #2196f3;
+  margin: 2px 0;
+  transition: border-color 0.2s;
+}
+
+/* Task text placeholder */
+.task-text-placeholder {
+  font-style: italic;
+  color: #888;
+}
+
+body.darkmode .task-text-placeholder {
+  color: #888;
+}
