@@ -251,7 +251,7 @@ Use CSS custom properties:
 5. Improve event handling patterns
 
 ### Low Priority (Nice to have):
-6. Add CSS custom properties for theming
+6. ~~Add CSS custom properties for theming~~
 7. Create TypeScript definitions
 
 ## Benefits of These Changes
