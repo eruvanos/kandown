@@ -248,7 +248,7 @@ Use CSS custom properties:
 
 ### Medium Priority (Good for code quality):
 4. ~~Implement consistent modal management~~ [K-044]
-5. Improve event handling patterns [K-045]
+5. ~~Improve event handling patterns~~ [K-045]
 
 ### Low Priority (Nice to have):
 6. ~~Add CSS custom properties for theming~~

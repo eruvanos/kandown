@@ -1,6 +1,7 @@
 // Import dependencies
 import {SettingsAPI, TaskAPI} from './api.js';
 import {ModalManager} from './modal-manager.js';
+import {EventManager} from './event-manager.js';
 
 /**
  * @typedef {import('./types.js').Task}
@@ -12,6 +13,7 @@ let editingTaskId = null;
 let inputEl = null;
 let columns = {};
 let doneCollapsed = {};
+const eventManager = new EventManager();
 
 // --- Kanban Board Setup ---
 if (window.marked) {
@@ -386,7 +388,7 @@ function createTypeDropdown(task) {
     dropdown.className = 'type-dropdown';
 
     let openTypeDropdown = null;
-    let closeTypeDropdownListener = null;
+    const dropdownId = `type-dropdown-${task.id}`;
     
     Object.entries(TASK_TYPE_MAP).forEach(([key, {icon, label}]) => {
         const option = document.createElement('div');
@@ -398,11 +400,8 @@ function createTypeDropdown(task) {
         option.onclick = (e) => {
             e.stopPropagation();
             dropdown.style.display = 'none';
-            if (closeTypeDropdownListener) {
-                window.removeEventListener('mousedown', closeTypeDropdownListener);
-                closeTypeDropdownListener = null;
-                openTypeDropdown = null;
-            }
+            eventManager.removeListener(dropdownId);
+            openTypeDropdown = null;
             TaskAPI.updateTask(task.id, {type: key}).then(() => {
                 renderTasks();
             });
@@ -414,23 +413,21 @@ function createTypeDropdown(task) {
         e.stopPropagation();
         const isOpen = dropdown.style.display === 'block';
         document.querySelectorAll('.type-dropdown').forEach(d => d.style.display = 'none');
-        if (closeTypeDropdownListener) {
-            window.removeEventListener('mousedown', closeTypeDropdownListener);
-            closeTypeDropdownListener = null;
-            openTypeDropdown = null;
-        }
+        eventManager.removeListener(dropdownId);
+        openTypeDropdown = null;
+        
         if (!isOpen) {
             dropdown.style.display = 'block';
             openTypeDropdown = dropdown;
-            closeTypeDropdownListener = function (event) {
+            
+            const closeHandler = function (event) {
                 if (openTypeDropdown && !openTypeDropdown.contains(event.target) && event.target !== typeBtn) {
                     openTypeDropdown.style.display = 'none';
-                    window.removeEventListener('mousedown', closeTypeDropdownListener);
-                    closeTypeDropdownListener = null;
+                    eventManager.removeListener(dropdownId);
                     openTypeDropdown = null;
                 }
             };
-            window.addEventListener('mousedown', closeTypeDropdownListener);
+            eventManager.addListener(window, 'mousedown', closeHandler, dropdownId);
         } else {
             dropdown.style.display = 'none';
         }
