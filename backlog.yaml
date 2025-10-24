@@ -393,6 +393,86 @@ tasks:
     Add some simple autocompletion for checklists and lists in general.'
   type: feature
   updated_at: '2025-10-12T23:56:37.441544'
+- created_at: '2025-10-24T21:43:05.263143'
+  id: K-041
+  order: 36
+  status: todo
+  tags:
+  - frontend
+  - refactoring
+  text: '# Create utility functions for common UI patterns
+
+
+    Create reusable utility functions for common UI patterns to reduce code duplication.
+    This includes modal creation, button creation, and other repeated UI elements.
+
+
+    **Priority:** High
+
+    
+    See FRONTEND_IMPROVEMENTS.md for detailed analysis and recommendations.'
+  type: feature
+  updated_at: '2025-10-24T21:43:05.263143'
+- created_at: '2025-10-24T21:43:05.263143'
+  id: K-043
+  order: 38
+  status: todo
+  tags:
+  - frontend
+  - refactoring
+  text: '# Split renderTasks() into smaller functions
+
+
+    The renderTasks() function is 400+ lines and handles too many responsibilities.
+    Split it into smaller, focused functions for better maintainability.
+
+
+    **Priority:** High
+
+    
+    See FRONTEND_IMPROVEMENTS.md for detailed analysis and recommendations.'
+  type: feature
+  updated_at: '2025-10-24T21:43:05.263143'
+- created_at: '2025-10-24T21:43:05.263143'
+  id: K-044
+  order: 40
+  status: todo
+  tags:
+  - frontend
+  - refactoring
+  text: '# Implement consistent modal management
+
+
+    Create a consistent modal management system to replace the repeated modal
+    creation patterns throughout the codebase.
+
+
+    **Priority:** Medium
+
+    
+    See FRONTEND_IMPROVEMENTS.md for detailed analysis and recommendations.'
+  type: feature
+  updated_at: '2025-10-24T21:43:05.263143'
+- created_at: '2025-10-24T21:43:05.263143'
+  id: K-045
+  order: 42
+  status: todo
+  tags:
+  - frontend
+  - refactoring
+  text: '# Improve event handling patterns
+
+
+    Improve event listener management with cleaner patterns to replace manual
+    event listener cleanup logic.
+
+
+    **Priority:** Medium
+
+    
+    See FRONTEND_IMPROVEMENTS.md for detailed analysis and recommendations.'
+  type: feature
+  updated_at: '2025-10-24T21:43:05.263143'
 - closed_at: '2025-10-25T00:18:10.212902'
   created_at: '2025-10-25T00:17:45.348459'
   id: K-046
