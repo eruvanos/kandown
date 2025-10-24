@@ -1,6 +1,79 @@
+:root {
+    /* Light mode colors */
+    --bg-primary: #f8f9fa;
+    --bg-column: #fff;
+    --bg-task: #e3eafc;
+    --bg-tag: #e0e0e0;
+    --bg-input: #fff;
+    --bg-dropdown: #fff;
+    --bg-modal: #fff;
+    --bg-button: #444;
+    
+    --text-primary: #333;
+    --text-secondary: #888;
+    --text-heading: #2c3e50;
+    --text-tag: inherit;
+    --text-button: #2c3e50;
+    
+    --border-color: #ccc;
+    --border-dropdown: transparent;
+    --border-input: #ccc;
+    --border-modal: transparent;
+    
+    --shadow-column: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-task: 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow-button: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --shadow-tooltip: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-modal: none;
+    
+    --hover-task-btn: #007bff;
+    --hover-tag-bg: #f3f4f6;
+    --hover-option: #f3f4f6;
+    --hover-button: #e53935;
+    
+    --selected-option-bg: #e3e7fa;
+}
+
+body.darkmode {
+    /* Dark mode colors */
+    --bg-primary: #181a1b;
+    --bg-column: #23272b;
+    --bg-task: #31363b;
+    --bg-tag: #444;
+    --bg-input: #23272b;
+    --bg-dropdown: #23272b;
+    --bg-modal: #23272e;
+    --bg-button: #444;
+    
+    --text-primary: #e0e0e0;
+    --text-secondary: #bbb;
+    --text-heading: #fff;
+    --text-tag: #e0e0e0;
+    --text-button: #f3f3f3;
+    
+    --border-color: #666;
+    --border-dropdown: #444;
+    --border-input: #666;
+    --border-modal: transparent;
+    
+    --shadow-column: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-task: 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow-button: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --shadow-tooltip: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-modal: 0 2px 16px rgba(0, 0, 0, 0.5);
+    
+    --hover-task-btn: #90caf9;
+    --hover-tag-bg: #444;
+    --hover-option: #444;
+    --hover-button: #e53935;
+    
+    --selected-option-bg: #39424a;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f8f9fa;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -27,9 +100,10 @@ body {
 }
 
 .column {
-    background: #fff;
+    background: var(--bg-column);
+    color: var(--text-primary);
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-column);
     padding: 16px;
     min-width: 320px;
     min-height: 300px;
@@ -40,17 +114,17 @@ body {
 
 .column h2 {
     text-align: center;
-    color: #2c3e50;
+    color: var(--text-heading);
     margin-bottom: 16px;
 }
 
 .task {
-    background: #e3eafc;
+    background: var(--bg-task);
+    color: var(--text-primary);
     border-radius: 5px;
     padding: 10px;
     margin-bottom: 10px;
-    color: #333;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    box-shadow: var(--shadow-task);
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -78,7 +152,8 @@ body {
 }
 
 .tag-label {
-    background: #e0e0e0;
+    background: var(--bg-tag);
+    color: var(--text-tag);
     border-radius: 12px;
     padding: 2px 8px;
     font-size: 0.85em;
@@ -93,11 +168,13 @@ body {
     margin-left: 4px;
     cursor: pointer;
     font-size: 1em;
-    color: #888;
+    color: var(--text-secondary);
 }
 
 .add-tag-input {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-input);
+    background: var(--bg-input);
+    color: var(--text-primary);
     border-radius: 12px;
     font-size: 0.85em;
     margin-left: 4px;
@@ -117,12 +194,12 @@ body {
     cursor: pointer;
     font-size: 1.2em;
     margin-left: 8px;
-    color: #2c3e50;
+    color: var(--text-button);
     transition: color 0.2s;
 }
 
 .add-task:hover {
-    color: #007bff;
+    color: var(--hover-task-btn);
 }
 
 /* Floating dark mode toggle button */
@@ -137,7 +214,7 @@ body {
     border-radius: 50%;
     width: 56px;
     height: 56px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-button);
     cursor: pointer;
     font-size: 1.8em;
     display: flex;
@@ -146,88 +223,18 @@ body {
     transition: background 0.2s, color 0.2s;
 }
 
-.darkmode-toggle.light {
-    background: #fff;
-    color: #2c3e50;
-    border: 1px solid #ccc;
-}
-
-/* Dark mode styles */
-body.darkmode {
-    background: #181a1b;
-    color: #e0e0e0;
-}
-
-body.darkmode .column {
-    background: #23272b;
-    color: #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-body.darkmode .task {
-    background: #31363b;
-    color: #e0e0e0;
-}
-
-body.darkmode .add-task {
-    color: #e0e0e0;
-}
-
-body.darkmode .add-task:hover {
-    color: #90caf9;
-}
-
-body.darkmode .tags {
-    color: #b0b0b0;
-}
-
-body.darkmode .task-id {
-    color: #888;
-}
-
-body.darkmode .darkmode-toggle {
-    background: #fff;
-    color: #23272b;
-    border: 1px solid #ccc;
-}
-
-body.darkmode .column h2 {
-    color: #fff;
-    text-shadow: 0 1px 4px #23272b;
-}
-
-body.darkmode .tag-label {
-    background: #444;
-    color: #e0e0e0;
-}
-
-body.darkmode .add-tag-input {
-    background: #23272b;
-    color: #e0e0e0;
-    border: 1px solid #666;
-}
-
-body.darkmode .remove-tag {
-    color: #bbb;
-}
-
 .tag-suggestion-box {
-    background: #fff;
-    color: #222;
+    background: var(--bg-dropdown);
+    color: var(--text-primary);
+    border: 1px solid var(--border-dropdown);
 }
 
-body.darkmode .tag-suggestion-box {
-    background: #23272b;
-    color: #e0e0e0;
-    border: 1px solid #444;
+.tag-suggestion-box div {
+    color: var(--text-primary);
 }
 
-body.darkmode .tag-suggestion-box div {
-    color: #e0e0e0;
-}
-
-body.darkmode .tag-suggestion-box div:hover {
-    background: #444;
+.tag-suggestion-box div:hover {
+    background: var(--hover-tag-bg);
 }
 
 /* Hourglass icon and tooltip */
@@ -236,7 +243,7 @@ body.darkmode .tag-suggestion-box div:hover {
     bottom: 8px;
     right: 8px;
     font-size: 1.1em;
-    color: #888;
+    color: var(--text-secondary);
     cursor: pointer;
     z-index: 2;
     background: none;
@@ -254,25 +261,15 @@ body.darkmode .tag-suggestion-box div:hover {
     position: absolute;
     bottom: 32px;
     right: 8px;
-    background: #fff;
-    color: #222;
-    border: 1px solid #ccc;
+    background: var(--bg-dropdown);
+    color: var(--text-primary);
+    border: 1px solid var(--border-input);
     border-radius: 6px;
     padding: 6px 12px;
     font-size: 0.95em;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-tooltip);
     white-space: nowrap;
     z-index: 10;
-}
-
-body.darkmode .task-hourglass {
-    color: #bbb;
-}
-
-body.darkmode .hourglass-tooltip {
-    background: #23272b;
-    color: #e0e0e0;
-    border: 1px solid #444;
 }
 
 .delete-task-btn {
@@ -296,65 +293,25 @@ body.darkmode .hourglass-tooltip {
 }
 
 #delete-modal .delete-modal-box {
-    background: #fff;
-    color: #222;
+    background: var(--bg-modal);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-modal);
 }
 
-body.darkmode #delete-modal {
-    background: rgba(20, 20, 20, 0.7);
-}
-
-body.darkmode #delete-modal .delete-modal-box {
-    background: #23272e !important;
-    color: #f3f3f3;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
-}
-
-body.darkmode #delete-modal h3,
-body.darkmode #delete-modal p {
-    color: #f3f3f3;
-}
-
-body.darkmode #delete-modal button {
-    background: #444;
-    color: #f3f3f3;
-    border: none;
-}
-
-body.darkmode #delete-modal button:hover {
-    background: #e53935;
-    color: #fff;
-}
-
-body.darkmode #delete-modal button:active {
-    background: #b71c1c;
-}
 
 .type-dropdown {
     font-family: inherit;
     border-radius: 6px;
     overflow: hidden;
-    background: #fff;
-}
-
-body.darkmode .type-dropdown {
-    background: #23272b;
-    border: 1px solid #444;
+    background: var(--bg-dropdown);
+    border: 1px solid var(--border-dropdown);
 }
 
 .type-option:hover {
-    background: #f3f4f6;
-}
-
-body.darkmode .type-option:hover {
-    background: #444;
+    background: var(--hover-option);
 }
 
 .type-option-selected {
-    background: #e3e7fa;
+    background: var(--selected-option-bg);
     font-weight: bold;
-}
-
-body.darkmode .type-option-selected {
-    background: #39424a;
 }
