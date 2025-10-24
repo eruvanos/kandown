@@ -388,7 +388,6 @@ function createTypeDropdown(task) {
     dropdown.className = 'type-dropdown';
 
     let openTypeDropdown = null;
-    const dropdownId = `type-dropdown-${task.id}`;
     
     Object.entries(TASK_TYPE_MAP).forEach(([key, {icon, label}]) => {
         const option = document.createElement('div');
@@ -400,7 +399,7 @@ function createTypeDropdown(task) {
         option.onclick = (e) => {
             e.stopPropagation();
             dropdown.style.display = 'none';
-            eventManager.removeListener(dropdownId);
+            eventManager.removeListener('global-type-dropdown');
             openTypeDropdown = null;
             TaskAPI.updateTask(task.id, {type: key}).then(() => {
                 renderTasks();
@@ -412,8 +411,10 @@ function createTypeDropdown(task) {
     typeBtn.onclick = function (e) {
         e.stopPropagation();
         const isOpen = dropdown.style.display === 'block';
+        
+        // Close all dropdowns and remove the global listener
         document.querySelectorAll('.type-dropdown').forEach(d => d.style.display = 'none');
-        eventManager.removeListener(dropdownId);
+        eventManager.removeListener('global-type-dropdown');
         openTypeDropdown = null;
         
         if (!isOpen) {
@@ -423,11 +424,11 @@ function createTypeDropdown(task) {
             const closeHandler = function (event) {
                 if (openTypeDropdown && !openTypeDropdown.contains(event.target) && event.target !== typeBtn) {
                     openTypeDropdown.style.display = 'none';
-                    eventManager.removeListener(dropdownId);
+                    eventManager.removeListener('global-type-dropdown');
                     openTypeDropdown = null;
                 }
             };
-            eventManager.addListener(window, 'mousedown', closeHandler, dropdownId);
+            eventManager.addListener(window, 'mousedown', closeHandler, 'global-type-dropdown');
         } else {
             dropdown.style.display = 'none';
         }
@@ -798,6 +799,9 @@ function createPlusButton(task) {
  */
 function renderTasks(focusCallback, focusTaskId) {
     TaskAPI.getTasks().then(tasks => {
+        // Clean up all tracked event listeners before re-rendering
+        eventManager.cleanup();
+        
         // Sort tasks by order before rendering
         tasks.sort((a, b) => (a.order || 0) - (b.order || 0));
         Object.values(columns).forEach(col => {
