@@ -45,6 +45,7 @@ body {
 }
 
 .task {
+  position: relative; /* for absolute elements inside*/
   background: #e3eafc;
   border-radius: 5px;
   padding: 10px;
@@ -317,6 +318,8 @@ body.darkmode .hourglass-tooltip {
 
 .delete-task-btn {
   display: none;
+  cursor: pointer;
+  line-height: 19px;
 }
 
 .task:hover .delete-task-btn {
@@ -325,15 +328,9 @@ body.darkmode .hourglass-tooltip {
 
 .delete-task-btn:hover {
   color: #b71c1c;
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 
-.task-id .delete-task-btn {
-  font-size: 14px;
-  margin-left: 8px;
-  vertical-align: middle;
-  position: static;
-}
 
 #delete-modal .delete-modal-box {
   background: #fff;
@@ -619,6 +616,11 @@ body.darkmode .task-id {
   color: #888;
 }
 
+.column#done-col .task-id {
+  display: block !important;
+  flex: unset !important;
+}
+
 /* Type dropdown styling improvements */
 .type-dropdown {
   position: absolute;
@@ -753,6 +755,16 @@ body.darkmode .modal-btn-cancel:hover {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Button group for collapse and delete buttons in done column */
+.done-button-group {
+  position: absolute;
+  top: 16px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Task placeholder for drag and drop */

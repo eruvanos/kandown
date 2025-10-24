@@ -452,8 +452,14 @@ function renderTasks(focusCallback, focusTaskId) {
             idDiv.className = 'task-id';
             idDiv.textContent = task.id;
             headRow.append(idDiv);
+            el.appendChild(headRow);
 
-            // --- Delete Button (now after ID) ---
+            // --- Start Button Group ---
+            const buttonGroup = document.createElement('div');
+            buttonGroup.className = 'done-button-group';
+            el.appendChild(buttonGroup)
+
+            // --- Delete Button ---
             const deleteBtn = document.createElement('span');
             deleteBtn.className = 'delete-task-btn';
             deleteBtn.title = 'Delete task';
@@ -462,8 +468,8 @@ function renderTasks(focusCallback, focusTaskId) {
                 e.stopPropagation();
                 showDeleteModal(task.id);
             };
-            headRow.append(deleteBtn);
-            el.appendChild(headRow);
+            buttonGroup.appendChild(deleteBtn);
+
             // --- Task Text ---
             let textSpan;
             if (focusTaskId && task.id === focusTaskId && !task.text) {
@@ -505,12 +511,12 @@ function renderTasks(focusCallback, focusTaskId) {
             // --- Collapsible Arrow for 'done' column ---
             let arrowBtn = null;
             if (task.status === 'done') {
+                // Initialize collapse state if not set
                 if (typeof doneCollapsed[task.id] === 'undefined') doneCollapsed[task.id] = true;
+
+                // Create arrow button
                 arrowBtn = document.createElement('span');
                 arrowBtn.className = 'collapse-arrow';
-                arrowBtn.style.position = 'absolute';
-                arrowBtn.style.top = '8px';
-                arrowBtn.style.right = '8px';
                 arrowBtn.style.cursor = 'pointer';
                 arrowBtn.textContent = doneCollapsed[task.id] ? '\u25B6' : '\u25BC'; // ▶ or ▼
                 arrowBtn.onclick = function (e) {
@@ -518,39 +524,39 @@ function renderTasks(focusCallback, focusTaskId) {
                     doneCollapsed[task.id] = !doneCollapsed[task.id];
                     renderTasks();
                 };
-                el.style.position = 'relative';
-                el.appendChild(arrowBtn);
+                buttonGroup.appendChild(arrowBtn);
+
+                // Handle collapsed state
+                if (doneCollapsed[task.id]) {
+                    // Show arrow, and strikethrough title in one row
+                    // Title extraction
+                    let title = 'No title';
+                    if (task.text && task.text.trim()) {
+                        title = task.text.split('\n')[0].trim();
+                        if (!title) title = 'No title';
+                        // Truncate long titles
+                        const maxTitleLength = 35;
+                        if (title.length > maxTitleLength) {
+                            title = title.slice(0, maxTitleLength - 3) + '...';
+                        }
+                    }
+                    // Inline row for type button, ID, and title
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'collapsed-row';
+                    rowDiv.appendChild(typeBtn);
+                    rowDiv.appendChild(idDiv);
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'collapsed-title';
+                    titleDiv.innerHTML = `<s>${title}</s>`;
+                    rowDiv.appendChild(titleDiv);
+
+                    // Group collapse and delete buttons
+                    el.appendChild(rowDiv);
+                    columns[task.status].appendChild(el);
+                    return;
+                }
             }
 
-            // --- Collapsed logic for 'done' column ---
-            if (task.status === 'done' && doneCollapsed[task.id]) {
-                // Only show arrow, and strikethrough title in one row
-                el.classList.add('collapsed');
-                // Title extraction
-                let title = 'No title';
-                if (task.text && task.text.trim()) {
-                    title = task.text.split('\n')[0].trim();
-                    if (!title) title = 'No title';
-                    // Truncate long titles
-                    const maxTitleLength = 35;
-                    if (title.length > maxTitleLength) {
-                        title = title.slice(0, maxTitleLength - 3) + '...';
-                    }
-                }
-                // Inline row for type button, ID, and title
-                const rowDiv = document.createElement('div');
-                rowDiv.className = 'collapsed-row';
-                rowDiv.appendChild(typeBtn);
-                rowDiv.appendChild(idDiv);
-                const titleDiv = document.createElement('div');
-                titleDiv.className = 'collapsed-title';
-                titleDiv.innerHTML = `<s>${title}</s>`;
-                rowDiv.appendChild(titleDiv);
-                rowDiv.appendChild(deleteBtn);
-                el.appendChild(rowDiv);
-                columns[task.status].appendChild(el);
-                return;
-            }
             // For all other cards, show type button and ID at the top in the same row
             el.appendChild(headRow);
             el.appendChild(textSpan);
