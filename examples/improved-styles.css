@@ -1,0 +1,274 @@
+/* 
+ * Improved CSS using classes instead of inline styles
+ * This replaces the extensive inline styling found in board.js
+ */
+
+/* Task Header Components */
+.task-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.task-type-container {
+  position: relative;
+  margin-right: 8px;
+}
+
+.task-type-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  vertical-align: middle;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.task-type-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.task-type-icon {
+  font-size: 1.2em;
+}
+
+.task-id {
+  display: inline-block;
+  font-weight: 500;
+  color: var(--text-secondary, #666);
+  margin-right: auto;
+}
+
+/* Type Dropdown */
+.type-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  min-width: 140px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(--bg-dropdown, #fff);
+  border: 1px solid var(--border-color, #ccc);
+  margin-top: 4px;
+}
+
+.type-dropdown.show {
+  display: block;
+}
+
+.type-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: var(--text-primary, #333);
+}
+
+.type-option:hover {
+  background: var(--bg-hover, #f3f4f6);
+}
+
+.type-option-selected {
+  background: var(--bg-selected, #e3e7fa);
+  font-weight: 600;
+}
+
+.type-icon {
+  font-size: 1.2em;
+  margin-right: 8px;
+}
+
+/* Task Content */
+.task-text {
+  margin: 8px 0;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.task-text-placeholder {
+  font-style: italic;
+  color: var(--text-muted, #888);
+}
+
+.task-text:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+  padding: 4px;
+  margin: 4px -4px;
+}
+
+/* Task Editor */
+.task-editor {
+  background: var(--bg-editor, #e6e1d1);
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 4px;
+  padding: 8px;
+  font-family: inherit;
+  font-size: inherit;
+  margin: 8px 0;
+}
+
+.task-editor:focus {
+  outline: none;
+  border-color: var(--accent-color, #2196f3);
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+/* Modal Improvements */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.modal-box {
+  background: var(--bg-modal, #fff);
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  color: var(--text-primary, #333);
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+/* Button Styles */
+.btn {
+  padding: 8px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 500;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+
+.btn-danger {
+  background: var(--color-danger, #e53935);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: var(--color-danger-hover, #b71c1c);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--bg-secondary, #eee);
+  color: var(--text-primary, #333);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-secondary-hover, #ddd);
+}
+
+/* Delete Button */
+.delete-task-btn {
+  color: var(--color-danger, #e53935);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.task:hover .delete-task-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.delete-task-btn:hover {
+  color: var(--color-danger-hover, #b71c1c);
+  background: rgba(229, 57, 53, 0.1);
+  transform: scale(1.1);
+}
+
+/* Task Controls */
+.add-beneath-btn {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: all 0.2s;
+  font-size: 1.8em;
+  color: var(--text-secondary, #666);
+}
+
+.task:hover .add-beneath-btn {
+  opacity: 1;
+}
+
+.add-beneath-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateX(-50%) scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .task-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .type-dropdown {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 200px;
+  }
+  
+  .modal-box {
+    margin: 20px;
+    padding: 24px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .delete-task-btn,
+  .add-beneath-btn,
+  .task-type-btn {
+    display: none !important;
+  }
+  
+  .task {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
