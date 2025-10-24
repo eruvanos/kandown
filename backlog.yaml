@@ -458,8 +458,8 @@ tasks:
   updated_at: '2025-10-25T00:46:09.223658'
 - created_at: '2025-10-24T21:43:05.263143'
   id: K-045
-  order: 40
-  status: todo
+  order: 0
+  status: in_progress
   tags:
   - frontend
   - refactoring
@@ -475,4 +475,4 @@ tasks:
 
     See FRONTEND_IMPROVEMENTS.md for detailed analysis and recommendations.'
   type: feature
-  updated_at: '2025-10-25T00:25:36.753745'
+  updated_at: '2025-10-25T00:47:12.328893'

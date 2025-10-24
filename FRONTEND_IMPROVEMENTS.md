@@ -244,10 +244,10 @@ Use CSS custom properties:
 ### High Priority (Critical for maintainability):
 1. ~~Extract inline styles to CSS classes~~ (already implemented)
 2. Create utility functions for common UI patterns [K-041]
-3. Split `renderTasks()` into smaller functions [K-043]
+3. ~~Split `renderTasks()` into smaller functions~~ [K-043]
 
 ### Medium Priority (Good for code quality):
-4. Implement consistent modal management [K-044]
+4. ~~Implement consistent modal management~~ [K-044]
 5. Improve event handling patterns [K-045]
 
 ### Low Priority (Nice to have):
