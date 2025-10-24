@@ -1,5 +1,6 @@
 // Import dependencies
 import {SettingsAPI, TaskAPI} from './api.js';
+import {ModalManager} from './modal-manager.js';
 
 /**
  * @typedef {import('./types.js').Task}
@@ -857,34 +858,16 @@ function renderTasks(focusCallback, focusTaskId) {
  * @returns {void}
  */
 function showDeleteModal(taskId) {
-    let modal = document.getElementById('delete-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'delete-modal';
-        modal.className = 'modal-overlay';
-        const box = document.createElement('div');
-        box.className = 'modal-box';
-        box.innerHTML = '<h3>Delete Task?</h3><p>This action cannot be undone.</p>';
-        const confirmBtn = document.createElement('button');
-        confirmBtn.className = 'modal-btn modal-btn-confirm';
-        confirmBtn.textContent = 'Delete';
-        const cancelBtn = document.createElement('button');
-        cancelBtn.className = 'modal-btn modal-btn-cancel';
-        cancelBtn.textContent = 'Cancel';
-        box.appendChild(confirmBtn);
-        box.appendChild(cancelBtn);
-        modal.appendChild(box);
-        document.body.appendChild(modal);
-        confirmBtn.onclick = function () {
+    const modal = ModalManager.createConfirmModal(
+        'Delete Task?',
+        'This action cannot be undone.',
+        () => {
             TaskAPI.deleteTask(taskId).then(() => {
-                document.body.removeChild(modal);
                 renderTasks();
             });
-        };
-        cancelBtn.onclick = function () {
-            document.body.removeChild(modal);
-        };
-    }
+        }
+    );
+    ModalManager.showModal(modal);
 }
 
 /**
