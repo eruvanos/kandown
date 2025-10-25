@@ -76,37 +76,68 @@ function initializeStorage() {
 initializeStorage();
 
 export class TaskAPI {
-    static async all() {
-        const tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        return tasks;
-    }
-
-    static async create(taskData) {
-        const tasks = await this.all();
+    /**
+     * Creates a new task with the given status.
+     * @param {string} status
+     * @param {number} order
+     * @returns {Promise<Task>}
+     */
+    static async createTask(status, order) {
+        const tasks = await TaskAPI.getTasks();
         const newTask = {
             id: generateId(),
-            text: taskData.text || '',
-            status: taskData.status || 'todo',
-            tags: taskData.tags || [],
-            order: taskData.order !== undefined ? taskData.order : tasks.filter(t => t.status === taskData.status).length,
-            type: taskData.type || 'task'
+            text: '',
+            status: status || 'todo',
+            tags: [],
+            order: order !== undefined ? order : tasks.filter(t => t.status === status).length,
+            type: 'task'
         };
         tasks.push(newTask);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
         return newTask;
     }
 
-    static async update(id, updates) {
-        const tasks = await this.all();
+    /**
+     * Fetches all tasks.
+     * @returns {Promise<Task[]>}
+     */
+    static async getTasks() {
+        const tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return tasks;
+    }
+
+    /**
+     * Fetches tag suggestions.
+     * @returns {Promise<string[]>}
+     */
+    static async getTagSuggestions() {
+        const tasks = await TaskAPI.getTasks();
+        const tagsSet = new Set();
+        tasks.forEach(task => {
+            if (task.tags) {
+                task.tags.forEach(tag => tagsSet.add(tag));
+            }
+        });
+        return Array.from(tagsSet).sort();
+    }
+
+    /**
+     * Updates a task with the given id and update object.
+     * @param {string} id
+     * @param {Partial<Task>} update
+     * @returns {Promise<Task>}
+     */
+    static async updateTask(id, update) {
+        const tasks = await TaskAPI.getTasks();
         const taskIndex = tasks.findIndex(t => t.id === id);
         if (taskIndex === -1) {
             throw new Error('Task not found');
         }
         
         // Update task with provided fields
-        Object.keys(updates).forEach(key => {
-            if (updates[key] !== undefined && updates[key] !== null) {
-                tasks[taskIndex][key] = updates[key];
+        Object.keys(update).forEach(key => {
+            if (update[key] !== undefined && update[key] !== null) {
+                tasks[taskIndex][key] = update[key];
             }
         });
         
@@ -114,8 +145,33 @@ export class TaskAPI {
         return tasks[taskIndex];
     }
 
-    static async batchUpdate(updates) {
-        const tasks = await this.all();
+    /**
+     * Updates the text of a task.
+     * @param {string} id
+     * @param {string} text
+     * @returns {Promise<Task>}
+     */
+    static updateTaskText(id, text) {
+        return TaskAPI.updateTask(id, {text});
+    }
+
+    /**
+     * Updates the tags of a task.
+     * @param {string} id
+     * @param {string[]} tags
+     * @returns {Promise<Task>}
+     */
+    static updateTaskTags(id, tags) {
+        return TaskAPI.updateTask(id, {tags});
+    }
+
+    /**
+     * Batch updates multiple tasks.
+     * @param {{[id: string]: Partial<Task>}} updates
+     * @returns {Promise<Task[]>}
+     */
+    static async batchUpdateTasks(updates) {
+        const tasks = await TaskAPI.getTasks();
         const updatedTasks = [];
         
         Object.entries(updates).forEach(([id, attrs]) => {
@@ -134,42 +190,53 @@ export class TaskAPI {
         return updatedTasks;
     }
 
-    static async delete(id) {
-        const tasks = await this.all();
+    /**
+     * Deletes a task by id.
+     * @param {string} id
+     * @returns {Promise<any>}
+     */
+    static async deleteTask(id) {
+        const tasks = await TaskAPI.getTasks();
         const filteredTasks = tasks.filter(t => t.id !== id);
         if (filteredTasks.length === tasks.length) {
-            return false; // Task not found
+            return {success: false, error: 'Task not found'}; // Task not found
         }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredTasks));
-        return true;
-    }
-
-    static async getTagSuggestions() {
-        const tasks = await this.all();
-        const tagsSet = new Set();
-        tasks.forEach(task => {
-            if (task.tags) {
-                task.tags.forEach(tag => tagsSet.add(tag));
-            }
-        });
-        return Array.from(tagsSet).sort();
+        return {success: true};
     }
 }
 
 export class SettingsAPI {
+    /** @type {Settings|null} */
+    static _settingsCache = null;
+
+    /**
+     * Fetches all settings, using cache if available.
+     * @returns {Promise<Settings>}
+     */
     static async getSettings() {
+        if (SettingsAPI._settingsCache) {
+            return Promise.resolve(SettingsAPI._settingsCache);
+        }
         const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || JSON.stringify(DEFAULT_SETTINGS));
+        SettingsAPI._settingsCache = settings;
         return settings;
     }
 
-    static async updateSettings(updates) {
-        const settings = await this.getSettings();
-        Object.keys(updates).forEach(key => {
-            if (updates[key] !== undefined) {
-                settings[key] = updates[key];
+    /**
+     * Updates settings with the given object and updates the cache.
+     * @param {Object} update
+     * @returns {Promise<Object>}
+     */
+    static async updateSettings(update) {
+        const settings = await SettingsAPI.getSettings();
+        Object.keys(update).forEach(key => {
+            if (update[key] !== undefined) {
+                settings[key] = update[key];
             }
         });
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        SettingsAPI._settingsCache = settings;
         return settings;
     }
 }
