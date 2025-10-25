@@ -216,7 +216,7 @@ export class SettingsAPI {
      */
     static async getSettings() {
         if (SettingsAPI._settingsCache) {
-            return Promise.resolve(SettingsAPI._settingsCache);
+            return SettingsAPI._settingsCache;
         }
         const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || JSON.stringify(DEFAULT_SETTINGS));
         SettingsAPI._settingsCache = settings;
