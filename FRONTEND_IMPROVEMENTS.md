@@ -243,7 +243,7 @@ Use CSS custom properties:
 
 ### High Priority (Critical for maintainability):
 1. ~~Extract inline styles to CSS classes~~ (already implemented)
-2. Create utility functions for common UI patterns [K-041]
+2. ~~Create utility functions for common UI patterns~~ [K-041] ✅
 3. ~~Split `renderTasks()` into smaller functions~~ [K-043]
 
 ### Medium Priority (Good for code quality):
