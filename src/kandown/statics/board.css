@@ -223,7 +223,7 @@ body {
 .settings-toggle {
   font-size: 1.2em;
   background: var(--btn-bg);
-  border: none;
+  border: 1px solid var(--border-color);
   border-radius: 50%;
   box-shadow: 0 2px 8px var(--shadow-medium);
   color: var(--text-primary);
@@ -238,10 +238,6 @@ body {
 
 .settings-toggle:hover {
   background: var(--btn-hover);
-}
-
-body.darkmode .settings-toggle {
-  border: 1px solid var(--border-color);
 }
 
 /* Dark mode toggle button */
@@ -259,18 +255,6 @@ body.darkmode .settings-toggle {
   align-items: center;
   justify-content: center;
   transition: background 0.2s, color 0.2s;
-}
-
-.darkmode-toggle.light {
-  background: var(--btn-bg);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-}
-
-body.darkmode .darkmode-toggle {
-  background: var(--btn-bg);
-  color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
 }
 
 /* Hourglass icon and tooltip */
