@@ -1,11 +1,88 @@
+:root {
+  /* Light mode colors */
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #fff;
+  --bg-task: #e3eafc;
+  --bg-column: #fff;
+  --bg-input: #e6e1d1;
+
+  --text-primary: #333;
+  --text-secondary: #2c3e50;
+  --text-muted: #666;
+  --text-light: #888;
+
+  --border-color: #ccc;
+  --border-light: #eee;
+
+  --shadow-color: rgba(0, 0, 0, 0.05);
+  --shadow-medium: rgba(0, 0, 0, 0.08);
+  --shadow-strong: rgba(0, 0, 0, 0.15);
+
+  --tag-bg: #e0e0e0;
+  --tag-text: #333;
+
+  --btn-bg: #fff;
+  --btn-hover: #f0f0f0;
+
+  --modal-overlay: rgba(0, 0, 0, 0.3);
+  --modal-bg: #fff;
+  --modal-text: #222;
+
+  --color-primary: #2196f3;
+  --color-secondary: #1976d2;
+  --color-success: rgba(17, 153, 142, 0.9);
+  --color-success-light: rgba(82, 214, 107, 0.9);
+  --color-danger: #e53935;
+  --color-danger-dark: #b71c1c;
+  --color-link: #007bff;
+  --color-on-primary: #fff;
+
+  --color-storage-bg: rgba(0, 0, 0, 0.8);
+  --color-storage-text: #fff;
+}
+
+body.darkmode {
+  /* Dark mode colors */
+  --bg-primary: #181a1b;
+  --bg-secondary: #23272b;
+  --bg-task: #31363b;
+  --bg-column: #23272b;
+  --bg-input: #23272b;
+
+  --text-primary: #e0e0e0;
+  --text-secondary: #fff;
+  --text-muted: #888;
+  --text-light: #bbb;
+
+  --border-color: #444;
+  --border-light: #666;
+
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --shadow-medium: rgba(0, 0, 0, 0.5);
+  --shadow-strong: rgba(0, 0, 0, 0.5);
+
+  --tag-bg: #444;
+  --tag-text: #e0e0e0;
+
+  --btn-bg: #23272b;
+  --btn-hover: rgba(255, 255, 255, 0.1);
+
+  --modal-overlay: rgba(20, 20, 20, 0.7);
+  --modal-bg: #23272e;
+  --modal-text: #f3f3f3;
+
+  --color-link: #90caf9;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f8f9fa;
+  background: var(--bg-primary);
   margin: 0;
   padding: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  color: var(--text-primary);
 }
 
 .main-content {
@@ -27,9 +104,9 @@ body {
 }
 
 .column {
-  background: #fff;
+  background: var(--bg-column);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px var(--shadow-color);
   padding: 16px;
   min-width: 320px;
   min-height: 300px;
@@ -40,17 +117,17 @@ body {
 
 .column h2 {
   text-align: center;
-  color: #2c3e50;
+  color: var(--text-secondary);
   margin-bottom: 16px;
 }
 
 .task {
   position: relative; /* for absolute elements inside*/
-  background: #e3eafc;
+  background: var(--bg-task);
   border-radius: 5px;
   padding: 10px;
   margin-bottom: 10px;
-  color: #333;
+  color: var(--text-primary);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -60,7 +137,7 @@ body {
 }
 
 .task-placeholder {
-  border-top: 3px solid #2196f3;
+  border-top: 3px solid var(--color-primary);
   margin: 2px 0;
 }
 
@@ -80,7 +157,8 @@ body {
 }
 
 .tag-label {
-  background: #e0e0e0;
+  background: var(--tag-bg);
+  color: var(--tag-text);
   border-radius: 12px;
   padding: 2px 8px;
   font-size: 0.85em;
@@ -95,11 +173,13 @@ body {
   margin-left: 4px;
   cursor: pointer;
   font-size: 1em;
-  color: #888;
+  color: var(--text-light);
 }
 
 .add-tag-input {
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-primary);
   border-radius: 12px;
   font-size: 0.85em;
   margin-left: 4px;
@@ -119,12 +199,12 @@ body {
   cursor: pointer;
   font-size: 1.2em;
   margin-left: 8px;
-  color: #2c3e50;
+  color: var(--text-secondary);
   transition: color 0.2s;
 }
 
 .add-task:hover {
-  color: #007bff;
+  color: var(--color-link);
 }
 
 /* Floating controls container */
@@ -142,10 +222,11 @@ body {
 /* Settings button */
 .settings-toggle {
   font-size: 1.2em;
-  background: #fff;
+  background: var(--btn-bg);
   border: none;
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-medium);
+  color: var(--text-primary);
   cursor: pointer;
   width: 32px;
   height: 32px;
@@ -156,25 +237,23 @@ body {
 }
 
 .settings-toggle:hover {
-  background: #f0f0f0;
+  background: var(--btn-hover);
 }
 
 body.darkmode .settings-toggle {
-  background: #23272b;
-  color: #fff;
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
 }
 
 /* Dark mode toggle button */
 .darkmode-toggle {
   font-size: 1.8em;
-  background: #2c3e50;
-  color: #fff;
+  background: var(--text-secondary);
+  color: var(--bg-secondary);
   border: none;
   border-radius: 50%;
   width: 56px;
   height: 56px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px var(--shadow-strong);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -183,93 +262,15 @@ body.darkmode .settings-toggle {
 }
 
 .darkmode-toggle.light {
-  background: #fff;
-  color: #2c3e50;
-  border: 1px solid #ccc;
+  background: var(--btn-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 body.darkmode .darkmode-toggle {
-  background: #fff;
-  color: #23272b;
-  border: 1px solid #ccc;
-}
-
-/* Dark mode styles */
-body.darkmode {
-  background: #181a1b;
-  color: #e0e0e0;
-}
-
-body.darkmode .column {
-  background: #23272b;
-  color: #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-body.darkmode .task {
-  background: #31363b;
-  color: #e0e0e0;
-}
-
-body.darkmode .add-task {
-  color: #e0e0e0;
-}
-
-body.darkmode .add-task:hover {
-  color: #90caf9;
-}
-
-body.darkmode .tags {
-  color: #b0b0b0;
-}
-
-body.darkmode .task-id {
-  color: #888;
-}
-
-body.darkmode .darkmode-toggle {
-  background: #fff;
-  color: #23272b;
-  border: 1px solid #ccc;
-}
-
-body.darkmode .column h2 {
-  color: #fff;
-  text-shadow: 0 1px 4px #23272b;
-}
-
-body.darkmode .tag-label {
-  background: #444;
-  color: #e0e0e0;
-}
-
-body.darkmode .add-tag-input {
-  background: #23272b;
-  color: #e0e0e0;
-  border: 1px solid #666;
-}
-
-body.darkmode .remove-tag {
-  color: #bbb;
-}
-
-.tag-suggestion-box {
-  background: #fff;
-  color: #222;
-}
-
-body.darkmode .tag-suggestion-box {
-  background: #23272b;
-  color: #e0e0e0;
-  border: 1px solid #444;
-}
-
-body.darkmode .tag-suggestion-box div {
-  color: #e0e0e0;
-}
-
-body.darkmode .tag-suggestion-box div:hover {
-  background: #444;
+  background: var(--btn-bg);
+  color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 }
 
 /* Hourglass icon and tooltip */
@@ -278,7 +279,7 @@ body.darkmode .tag-suggestion-box div:hover {
   bottom: 8px;
   right: 8px;
   font-size: 1.1em;
-  color: #888;
+  color: var(--text-light);
   cursor: pointer;
   z-index: 2;
   background: none;
@@ -296,25 +297,15 @@ body.darkmode .tag-suggestion-box div:hover {
   position: absolute;
   bottom: 32px;
   right: 8px;
-  background: #fff;
-  color: #222;
-  border: 1px solid #ccc;
+  background: var(--bg-secondary);
+  color: var(--modal-text);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 6px 12px;
   font-size: 0.95em;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-medium);
   white-space: nowrap;
   z-index: 10;
-}
-
-body.darkmode .task-hourglass {
-  color: #bbb;
-}
-
-body.darkmode .hourglass-tooltip {
-  background: #23272b;
-  color: #e0e0e0;
-  border: 1px solid #444;
 }
 
 .delete-task-btn {
@@ -328,73 +319,31 @@ body.darkmode .hourglass-tooltip {
 }
 
 .delete-task-btn:hover {
-  color: #b71c1c;
+  color: var(--color-danger-dark);
   transform: scale(1.1);
 }
 
 
 #delete-modal .delete-modal-box {
-  background: #fff;
-  color: #222;
-}
-
-body.darkmode #delete-modal {
-  background: rgba(20, 20, 20, 0.7);
-}
-
-body.darkmode #delete-modal .delete-modal-box {
-  background: #23272e !important;
-  color: #f3f3f3;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
-}
-
-body.darkmode #delete-modal h3,
-body.darkmode #delete-modal p {
-  color: #f3f3f3;
-}
-
-body.darkmode #delete-modal button {
-  background: #444;
-  color: #f3f3f3;
-  border: none;
-}
-
-body.darkmode #delete-modal button:hover {
-  background: #e53935;
-  color: #fff;
-}
-
-body.darkmode #delete-modal button:active {
-  background: #b71c1c;
+  background: var(--modal-bg);
+  color: var(--modal-text);
 }
 
 .type-dropdown {
   font-family: inherit;
   border-radius: 6px;
   overflow: hidden;
-  background: #fff;
+  background: var(--bg-secondary);
 }
 
-body.darkmode .type-dropdown {
-  background: #23272b;
-  border: 1px solid #444;
-}
 
 .type-option:hover {
   background: #f3f4f6;
 }
 
-body.darkmode .type-option:hover {
-  background: #444;
-}
-
 .type-option-selected {
   background: #e3e7fa;
   font-weight: bold;
-}
-
-body.darkmode .type-option-selected {
-  background: #39424a;
 }
 
 /* Modal styles */
@@ -407,13 +356,13 @@ body.darkmode .type-option-selected {
   width: 100vw;
   height: 100vh;
   overflow: auto;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--modal-overlay);
   align-items: center;
   justify-content: center;
 }
 
 .modal-content {
-  background: #fff;
+  background: var(--modal-bg);
   margin: 10% auto;
   padding: 32px 24px 24px 24px;
   border-radius: 12px;
@@ -421,7 +370,7 @@ body.darkmode .type-option-selected {
   max-width: 800px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
   position: relative;
-  color: #222;
+  color: var(--modal-text);
 }
 
 .close-btn {
@@ -429,13 +378,13 @@ body.darkmode .type-option-selected {
   top: 16px;
   right: 16px;
   font-size: 1.5em;
-  color: #888;
+  color: var(--text-light);
   cursor: pointer;
   transition: color 0.2s;
 }
 
 .close-btn:hover {
-  color: #e53935;
+  color: var(--color-danger);
 }
 
 /* Settings Checkbox */
@@ -462,7 +411,7 @@ body.darkmode .type-option-selected {
   width: 40px;
   height: 22px;
   display: block;
-  background: #c8ccd4;
+  background: var(--border-color);
   border-radius: 12px;
   transition: background 0.2s ease;
 }
@@ -474,9 +423,9 @@ body.darkmode .type-option-selected {
   width: 24px;
   height: 24px;
   display: block;
-  background: #fff;
+  background: var(--bg-secondary);
   border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(154, 153, 153, 0.75);
+  box-shadow: 0 2px 6px var(--shadow-medium);
   transition: all 0.2s ease;
 }
 
@@ -486,7 +435,7 @@ body.darkmode .type-option-selected {
 }
 
 .checkbox-toggle .toggle span svg path {
-  stroke: #c8ccd4;
+  stroke: var(--border-color);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -496,7 +445,7 @@ body.darkmode .type-option-selected {
 }
 
 .checkbox-toggle input[type="checkbox"]:checked + .toggle:before {
-  background: #52d66b;
+  background: var(--color-success-light);
 }
 
 .checkbox-toggle input[type="checkbox"]:checked + .toggle span {
@@ -504,7 +453,7 @@ body.darkmode .type-option-selected {
 }
 
 .checkbox-toggle input[type="checkbox"]:checked + .toggle span path {
-  stroke: #52d66b;
+  stroke: var(--color-success-light);
   stroke-dasharray: 25;
   stroke-dashoffset: 25;
 }
@@ -537,27 +486,15 @@ body.darkmode .type-option-selected {
   visibility: visible;
 }
 
-body.darkmode .add-beneath-btn {
-  color: #eee;
-}
-
-body.darkmode .modal-content {
-  background: #23272b;
-  color: #e0e0e0;
-}
-
-body.darkmode .close-btn {
-  color: #bbb;
-}
-
 /* Task editing textarea */
 .edit-input {
-  background: #e6e1d1;
+  background: var(--bg-input);
+  color: var(--text-primary);
   width: 95%;
   min-height: 12em;
   resize: vertical;
   margin: 8px 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 8px;
   font-family: inherit;
@@ -568,12 +505,6 @@ body.darkmode .close-btn {
   outline: none;
   border-color: #2196f3;
   box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
-}
-
-body.darkmode .edit-input {
-  background: #23272b;
-  color: #e0e0e0;
-  border-color: #444;
 }
 
 /* Task header and ID row */
@@ -598,10 +529,6 @@ body.darkmode .edit-input {
   background: rgba(0, 0, 0, 0.05);
 }
 
-body.darkmode .task-type-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
 .task-type-icon {
   font-size: 1.2em;
 }
@@ -609,13 +536,10 @@ body.darkmode .task-type-btn:hover {
 .task-id {
   display: inline-block;
   font-weight: 500;
-  color: #666;
+  color: var(--text-muted);
   flex: 1;
 }
 
-body.darkmode .task-id {
-  color: #888;
-}
 
 .column#done-col .task-id {
   display: block !important;
@@ -627,9 +551,9 @@ body.darkmode .task-id {
   position: absolute;
   z-index: 1000;
   display: none;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px var(--shadow-strong);
   margin-top: 4px;
   overflow: hidden;
 }
@@ -648,20 +572,15 @@ body.darkmode .task-id {
 /* Tag suggestion box */
 .tag-suggestion-box {
   position: absolute;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-medium);
   z-index: 10;
   display: none;
   min-width: 100px;
   max-height: 120px;
   overflow-y: auto;
-  background: #fff;
-}
-
-body.darkmode .tag-suggestion-box {
-  background: #23272b;
-  border-color: #444;
+  background: var(--bg-secondary);
 }
 
 .tag-suggestion-item {
@@ -672,10 +591,6 @@ body.darkmode .tag-suggestion-box {
 
 .tag-suggestion-item:hover {
   background: #f3f4f6;
-}
-
-body.darkmode .tag-suggestion-item:hover {
-  background: #444;
 }
 
 /* Modal overlay and box */
@@ -693,18 +608,14 @@ body.darkmode .tag-suggestion-item:hover {
 }
 
 .modal-box {
-  background: #fff;
+  background: var(--modal-bg);
+  color: var(--modal-text);
   padding: 32px;
   border-radius: 12px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
   text-align: center;
   max-width: 500px;
   width: 90%;
-}
-
-body.darkmode .modal-box {
-  background: #23272e;
-  color: #f3f3f3;
 }
 
 /* Modal buttons */
@@ -734,15 +645,6 @@ body.darkmode .modal-box {
 
 .modal-btn-cancel:hover {
   background: #ddd;
-}
-
-body.darkmode .modal-btn-cancel {
-  background: #444;
-  color: #f3f3f3;
-}
-
-body.darkmode .modal-btn-cancel:hover {
-  background: #555;
 }
 
 /* Collapsed title */
@@ -782,41 +684,42 @@ body.darkmode .modal-btn-cancel:hover {
   color: #888;
 }
 
-body.darkmode .task-text-placeholder {
-  color: #888;
-}
-
 /* Demo banner */
 .demo-banner {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-    color: var(--color-on-primary, #fff);
-    padding: 12px 20px;
-    text-align: center;
-    font-weight: 500;
-    box-shadow: 0 2px 8px var(--shadow-color, rgba(0, 0, 0, 0.15));
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: var(--color-on-primary, #fff);
+  padding: 12px 20px;
+  text-align: center;
+  font-weight: 500;
+  box-shadow: 0 2px 8px var(--shadow-color, rgba(0, 0, 0, 0.15));
 }
+
 .demo-banner.fs-active {
-    background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-light) 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-light) 100%);
 }
+
 .demo-banner a {
-    color: var(--color-link, #fff);
-    text-decoration: underline;
-    font-weight: 600;
+  color: var(--color-link, #fff);
+  text-decoration: underline;
+  font-weight: 600;
 }
+
 .demo-banner a:hover {
-    opacity: 0.9;
+  opacity: 0.9;
 }
+
 .storage-mode-indicator {
-    position: fixed;
-    top: 60px;
-    right: 20px;
-    background: var(--color-storage-bg, rgba(0, 0, 0, 0.8));
-    color: var(--color-storage-text, #fff);
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 0.9em;
-    z-index: 1000;
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  background: var(--color-storage-bg, rgba(0, 0, 0, 0.8));
+  color: var(--color-storage-text, #fff);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  z-index: 1000;
 }
+
 .storage-mode-indicator.filesystem {
-    background: var(--color-success, rgba(17, 153, 142, 0.9));
+  background: var(--color-success, rgba(17, 153, 142, 0.9));
 }

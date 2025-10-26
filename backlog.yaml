@@ -51,10 +51,7 @@ tasks:
   status: done
   tags:
   - v0.1
-  text: 'Support pasting images
-
-
-    '
+  text: Support pasting images
   type: feature
   updated: '2025-10-06T20:54:55.907287'
   updated_at: '2025-10-25T00:46:09.223132'
@@ -222,7 +219,7 @@ tasks:
   - v0.1
   text: Add special divider cards, which can be used in the backlog
   type: feature
-  updated_at: '2025-10-26T22:07:27.022219'
+  updated_at: '2025-10-26T23:24:22.856717'
 - created_at: '2025-10-07T01:35:11.463963'
   id: K-022
   order: 22
