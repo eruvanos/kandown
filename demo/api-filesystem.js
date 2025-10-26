@@ -187,13 +187,13 @@ class FileSystemAPI {
  * TaskAPI implementation using File System Access API
  */
 export class FileSystemTaskAPI {
-    static async getTasks() {
+    async getTasks() {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         return data.tasks || [];
     }
     
-    static async createTask(status, order) {
+    async createTask(status, order) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         
@@ -220,7 +220,7 @@ export class FileSystemTaskAPI {
         return newTask;
     }
     
-    static async updateTask(id, update) {
+    async updateTask(id, update) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         
@@ -243,7 +243,7 @@ export class FileSystemTaskAPI {
         return data.tasks[taskIndex];
     }
     
-    static async batchUpdateTasks(updates) {
+    async batchUpdateTasks(updates) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         const updatedTasks = [];
@@ -265,7 +265,7 @@ export class FileSystemTaskAPI {
         return updatedTasks;
     }
     
-    static async deleteTask(id) {
+    async deleteTask(id) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         
@@ -280,7 +280,7 @@ export class FileSystemTaskAPI {
         return {success: true};
     }
     
-    static async getTagSuggestions() {
+    async getTagSuggestions() {
         const tasks = await this.getTasks();
         const tagsSet = new Set();
         tasks.forEach(task => {
@@ -291,11 +291,11 @@ export class FileSystemTaskAPI {
         return Array.from(tagsSet).sort();
     }
     
-    static async updateTaskText(id, text) {
+    async updateTaskText(id, text) {
         return this.updateTask(id, {text});
     }
     
-    static async updateTaskTags(id, tags) {
+    async updateTaskTags(id, tags) {
         return this.updateTask(id, {tags});
     }
 }
@@ -304,16 +304,18 @@ export class FileSystemTaskAPI {
  * SettingsAPI implementation using File System Access API
  */
 export class FileSystemSettingsAPI {
-    static _settingsCache = null;
-    
-    static async getSettings() {
+    constructor() {
+        this._settingsCache = null;
+    }
+
+    async getSettings() {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         this._settingsCache = data.settings || {};
         return this._settingsCache;
     }
     
-    static async updateSettings(update) {
+    async updateSettings(update) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         

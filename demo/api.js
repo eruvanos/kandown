@@ -157,8 +157,8 @@ class LocalStorageTaskAPI {
      * @param {number} order
      * @returns {Promise<Task>}
      */
-    static async createTask(status, order) {
-        const tasks = await LocalStorageTaskAPI.getTasks();
+    async createTask(status, order) {
+        const tasks = await this.getTasks();
         const newTask = {
             id: generateId(),
             text: '',
@@ -176,7 +176,7 @@ class LocalStorageTaskAPI {
      * Fetches all tasks.
      * @returns {Promise<Task[]>}
      */
-    static async getTasks() {
+    async getTasks() {
         const tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         return tasks;
     }
@@ -185,8 +185,8 @@ class LocalStorageTaskAPI {
      * Fetches tag suggestions.
      * @returns {Promise<string[]>}
      */
-    static async getTagSuggestions() {
-        const tasks = await LocalStorageTaskAPI.getTasks();
+    async getTagSuggestions() {
+        const tasks = await this.getTasks();
         const tagsSet = new Set();
         tasks.forEach(task => {
             if (task.tags) {
@@ -202,8 +202,8 @@ class LocalStorageTaskAPI {
      * @param {Partial<Task>} update
      * @returns {Promise<Task>}
      */
-    static async updateTask(id, update) {
-        const tasks = await LocalStorageTaskAPI.getTasks();
+    async updateTask(id, update) {
+        const tasks = await this.getTasks();
         const taskIndex = tasks.findIndex(t => t.id === id);
         if (taskIndex === -1) {
             throw new Error('Task not found');
@@ -226,8 +226,8 @@ class LocalStorageTaskAPI {
      * @param {string} text
      * @returns {Promise<Task>}
      */
-    static updateTaskText(id, text) {
-        return LocalStorageTaskAPI.updateTask(id, {text});
+    updateTaskText(id, text) {
+        return this.updateTask(id, {text});
     }
 
     /**
@@ -236,8 +236,8 @@ class LocalStorageTaskAPI {
      * @param {string[]} tags
      * @returns {Promise<Task>}
      */
-    static updateTaskTags(id, tags) {
-        return LocalStorageTaskAPI.updateTask(id, {tags});
+    updateTaskTags(id, tags) {
+        return this.updateTask(id, {tags});
     }
 
     /**
@@ -245,8 +245,8 @@ class LocalStorageTaskAPI {
      * @param {{[id: string]: Partial<Task>}} updates
      * @returns {Promise<Task[]>}
      */
-    static async batchUpdateTasks(updates) {
-        const tasks = await LocalStorageTaskAPI.getTasks();
+    async batchUpdateTasks(updates) {
+        const tasks = await this.getTasks();
         const updatedTasks = [];
         
         Object.entries(updates).forEach(([id, attrs]) => {
@@ -270,8 +270,8 @@ class LocalStorageTaskAPI {
      * @param {string} id
      * @returns {Promise<any>}
      */
-    static async deleteTask(id) {
-        const tasks = await LocalStorageTaskAPI.getTasks();
+    async deleteTask(id) {
+        const tasks = await this.getTasks();
         const filteredTasks = tasks.filter(t => t.id !== id);
         if (filteredTasks.length === tasks.length) {
             return {success: false, error: 'Task not found'}; // Task not found
@@ -282,19 +282,21 @@ class LocalStorageTaskAPI {
 }
 
 class LocalStorageSettingsAPI {
-    /** @type {Settings|null} */
-    static _settingsCache = null;
+    constructor() {
+        /** @type {Settings|null} */
+        this._settingsCache = null;
+    }
 
     /**
      * Fetches all settings, using cache if available.
      * @returns {Promise<Settings>}
      */
-    static async getSettings() {
-        if (LocalStorageSettingsAPI._settingsCache) {
-            return LocalStorageSettingsAPI._settingsCache;
+    async getSettings() {
+        if (this._settingsCache) {
+            return this._settingsCache;
         }
         const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || JSON.stringify(DEFAULT_SETTINGS));
-        LocalStorageSettingsAPI._settingsCache = settings;
+        this._settingsCache = settings;
         return settings;
     }
 
@@ -303,85 +305,95 @@ class LocalStorageSettingsAPI {
      * @param {Object} update
      * @returns {Promise<Object>}
      */
-    static async updateSettings(update) {
-        const settings = await LocalStorageSettingsAPI.getSettings();
+    async updateSettings(update) {
+        const settings = await this.getSettings();
         Object.keys(update).forEach(key => {
             if (update[key] !== undefined) {
                 settings[key] = update[key];
             }
         });
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-        LocalStorageSettingsAPI._settingsCache = settings;
+        this._settingsCache = settings;
         return settings;
     }
 }
 
 // Hybrid API that routes to the appropriate backend
 export class TaskAPI {
-    static async getTasks() {
+    constructor() {
+        this.localStorageAPI = new LocalStorageTaskAPI();
+        this.fileSystemAPI = new FileSystemTaskAPI();
+    }
+
+    async getTasks() {
         if (storageMode === 'filesystem') {
-            return FileSystemTaskAPI.getTasks();
+            return this.fileSystemAPI.getTasks();
         }
-        return LocalStorageTaskAPI.getTasks();
+        return this.localStorageAPI.getTasks();
     }
     
-    static async createTask(status, order) {
+    async createTask(status, order) {
         if (storageMode === 'filesystem') {
-            return FileSystemTaskAPI.createTask(status, order);
+            return this.fileSystemAPI.createTask(status, order);
         }
-        return LocalStorageTaskAPI.createTask(status, order);
+        return this.localStorageAPI.createTask(status, order);
     }
     
-    static async updateTask(id, update) {
+    async updateTask(id, update) {
         if (storageMode === 'filesystem') {
-            return FileSystemTaskAPI.updateTask(id, update);
+            return this.fileSystemAPI.updateTask(id, update);
         }
-        return LocalStorageTaskAPI.updateTask(id, update);
+        return this.localStorageAPI.updateTask(id, update);
     }
     
-    static async batchUpdateTasks(updates) {
+    async batchUpdateTasks(updates) {
         if (storageMode === 'filesystem') {
-            return FileSystemTaskAPI.batchUpdateTasks(updates);
+            return this.fileSystemAPI.batchUpdateTasks(updates);
         }
-        return LocalStorageTaskAPI.batchUpdateTasks(updates);
+        return this.localStorageAPI.batchUpdateTasks(updates);
     }
     
-    static async deleteTask(id) {
+    async deleteTask(id) {
         if (storageMode === 'filesystem') {
-            return FileSystemTaskAPI.deleteTask(id);
+            return this.fileSystemAPI.deleteTask(id);
         }
-        return LocalStorageTaskAPI.deleteTask(id);
+        return this.localStorageAPI.deleteTask(id);
     }
     
-    static async getTagSuggestions() {
+    async getTagSuggestions() {
         if (storageMode === 'filesystem') {
-            return FileSystemTaskAPI.getTagSuggestions();
+            return this.fileSystemAPI.getTagSuggestions();
         }
-        return LocalStorageTaskAPI.getTagSuggestions();
+        return this.localStorageAPI.getTagSuggestions();
     }
     
-    static updateTaskText(id, text) {
-        return TaskAPI.updateTask(id, {text});
+    updateTaskText(id, text) {
+        return this.updateTask(id, {text});
     }
     
-    static updateTaskTags(id, tags) {
-        return TaskAPI.updateTask(id, {tags});
+    updateTaskTags(id, tags) {
+        return this.updateTask(id, {tags});
     }
 }
 
 export class SettingsAPI {
-    static async getSettings() {
+    constructor() {
+        this.localStorageAPI = new LocalStorageSettingsAPI();
+        this.fileSystemAPI = new FileSystemSettingsAPI();
+    }
+
+    async getSettings() {
         if (storageMode === 'filesystem') {
-            return FileSystemSettingsAPI.getSettings();
+            return this.fileSystemAPI.getSettings();
         }
-        return LocalStorageSettingsAPI.getSettings();
+        return this.localStorageAPI.getSettings();
     }
     
-    static async updateSettings(update) {
+    async updateSettings(update) {
         if (storageMode === 'filesystem') {
-            return FileSystemSettingsAPI.updateSettings(update);
+            return this.fileSystemAPI.updateSettings(update);
         }
-        return LocalStorageSettingsAPI.updateSettings(update);
+        return this.localStorageAPI.updateSettings(update);
     }
 }
 
