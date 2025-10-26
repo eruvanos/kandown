@@ -5,11 +5,11 @@ Kandown is a lightweight Kanban board application for managing tasks using a sim
 
 ## Main Structure
 - `backlog.yaml`, `demo.yml`: Example YAML files for storing tasks.
+- `demo/`: Demo web application showcasing Kandown features in a static setup.
 - `src/`: Source code for the web server and core logic.
   - `kandown/` Python source code for the CLI, web server, and core logic.
   - `kandown/templates/`: HTML templates for the web UI.
   - `kandown/static/`: Static files (CSS, JS, images) for the web UI.
-- `experimental/src/`: Experimental Web frontend (HTML, CSS, PyScript, Puepy integration).
 - `docs/`: Documentation and screenshots.
 - `tests/`: Automated tests for core functionality.
 - `README.md`: Project overview, installation, and usage instructions.
