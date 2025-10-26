@@ -64,13 +64,13 @@ def test_add_task(page: Page, kandown_server):
 
     # click the add task button
     page.get_by_role("heading", name="📝 To Do ➕").locator("span").click()
-    expect(page.get_by_text("K-001❌")).to_be_visible()
+    expect(page.get_by_text("K-001")).to_be_visible()
     expect(page.get_by_role("textbox")).to_be_visible()
 
     # fill in the task description
     page.get_by_role("textbox").click()
     page.get_by_role("textbox").fill("- [ ] task 1\n- [ ] task 2\n")
-    page.get_by_text("Kanban Board 📝 To Do ➕ K-001").click()
+    page.get_by_text("Kanban Board").click()
     expect(page.get_by_role("listitem").filter(has_text="task 1").get_by_role("checkbox")).to_be_visible()
     expect(page.get_by_role("listitem").filter(has_text="task 2").get_by_role("checkbox")).to_be_visible()
 
@@ -79,12 +79,12 @@ def test_add_task(page: Page, kandown_server):
     expect(page.get_by_role("listitem").filter(has_text="task 1").get_by_role("checkbox")).to_be_visible()
 
     # move task to in-progress
-    page.get_by_text("K-001❌ task 1 task 2 ⏳Last").drag_to(page.locator("#inprogress-col"))
-    expect(page.locator("#inprogress-col").get_by_text("K-001❌ task 1 task 2 ⏳Last"))
+    page.get_by_text("K-001 task 1 task 2 ⏳Last").drag_to(page.locator("#inprogress-col"))
+    expect(page.locator("#inprogress-col").get_by_text("K-001 task 1 task 2 ⏳Last"))
 
     # move task to done
-    page.get_by_text("K-001❌ task 1 task 2 ⏳Last").drag_to(page.locator("#done-col"))
-    expect(page.locator("#done-col").get_by_text("K-001❌ task 1 task 2 ⏳Last"))
+    page.get_by_text("K-001 task 1 task 2 ⏳Last").drag_to(page.locator("#done-col"))
+    expect(page.locator("#done-col").get_by_text("K-001 task 1 task 2 ⏳Last"))
     expect(page.get_by_text("▶")).to_be_visible()
 
     # task is collapsed and strikethrough

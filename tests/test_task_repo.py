@@ -4,7 +4,7 @@ from kandown.task_repo import YamlTaskRepository
 
 def make_repo_with_tasks(tmp_path):
     yaml_path = tmp_path / "test_tasks.yaml"
-    repo = YamlTaskRepository(str(yaml_path))
+    repo = YamlTaskRepository(yaml_path)
     return repo, yaml_path
 
 
