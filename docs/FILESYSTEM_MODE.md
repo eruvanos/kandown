@@ -1,64 +1,234 @@
-# File System Access API Mode - Implementation Guide
+# Hybrid Demo/File System Mode - Implementation Guide
 
 ## Overview
 
-This document outlines the steps required to implement a new mode for Kandown that uses the **File System Access API** to mount a local folder and access a `backlog.yaml` file directly from the user's file system. This mode would enable users to work with their local YAML files in a browser without running a server.
+This document outlines the steps required to enhance the **Demo Mode** for Kandown by adding optional **File System Access API** support. The implementation uses a hybrid approach:
+
+- **Primary:** File System Access API for reading/writing local `backlog.yaml` files (Chrome/Edge only)
+- **Fallback:** localStorage-based demo mode when file access is unavailable or declined
+
+This provides the best of both worlds: users with compatible browsers can work with real files, while all users can still use the demo with localStorage.
 
 ## Background
 
-The File System Access API is a web API that allows web applications to read and write files on the user's local file system with explicit user permission. This would enable a browser-based Kandown to:
+The File System Access API is a web API that allows web applications to read and write files on the user's local file system with explicit user permission. By combining this with the existing demo mode, we create a progressive enhancement:
 
+1. On page load, check for File System Access API support
+2. If supported, offer the user the option to connect a local folder
+3. If declined or unsupported, fall back to localStorage demo mode
+4. Users can switch between modes at any time
+
+### Unified Demo Mode Features
+
+**With File System Access (Chrome/Edge):**
 - Read and write to a local `backlog.yaml` file
 - Store images in a local `.backlog/` folder
-- Provide true file system integration without a server
-- Work offline after initial page load
+- True file system integration
+- Changes persist to actual files
 
-### Current Modes
-
-1. **Server Mode** (main app) - Flask server with YAML file storage
-2. **Demo Mode** (this PR) - Browser-only with localStorage
-3. **File System Mode** (proposed) - Browser-only with local file access
+**Without File System Access (all browsers):**
+- Store tasks in localStorage
+- Embed images as base64
+- Works in all modern browsers
+- Data persists in browser storage
 
 ## Browser Compatibility
 
-**Critical Limitation:** The File System Access API is currently only supported in Chromium-based browsers:
+The hybrid approach ensures the demo works in all browsers, with enhanced features in Chromium-based browsers:
 
-| Browser | Support | Notes |
-|---------|---------|-------|
-| Chrome/Edge | ✅ Yes | Full support since Chrome 86 |
-| Firefox | ❌ No | Not implemented, no plans announced |
-| Safari | ❌ No | Not implemented |
-| Opera | ✅ Yes | Based on Chromium |
+| Browser | Demo Mode (localStorage) | File System Access |
+|---------|-------------------------|-------------------|
+| Chrome/Edge | ✅ Yes | ✅ Yes (optional) |
+| Firefox | ✅ Yes | ❌ No (falls back to demo) |
+| Safari | ✅ Yes | ❌ No (falls back to demo) |
+| Opera | ✅ Yes | ✅ Yes (optional) |
+
+**Key Points:**
+- All users can use the demo with localStorage
+- Chrome/Edge users get the option to use real files
+- Graceful degradation ensures no one is locked out
+- Users can switch between modes (localStorage ↔ file system)
 
 **Reference:** [File System Access API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API)
 
-This limited browser support is why it was initially rejected in `DEV.md`:
-
-> **Cons:**
-> - Only Chrome supported (other browsers do not support file system access)
-> - Security issues (access to local file system)
 
 ## Implementation Steps
 
 ### 1. Project Structure
 
-Create a new directory for the File System API implementation:
+Enhance the existing demo directory with file system capabilities:
 
 ```
 kandown/
-├── filesystem/              # New directory
-│   ├── index.html          # Entry point
+├── demo/                    # Enhanced demo mode
+│   ├── index.html          # Entry point with mode selector
+│   ├── api.js              # Hybrid API (localStorage + file system)
 │   ├── api-filesystem.js   # File System Access API wrapper
 │   ├── yaml-handler.js     # YAML parsing/serialization
-│   ├── settings-fs.js      # File system mode settings
+│   ├── settings-demo.js    # Settings with mode switcher
+│   ├── board.js            # Existing board logic (reused)
+│   ├── board.css           # Existing styles (reused)
+│   ├── modal-manager.js    # Existing modal logic (reused)
+│   ├── event-manager.js    # Existing event logic (reused)
 │   └── README.md           # Documentation
-├── scripts/
-│   └── build_filesystem.py # Build script (similar to build_demo.py)
-└── .github/workflows/
-    └── deploy-filesystem.yml # Optional: Deploy as separate page
+└── scripts/
+    └── build_demo.py       # Updated build script
 ```
 
-### 2. API Implementation (`api-filesystem.js`)
+**Key Changes:**
+- Add `api-filesystem.js` for File System Access API
+- Add `yaml-handler.js` for YAML parsing
+- Update `api.js` to detect and route between storage modes
+- Update `index.html` to show mode selector
+- Update `settings-demo.js` to include mode switching
+
+### 2. Hybrid API Implementation (`api.js`)
+
+Update the existing `demo/api.js` to detect and route between storage modes:
+
+```javascript
+/**
+ * Hybrid API for demo mode
+ * Automatically switches between File System Access API and localStorage
+ */
+
+import { FileSystemAPI, FileSystemTaskAPI, FileSystemSettingsAPI } from './api-filesystem.js';
+
+// Storage mode detection
+let storageMode = 'localStorage'; // Default fallback
+
+// Check if File System Access API is available
+const hasFileSystemSupport = 'showDirectoryPicker' in window;
+
+// Try to restore previous file system connection
+async function initializeStorageMode() {
+    if (hasFileSystemSupport) {
+        const restored = await FileSystemAPI.restoreConnection();
+        if (restored) {
+            storageMode = 'filesystem';
+            console.log('📂 Restored file system connection');
+        }
+    }
+}
+
+// Initialize on load
+initializeStorageMode();
+
+// Export current mode getter
+export function getStorageMode() {
+    return storageMode;
+}
+
+// Export mode switcher
+export async function switchToFileSystem() {
+    if (!hasFileSystemSupport) {
+        throw new Error('File System Access API not supported');
+    }
+    
+    const success = await FileSystemAPI.requestDirectoryAccess();
+    if (success) {
+        storageMode = 'filesystem';
+        return true;
+    }
+    return false;
+}
+
+export function switchToLocalStorage() {
+    storageMode = 'localStorage';
+    FileSystemAPI.disconnect();
+}
+
+// ... existing localStorage implementation ...
+const STORAGE_KEY = 'kandown_demo_tasks';
+const SETTINGS_KEY = 'kandown_demo_settings';
+
+// LocalStorage implementations
+class LocalStorageTaskAPI {
+    static async getTasks() {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+    }
+    
+    static async createTask(status, order) {
+        // ... existing implementation ...
+    }
+    
+    // ... rest of existing methods ...
+}
+
+class LocalStorageSettingsAPI {
+    static async getSettings() {
+        // ... existing implementation ...
+    }
+    
+    static async updateSettings(update) {
+        // ... existing implementation ...
+    }
+}
+
+// Hybrid API that routes to the appropriate backend
+export class TaskAPI {
+    static async getTasks() {
+        if (storageMode === 'filesystem') {
+            return FileSystemTaskAPI.getTasks();
+        }
+        return LocalStorageTaskAPI.getTasks();
+    }
+    
+    static async createTask(status, order) {
+        if (storageMode === 'filesystem') {
+            return FileSystemTaskAPI.createTask(status, order);
+        }
+        return LocalStorageTaskAPI.createTask(status, order);
+    }
+    
+    static async updateTask(id, update) {
+        if (storageMode === 'filesystem') {
+            return FileSystemTaskAPI.updateTask(id, update);
+        }
+        return LocalStorageTaskAPI.updateTask(id, update);
+    }
+    
+    static async batchUpdateTasks(updates) {
+        if (storageMode === 'filesystem') {
+            return FileSystemTaskAPI.batchUpdateTasks(updates);
+        }
+        return LocalStorageTaskAPI.batchUpdateTasks(updates);
+    }
+    
+    static async deleteTask(id) {
+        if (storageMode === 'filesystem') {
+            return FileSystemTaskAPI.deleteTask(id);
+        }
+        return LocalStorageTaskAPI.deleteTask(id);
+    }
+    
+    static async getTagSuggestions() {
+        if (storageMode === 'filesystem') {
+            return FileSystemTaskAPI.getTagSuggestions();
+        }
+        return LocalStorageTaskAPI.getTagSuggestions();
+    }
+}
+
+export class SettingsAPI {
+    static async getSettings() {
+        if (storageMode === 'filesystem') {
+            return FileSystemSettingsAPI.getSettings();
+        }
+        return LocalStorageSettingsAPI.getSettings();
+    }
+    
+    static async updateSettings(update) {
+        if (storageMode === 'filesystem') {
+            return FileSystemSettingsAPI.updateSettings(update);
+        }
+        return LocalStorageSettingsAPI.updateSettings(update);
+    }
+}
+```
+
+### 3. File System API Implementation (`api-filesystem.js`)
 
 Create a File System Access API wrapper that matches the TaskAPI interface:
 
@@ -68,7 +238,191 @@ Create a File System Access API wrapper that matches the TaskAPI interface:
  * Reads/writes directly to a local backlog.yaml file
  */
 
+/**
+ * File System Access API implementation for Kandown
+ * Reads/writes directly to a local backlog.yaml file
+ */
+
+import { get as idbGet, set as idbSet, del as idbDel } from 'idb-keyval';
+
 class FileSystemAPI {
+    static fileHandle = null;
+    static directoryHandle = null;
+    static backlogData = null;
+    
+    /**
+     * Try to restore a previous directory connection from IndexedDB
+     */
+    static async restoreConnection() {
+        try {
+            const handle = await idbGet('directory-handle');
+            if (!handle) return false;
+            
+            // Verify we still have permission
+            if (await this.verifyPermission(handle)) {
+                this.directoryHandle = handle;
+                await this._findBacklogFile();
+                if (this.fileHandle) {
+                    await this.loadBacklogData();
+                    return true;
+                }
+            }
+        } catch (err) {
+            console.log('Could not restore connection:', err);
+        }
+        return false;
+    }
+    
+    /**
+     * Request access to a directory from the user
+     * This shows a browser directory picker dialog
+     */
+    static async requestDirectoryAccess() {
+        try {
+            // Request directory access with user permission
+            this.directoryHandle = await window.showDirectoryPicker({
+                mode: 'readwrite',
+                startIn: 'documents'
+            });
+            
+            // Save handle to IndexedDB for later restoration
+            await idbSet('directory-handle', this.directoryHandle);
+            
+            // Try to find backlog.yaml in the directory
+            await this._findBacklogFile();
+            
+            if (this.fileHandle) {
+                // Read initial data
+                await this.loadBacklogData();
+                return true;
+            }
+            
+            return false;
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                console.log('User cancelled directory selection');
+            } else {
+                console.error('Error requesting directory access:', err);
+            }
+            return false;
+        }
+    }
+    
+    /**
+     * Find or create backlog.yaml file
+     */
+    static async _findBacklogFile() {
+        try {
+            this.fileHandle = await this.directoryHandle.getFileHandle('backlog.yaml', {
+                create: false
+            });
+        } catch (e) {
+            // File doesn't exist, ask user if they want to create it
+            if (confirm('backlog.yaml not found. Create a new one?')) {
+                this.fileHandle = await this.directoryHandle.getFileHandle('backlog.yaml', {
+                    create: true
+                });
+                // Initialize with empty structure
+                await this.writeBacklogData({
+                    settings: {
+                        darkmode: false,
+                        random_port: false,
+                        store_images_in_subfolder: false
+                    },
+                    tasks: []
+                });
+            } else {
+                throw new Error('No backlog.yaml file selected');
+            }
+        }
+    }
+    
+    /**
+     * Disconnect from file system
+     */
+    static async disconnect() {
+        this.fileHandle = null;
+        this.directoryHandle = null;
+        this.backlogData = null;
+        await idbDel('directory-handle');
+    }
+    
+    /**
+     * Load and parse the backlog.yaml file
+     */
+    static async loadBacklogData() {
+        if (!this.fileHandle) {
+            throw new Error('No file handle available');
+        }
+        
+        const file = await this.fileHandle.getFile();
+        const text = await file.text();
+        
+        // Parse YAML (requires js-yaml library)
+        this.backlogData = jsyaml.load(text) || { settings: {}, tasks: [] };
+        return this.backlogData;
+    }
+    
+    /**
+     * Write backlog data back to the file
+     */
+    static async writeBacklogData(data) {
+        if (!this.fileHandle) {
+            throw new Error('No file handle available');
+        }
+        
+        // Create a writable stream
+        const writable = await this.fileHandle.createWritable();
+        
+        // Serialize to YAML
+        const yamlText = jsyaml.dump(data);
+        
+        // Write to file
+        await writable.write(yamlText);
+        await writable.close();
+        
+        this.backlogData = data;
+    }
+    
+    /**
+     * Check if we have file system access
+     */
+    static hasAccess() {
+        return this.fileHandle !== null;
+    }
+    
+    /**
+     * Verify we still have permission to access the directory
+     */
+    static async verifyPermission(handle = null, readWrite = true) {
+        const targetHandle = handle || this.directoryHandle;
+        if (!targetHandle) {
+            return false;
+        }
+        
+        const options = {};
+        if (readWrite) {
+            options.mode = 'readwrite';
+        }
+        
+        // Check if permission was already granted
+        if ((await targetHandle.queryPermission(options)) === 'granted') {
+            return true;
+        }
+        
+        // Request permission
+        if ((await targetHandle.requestPermission(options)) === 'granted') {
+            return true;
+        }
+        
+        return false;
+    }
+}
+
+/**
+ * TaskAPI implementation using File System Access API
+ */
+export class FileSystemTaskAPI {
     static fileHandle = null;
     static directoryHandle = null;
     static backlogData = null;
@@ -197,7 +551,7 @@ class FileSystemAPI {
 /**
  * TaskAPI implementation using File System Access API
  */
-export class TaskAPI {
+export class FileSystemTaskAPI {
     static async getTasks() {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
@@ -311,7 +665,7 @@ export class TaskAPI {
     }
 }
 
-export class SettingsAPI {
+export class FileSystemSettingsAPI {
     static _settingsCache = null;
     
     static async getSettings() {
@@ -342,7 +696,7 @@ export class SettingsAPI {
 export { FileSystemAPI };
 ```
 
-### 3. YAML Handler (`yaml-handler.js`)
+### 4. YAML Handler
 
 You'll need a JavaScript YAML library. The most popular option is `js-yaml`:
 
@@ -357,7 +711,9 @@ Or use a bundler to include it:
 npm install js-yaml
 ```
 
-### 4. HTML Entry Point (`index.html`)
+### 5. HTML Entry Point (`index.html`)
+
+Update the existing `demo/index.html` to support both modes:
 
 ```html
 <!DOCTYPE html>
@@ -365,29 +721,32 @@ npm install js-yaml
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kandown - File System Mode</title>
+  <title>Kandown Demo - Kanban Board</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6.2.1/dist/umd.js"></script>
   <script type="module" src="./board.js"></script>
-  <script type="module" src="./settings-fs.js"></script>
-  <script type="module" src="./init-filesystem.js"></script>
+  <script type="module" src="./settings-demo.js"></script>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./board.css">
   <style>
-    .fs-banner {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    .demo-banner {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       padding: 12px 20px;
       text-align: center;
       font-weight: 500;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
-    .fs-banner a {
+    .demo-banner.fs-active {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    .demo-banner a {
       color: #fff;
       text-decoration: underline;
       font-weight: 600;
     }
-    .fs-status {
+    .storage-mode-indicator {
       position: fixed;
       top: 60px;
       right: 20px;
@@ -398,60 +757,19 @@ npm install js-yaml
       font-size: 0.9em;
       z-index: 1000;
     }
-    .fs-status.connected {
+    .storage-mode-indicator.filesystem {
       background: rgba(17, 153, 142, 0.9);
-    }
-    .fs-permission-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-    }
-    .fs-permission-modal.active {
-      display: flex;
-    }
-    .fs-permission-content {
-      background: white;
-      padding: 32px;
-      border-radius: 12px;
-      max-width: 500px;
-      text-align: center;
     }
   </style>
 </head>
 <body>
-<div class="fs-banner">
-  🗂️ File System Mode - Reading from your local backlog.yaml | 
+<div id="demo-banner" class="demo-banner">
+  🎯 Demo Mode - Data stored in browser localStorage | 
   <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>
 </div>
 
-<div id="fs-status" class="fs-status">
-  📂 Not connected to file system
-</div>
-
-<div id="fs-permission-modal" class="fs-permission-modal active">
-  <div class="fs-permission-content">
-    <h2>🗂️ Select Your Project Folder</h2>
-    <p>Kandown needs access to a folder containing your <code>backlog.yaml</code> file.</p>
-    <p><strong>Note:</strong> This mode only works in Chrome/Edge browsers.</p>
-    <button id="select-folder-btn" style="
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-      color: white;
-      border: none;
-      padding: 12px 32px;
-      border-radius: 6px;
-      font-size: 1.1em;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 16px;
-    ">Select Folder</button>
-  </div>
+<div id="storage-mode-indicator" class="storage-mode-indicator">
+  💾 localStorage
 </div>
 
 <div class="main-content">
@@ -469,56 +787,127 @@ npm install js-yaml
   </div>
 </div>
 
-<!-- Rest of UI components same as demo/index.html -->
+<!-- Rest of UI components same as existing demo/index.html -->
 
 <script type="module">
-  import { FileSystemAPI } from './api-filesystem.js';
+  import { getStorageMode, switchToFileSystem, switchToLocalStorage } from './api.js';
   
-  const selectFolderBtn = document.getElementById('select-folder-btn');
-  const permissionModal = document.getElementById('fs-permission-modal');
-  const statusEl = document.getElementById('fs-status');
-  
-  selectFolderBtn.addEventListener('click', async () => {
-    const success = await FileSystemAPI.requestDirectoryAccess();
-    if (success) {
-      permissionModal.classList.remove('active');
-      statusEl.textContent = '✅ Connected to file system';
-      statusEl.classList.add('connected');
-      
-      // Initialize the board (load tasks)
-      window.location.reload();
+  // Update UI based on current storage mode
+  function updateModeUI() {
+    const mode = getStorageMode();
+    const banner = document.getElementById('demo-banner');
+    const indicator = document.getElementById('storage-mode-indicator');
+    
+    if (mode === 'filesystem') {
+      banner.textContent = '📂 File System Mode - Connected to local backlog.yaml | ';
+      banner.classList.add('fs-active');
+      indicator.textContent = '📂 File System';
+      indicator.classList.add('filesystem');
+    } else {
+      banner.textContent = '🎯 Demo Mode - Data stored in browser localStorage | ';
+      banner.classList.remove('fs-active');
+      indicator.textContent = '💾 localStorage';
+      indicator.classList.remove('filesystem');
     }
-  });
+    
+    // Add GitHub link
+    const link = document.createElement('a');
+    link.href = 'https://github.com/eruvanos/kandown';
+    link.target = '_blank';
+    link.textContent = 'View on GitHub';
+    banner.appendChild(link);
+  }
+  
+  // Update on load
+  setTimeout(updateModeUI, 100);
 </script>
 
 </body>
 </html>
 ```
 
-### 5. Settings UI Modifications
+### 6. Settings UI Modifications
 
-Add file system specific settings in `settings-fs.js`:
+Update `settings-demo.js` to include mode switching:
 
 ```javascript
-import {SettingsAPI, FileSystemAPI} from './api-filesystem.js';
+import { getStorageMode, switchToFileSystem, switchToLocalStorage } from './api.js';
+import { SettingsAPI } from './api.js';
 
-// Add a button to reconnect/change folder
-const changeFolderBtn = document.createElement('button');
-changeFolderBtn.textContent = '📂 Change Folder';
-changeFolderBtn.onclick = async () => {
-    const success = await FileSystemAPI.requestDirectoryAccess();
-    if (success) {
-        window.location.reload();
+// Add storage mode section to settings
+function addStorageModeSettings() {
+    const settingsContent = document.querySelector('.modal-content');
+    
+    // Create storage mode section
+    const storageModeSection = document.createElement('div');
+    storageModeSection.className = 'settings-section';
+    storageModeSection.innerHTML = `
+        <h3>Storage Mode</h3>
+        <div class="storage-mode-info">
+            <p>Current mode: <strong id="current-mode">${getStorageMode()}</strong></p>
+        </div>
+        <div class="storage-mode-buttons">
+            <button id="switch-to-filesystem" class="btn-mode">
+                📂 Use File System (Chrome/Edge only)
+            </button>
+            <button id="switch-to-localstorage" class="btn-mode">
+                💾 Use localStorage (All browsers)
+            </button>
+        </div>
+    `;
+    
+    // Insert before existing settings
+    settingsContent.insertBefore(storageModeSection, settingsContent.firstChild);
+    
+    // Add event listeners
+    document.getElementById('switch-to-filesystem').addEventListener('click', async () => {
+        try {
+            const success = await switchToFileSystem();
+            if (success) {
+                alert('Switched to file system mode. The page will reload.');
+                window.location.reload();
+            } else {
+                alert('Failed to access file system. Make sure you selected a valid folder.');
+            }
+        } catch (err) {
+            alert('Your browser does not support the File System Access API. Use Chrome or Edge.');
+        }
+    });
+    
+    document.getElementById('switch-to-localstorage').addEventListener('click', () => {
+        if (confirm('Switch to localStorage mode? Your file system data will remain unchanged.')) {
+            switchToLocalStorage();
+            alert('Switched to localStorage mode. The page will reload.');
+            window.location.reload();
+        }
+    });
+    
+    // Update button states
+    updateModeButtons();
+}
+
+function updateModeButtons() {
+    const mode = getStorageMode();
+    const fsBtn = document.getElementById('switch-to-filesystem');
+    const lsBtn = document.getElementById('switch-to-localstorage');
+    
+    if (mode === 'filesystem') {
+        fsBtn.disabled = true;
+        lsBtn.disabled = false;
+    } else {
+        fsBtn.disabled = false;
+        lsBtn.disabled = true;
     }
-};
+}
 
-// Add to settings modal
-document.querySelector('.modal-content').appendChild(changeFolderBtn);
-
-// Rest of settings implementation...
+// Call on settings modal open
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for settings modal to be created
+    setTimeout(addStorageModeSettings, 100);
+});
 ```
 
-### 6. Image Handling
+### 7. Image Handling
 
 For the `.backlog/` subfolder images:
 
@@ -569,27 +958,27 @@ class ImageHandler {
 }
 ```
 
-### 7. Build Script
+### 8. Build Script
 
-Create `scripts/build_filesystem.py`:
+Update `scripts/build_demo.py` to include the new files:
 
 ```python
 #!/usr/bin/env python3
 """
-Build script for Kandown File System Access API mode.
+Build script for Kandown demo mode with optional file system access.
 """
 
 import shutil
 from pathlib import Path
 
-def build_filesystem():
-    """Build the filesystem directory by copying static assets."""
+def build_demo():
+    """Build the demo directory by copying static assets."""
     
     repo_root = Path(__file__).parent.parent
     src_statics = repo_root / "src" / "kandown" / "statics"
-    fs_dir = repo_root / "filesystem"
+    demo_dir = repo_root / "demo"
     
-    fs_dir.mkdir(exist_ok=True)
+    demo_dir.mkdir(exist_ok=True)
     
     # Files to copy from statics
     files_to_copy = [
@@ -598,35 +987,42 @@ def build_filesystem():
         "modal-manager.js",
         "event-manager.js",
         "types.js",
+        "ui-utils.js",
         "favicon.svg"
     ]
     
-    print("Building Kandown File System mode...")
+    print("Building Kandown demo mode...")
     
     for filename in files_to_copy:
         src_file = src_statics / filename
-        dest_file = fs_dir / filename
+        dest_file = demo_dir / filename
         
         if src_file.exists():
             shutil.copy2(src_file, dest_file)
             print(f"✓ Copied {filename}")
     
-    # Verify filesystem-specific files
-    required_files = ["index.html", "api-filesystem.js", "yaml-handler.js"]
-    print("\nVerifying filesystem-specific files...")
+    # Verify demo-specific files
+    required_files = [
+        "index.html",
+        "api.js",
+        "api-filesystem.js",
+        "settings-demo.js",
+        "README.md"
+    ]
+    print("\nVerifying demo-specific files...")
     for filename in required_files:
-        if (fs_dir / filename).exists():
+        if (demo_dir / filename).exists():
             print(f"✓ {filename} exists")
         else:
-            print(f"✗ Error: {filename} is missing!")
-            return False
+            print(f"✗ Warning: {filename} is missing!")
     
-    print("\n✅ File System mode build completed!")
+    print("\n✅ Demo mode build completed!")
+    print("📝 Demo supports both localStorage and File System Access API")
     return True
 
 if __name__ == "__main__":
     import sys
-    success = build_filesystem()
+    success = build_demo()
     sys.exit(0 if success else 1)
 ```
 
@@ -668,22 +1064,24 @@ async function safeFileAccess() {
 
 ### Challenge 1: Browser Compatibility
 
-**Problem:** Only Chromium browsers support this API.
+**Problem:** Only Chromium browsers support the File System Access API.
 
-**Solutions:**
-- Add browser detection and show a clear message
-- Provide fallback to demo mode for unsupported browsers
-- Document the limitation prominently
+**Solution:** 
+- Use localStorage as the default fallback mode
+- All users can access the demo, regardless of browser
+- Chrome/Edge users get enhanced file system features as opt-in
+- Clear messaging about browser compatibility
 
 ```javascript
 function checkFileSystemSupport() {
-    if ('showDirectoryPicker' in window) {
-        return true;
+    const hasSupport = 'showDirectoryPicker' in window;
+    
+    if (!hasSupport) {
+        console.log('File System Access API not available. Using localStorage mode.');
+        // Continue with localStorage - no blocking error
     }
     
-    alert('Your browser does not support the File System Access API. ' +
-          'Please use Chrome or Edge, or try our Demo mode.');
-    return false;
+    return hasSupport;
 }
 ```
 
@@ -798,13 +1196,13 @@ test('should read and write to file system', async ({ page }) => {
 
 ## Deployment
 
-### Option 1: Separate GitHub Pages Site
+### GitHub Pages Deployment
 
-Deploy to a different path:
+The hybrid demo mode can be deployed as a single static site:
 
 ```yaml
-# .github/workflows/deploy-filesystem.yml
-name: Deploy File System Mode
+# .github/workflows/deploy-demo.yml
+name: Deploy Demo Mode
 
 on:
   push:
@@ -820,57 +1218,68 @@ jobs:
         with:
           python-version: '3.12'
       
-      - name: Build
-        run: python scripts/build_filesystem.py
+      - name: Build demo
+        run: python scripts/build_demo.py
       
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./filesystem
-          destination_dir: filesystem
+          publish_dir: ./demo
 ```
 
-Would be available at: `https://eruvanos.github.io/kandown/filesystem/`
+Available at: `https://eruvanos.github.io/kandown/`
 
-### Option 2: Mode Selector
-
-Create a landing page that lets users choose:
-- Server Mode (install and run)
-- Demo Mode (localStorage)
-- File System Mode (local files, Chrome only)
+**User Experience:**
+1. All users see the demo with localStorage by default
+2. Chrome/Edge users see an option in settings to enable file system mode
+3. If file system is enabled, the UI updates to show the current mode
+4. Users can switch back to localStorage at any time
 
 ## Documentation Updates
 
 ### README.md
 
-Add section:
+Add section describing the hybrid demo mode:
 
 ```markdown
-## File System Mode (Chrome/Edge only)
+## Demo Mode
 
-For users who want to work with local YAML files in their browser:
+Try Kandown instantly in your browser without any installation!
 
-**Requirements:**
-- Chrome or Edge browser
-- File System Access API support
+**Visit:** [https://eruvanos.github.io/kandown/](https://eruvanos.github.io/kandown/)
 
-**Usage:**
-1. Visit [https://eruvanos.github.io/kandown/filesystem/](https://eruvanos.github.io/kandown/filesystem/)
-2. Click "Select Folder"
-3. Choose your project folder containing `backlog.yaml`
-4. Grant read/write permission
-5. Start managing your tasks!
+### Features
 
-**Features:**
+**localStorage Mode (all browsers):**
+- ✅ Full kanban board functionality
+- ✅ Data persists in browser storage
+- ✅ Works offline
+- ✅ No installation required
+
+**File System Mode (Chrome/Edge only):**
 - ✅ Read/write local YAML files
 - ✅ Store images in `.backlog/` folder
-- ✅ Offline capable after first load
+- ✅ Work with existing backlog.yaml files
 - ✅ No server required
 
-**Limitations:**
-- ⚠️ Chrome/Edge only (no Firefox/Safari support)
-- ⚠️ Requires explicit folder permission
+### How to Use
+
+1. Visit the demo site
+2. Start with localStorage mode (works in all browsers)
+3. **Optional:** If using Chrome/Edge, open Settings ⚙️ to enable File System mode
+4. Grant folder access when prompted
+5. Select your project folder containing `backlog.yaml`
+
+### Switching Modes
+
+You can switch between localStorage and file system modes at any time:
+- Open Settings ⚙️
+- Under "Storage Mode", click the mode you want to use
+- Grant permissions if needed
+- The page will reload with your selected mode
+
+**Note:** Switching modes doesn't migrate data - your localStorage data and file system files remain separate.
 ```
 
 ## Future Enhancements
@@ -897,25 +1306,35 @@ For users who want to work with local YAML files in their browser:
 
 ## Conclusion
 
-Implementing File System Access API mode would provide a powerful middle ground between the server mode and demo mode:
+Implementing a hybrid demo mode with optional File System Access API support provides the best of both worlds:
 
 **Pros:**
-- Direct file system access
-- True offline capability
-- No server installation required
-- Work with your existing YAML files
-- Images stored as files, not base64
+- ✅ Works for all users (localStorage fallback)
+- ✅ No browser lock-in - everyone can try the demo
+- ✅ Progressive enhancement for Chrome/Edge users
+- ✅ Single deployment (simpler maintenance)
+- ✅ Direct file system access when available
+- ✅ True offline capability
+- ✅ No server installation required
+- ✅ Work with existing YAML files
+- ✅ Images stored as files, not base64 (in filesystem mode)
 
 **Cons:**
-- Chrome/Edge only (major limitation)
-- More complex permission handling
-- Potential for file conflicts
-- Users need to understand file system concepts
+- File system mode limited to Chrome/Edge
+- More complex permission handling for filesystem mode
+- Potential for file conflicts in filesystem mode
+- Users need to understand two storage modes
 
-**Recommendation:** Implement this as an experimental feature for power users who:
-- Use Chrome/Edge
-- Want browser-based UI
-- Need to work with existing YAML files
-- Understand the technical limitations
+**Recommendation:** Implement this as a **progressive enhancement** to the existing demo mode:
 
-This mode complements the existing server and demo modes, giving users three distinct options based on their needs.
+1. **Default Experience:** All users get fully functional demo with localStorage
+2. **Enhanced Experience:** Chrome/Edge users can optionally connect to local files
+3. **No Barriers:** Browser compatibility is no longer a blocking issue
+4. **Flexible:** Users can switch modes based on their needs
+
+This approach gives users flexibility while ensuring no one is excluded:
+- **Casual users:** Quick demo in any browser (localStorage)
+- **Power users (Chrome/Edge):** Full file system integration
+- **Teams:** Share the same demo link, everyone gets the best experience for their browser
+
+The hybrid approach transforms the File System Access API from a limitation into an optional enhancement, making Kandown more accessible while still offering advanced features where available.
