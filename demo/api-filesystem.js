@@ -190,20 +190,65 @@ export class FileSystemTaskAPI {
     async getTasks() {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
+
+        // Ensure last ID counter is synchronized with loaded tasks
+        this._syncLastIdCounter(data.tasks || []);
+
         return data.tasks || [];
     }
     
+    /**
+     * Synchronize the last ID counter with existing tasks
+     * @private
+     */
+    _syncLastIdCounter(tasks) {
+        const LAST_ID_KEY = 'kandown_demo_last_id';
+        const numericIds = tasks
+            .map(task => {
+                const match = task.id.match(/K[-_](\d+)/);
+                return match ? parseInt(match[1], 10) : 0;
+            })
+            .filter(num => !isNaN(num));
+
+        const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
+
+        // Only update if the found max is higher than stored value
+        const currentLastId = parseInt(localStorage.getItem(LAST_ID_KEY) || '0', 10);
+        if (maxId > currentLastId) {
+            localStorage.setItem(LAST_ID_KEY, maxId.toString());
+        }
+    }
+
+    /**
+     * Generate a new sequential ID
+     * @private
+     */
+    _generateId() {
+        const LAST_ID_KEY = 'kandown_demo_last_id';
+
+        // Get the last used ID from localStorage
+        let lastId = parseInt(localStorage.getItem(LAST_ID_KEY) || '0', 10);
+
+        // Increment for new task
+        const newId = lastId + 1;
+
+        // Store the new last ID
+        localStorage.setItem(LAST_ID_KEY, newId.toString());
+
+        // Format with leading zeros (e.g., K-001, K-002, ...)
+        return `K-${String(newId).padStart(3, '0')}`;
+    }
+
     async createTask(status, order) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         
-        // Generate unique ID (similar to server implementation)
-        const taskIds = data.tasks.map(t => t.id);
-        const maxId = taskIds.length > 0 
-            ? Math.max(...taskIds.map(id => parseInt(id.split('-')[1]) || 0))
-            : 0;
-        const newId = `K-${String(maxId + 1).padStart(3, '0')}`;
-        
+        // Sync ID counter with existing tasks first
+        this._syncLastIdCounter(data.tasks || []);
+
+        // Generate unique sequential ID
+        const newId = this._generateId();
+
         const newTask = {
             id: newId,
             text: '',

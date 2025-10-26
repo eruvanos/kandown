@@ -68,6 +68,20 @@ function generateId() {
     return `K-${String(newId).padStart(3, '0')}`;
 }
 
+// Initialize the last ID counter based on existing tasks
+function initializeLastIdCounter(tasks) {
+    const numericIds = tasks
+        .map(task => {
+            const match = task.id.match(/K[-_](\d+)/);
+            return match ? parseInt(match[1], 10) : 0;
+        })
+        .filter(num => !isNaN(num));
+
+    const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
+    localStorage.setItem(LAST_ID_KEY, maxId.toString());
+    return maxId;
+}
+
 // Default settings
 const DEFAULT_SETTINGS = {
     random_port: false,
@@ -78,7 +92,10 @@ const DEFAULT_SETTINGS = {
 function initializeStorage() {
     const existing = localStorage.getItem(STORAGE_KEY);
     if (!existing) {
-        // No tasks exist, initialize with demo tasks
+        // No tasks exist, reset the counter to 0 before generating demo tasks
+        localStorage.setItem(LAST_ID_KEY, '0');
+
+        // Initialize with demo tasks
         const demoTasks = [
             {
                 id: generateId(),
@@ -124,20 +141,8 @@ function initializeStorage() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(demoTasks));
     } else {
         // Tasks exist, ensure last ID counter is synchronized
-        const lastIdStored = localStorage.getItem(LAST_ID_KEY);
-        if (!lastIdStored) {
-            // Calculate the max ID from existing tasks and set it
-            const tasks = JSON.parse(existing);
-            const numericIds = tasks
-                .map(task => {
-                    const match = task.id.match(/K[-_](\d+)/);
-                    return match ? parseInt(match[1], 10) : 0;
-                })
-                .filter(num => !isNaN(num));
-
-            const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
-            localStorage.setItem(LAST_ID_KEY, maxId.toString());
-        }
+        const tasks = JSON.parse(existing);
+        initializeLastIdCounter(tasks);
     }
     
     const existingSettings = localStorage.getItem(SETTINGS_KEY);
