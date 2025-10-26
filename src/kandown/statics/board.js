@@ -2,6 +2,7 @@
 import {SettingsAPI, TaskAPI} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
+import {createElement, createButton, createSpan, createInput, createDiv} from './ui-utils.js';
 
 /**
  * @typedef {import('./types.js').Task}
@@ -96,8 +97,7 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
  * @returns {HTMLDivElement}
  */
 function createTagSuggestionBox(input, task, getTagSuggestions) {
-    const box = document.createElement('div');
-    box.className = 'tag-suggestion-box';
+    const box = createElement('div', 'tag-suggestion-box');
     box.updateSuggestions = () => {
         const val = input.value.trim().toLowerCase();
         box.innerHTML = '';
@@ -112,9 +112,8 @@ function createTagSuggestionBox(input, task, getTagSuggestions) {
             return;
         }
         matches.forEach(tag => {
-            const item = document.createElement('div');
+            const item = createElement('div', 'tag-suggestion-item');
             item.textContent = tag;
-            item.className = 'tag-suggestion-item';
             item.onmousedown = (e) => {
                 e.preventDefault();
                 input.value = tag;
@@ -235,8 +234,7 @@ function setupDropZones() {
 function showPlaceholder(col, idx) {
     removePlaceholder();
     const tasks = Array.from(col.querySelectorAll('.task'));
-    placeholderEl = document.createElement('div');
-    placeholderEl.className = 'task-placeholder';
+    placeholderEl = createElement('div', 'task-placeholder');
     if (idx >= tasks.length) {
         col.appendChild(placeholderEl);
     } else {
@@ -379,19 +377,18 @@ const TASK_TYPE_MAP = {
  */
 function createTypeDropdown(task) {
     const typeInfo = TASK_TYPE_MAP[task.type] || {icon: '', label: task.type || ''};
-    const typeBtn = document.createElement('button');
-    typeBtn.className = 'task-type-btn';
-    typeBtn.title = typeInfo.label;
-    typeBtn.innerHTML = `<span class="task-type-icon">${typeInfo.icon}</span>`;
+    const typeBtn = createButton({
+        className: 'task-type-btn',
+        title: typeInfo.label,
+        innerHTML: `<span class="task-type-icon">${typeInfo.icon}</span>`
+    });
     
-    const dropdown = document.createElement('div');
-    dropdown.className = 'type-dropdown';
+    const dropdown = createElement('div', 'type-dropdown');
 
     let openTypeDropdown = null;
     
     Object.entries(TASK_TYPE_MAP).forEach(([key, {icon, label}]) => {
-        const option = document.createElement('div');
-        option.className = 'type-option';
+        const option = createElement('div', 'type-option');
         option.innerHTML = `<span class="type-icon">${icon}</span> ${label}`;
         if (key === task.type) {
             option.classList.add('type-option-selected');
@@ -443,29 +440,27 @@ function createTypeDropdown(task) {
  * @returns {{headRow: HTMLElement, typeBtn: HTMLElement, idDiv: HTMLElement, buttonGroup: HTMLElement}} Header elements
  */
 function createTaskHeader(task) {
-    const headRow = document.createElement('div');
-    headRow.className = 'task-id-row';
+    const headRow = createElement('div', 'task-id-row');
     
     const {typeBtn, dropdown} = createTypeDropdown(task);
     headRow.append(typeBtn);
     headRow.appendChild(dropdown);
     
-    const idDiv = document.createElement('div');
-    idDiv.className = 'task-id';
+    const idDiv = createElement('div', 'task-id');
     idDiv.textContent = task.id;
     headRow.append(idDiv);
     
-    const buttonGroup = document.createElement('div');
-    buttonGroup.className = 'done-button-group';
+    const buttonGroup = createElement('div', 'done-button-group');
     
-    const deleteBtn = document.createElement('span');
-    deleteBtn.className = 'delete-task-btn';
-    deleteBtn.title = 'Delete task';
-    deleteBtn.innerHTML = '&#10060;'; // Red cross
-    deleteBtn.onclick = function (e) {
-        e.stopPropagation();
-        showDeleteModal(task.id);
-    };
+    const deleteBtn = createSpan({
+        className: 'delete-task-btn',
+        title: 'Delete task',
+        innerHTML: '&#10060;', // Red cross
+        onClick: function (e) {
+            e.stopPropagation();
+            showDeleteModal(task.id);
+        }
+    });
     buttonGroup.appendChild(deleteBtn);
     
     return {headRow, typeBtn, idDiv, buttonGroup};
@@ -536,15 +531,16 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
     }
     
     // Create arrow button
-    const arrowBtn = document.createElement('span');
-    arrowBtn.className = 'collapse-arrow';
-    arrowBtn.style.cursor = 'pointer';
-    arrowBtn.textContent = doneCollapsed[task.id] ? '\u25B6' : '\u25BC'; // ▶ or ▼
-    arrowBtn.onclick = function (e) {
-        e.stopPropagation();
-        doneCollapsed[task.id] = !doneCollapsed[task.id];
-        renderTasks();
-    };
+    const arrowBtn = createSpan({
+        className: 'collapse-arrow',
+        text: doneCollapsed[task.id] ? '\u25B6' : '\u25BC', // ▶ or ▼
+        attributes: { style: { cursor: 'pointer' } },
+        onClick: function (e) {
+            e.stopPropagation();
+            doneCollapsed[task.id] = !doneCollapsed[task.id];
+            renderTasks();
+        }
+    });
     buttonGroup.appendChild(arrowBtn);
     
     // Handle collapsed state
@@ -559,14 +555,10 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
                 title = title.slice(0, maxTitleLength - 3) + '...';
             }
         }
-        const rowDiv = document.createElement('div');
-        rowDiv.className = 'collapsed-row';
-        rowDiv.appendChild(typeBtn);
-        rowDiv.appendChild(idDiv);
-        const titleDiv = document.createElement('div');
-        titleDiv.className = 'collapsed-title';
+        const titleDiv = createElement('div', 'collapsed-title');
         titleDiv.innerHTML = `<s>${title}</s>`;
-        rowDiv.appendChild(titleDiv);
+        
+        const rowDiv = createDiv('collapsed-row', [typeBtn, idDiv, titleDiv]);
         
         el.appendChild(rowDiv);
         return true;
@@ -582,52 +574,51 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
  * @returns {HTMLElement} Tags div element
  */
 function createTagsSection(task, el) {
-    const tagsDiv = document.createElement('div');
-    tagsDiv.className = 'tags';
+    const tagsDiv = createElement('div', 'tags');
     
     (task.tags || []).forEach(tag => {
-        const tagLabel = document.createElement('span');
-        tagLabel.className = 'tag-label';
+        const tagLabel = createElement('span', 'tag-label');
         tagLabel.textContent = tag;
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-tag';
-        removeBtn.type = 'button';
-        removeBtn.textContent = '×';
-        removeBtn.onclick = function (e) {
-            e.stopPropagation();
-            const newTags = (task.tags || []).filter(t => t !== tag);
-            TaskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
-        };
+        const removeBtn = createButton({
+            className: 'remove-tag',
+            text: '×',
+            attributes: { type: 'button' },
+            onClick: function (e) {
+                e.stopPropagation();
+                const newTags = (task.tags || []).filter(t => t !== tag);
+                TaskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
+            }
+        });
         tagLabel.appendChild(removeBtn);
         tagsDiv.appendChild(tagLabel);
     });
     
     // Add tag input (only if not editing text)
     if (!el.querySelector('textarea.edit-input')) {
-        const addTagInput = document.createElement('input');
-        addTagInput.className = 'add-tag-input';
-        addTagInput.type = 'text';
-        addTagInput.placeholder = 'Add tag...';
         let tagSuggestions = [];
         let tagInputFocused = false;
         let mouseOverCard = false;
         
-        addTagInput.onfocus = function (e) {
-            tagInputFocused = true;
-            el.classList.add('show-tag-input');
-            TaskAPI.getTagSuggestions().then(tags => {
-                tagSuggestions = tags;
-            });
-        };
-        
-        addTagInput.onblur = function (e) {
-            tagInputFocused = false;
-            setTimeout(() => {
-                if (!mouseOverCard) {
-                    el.classList.remove('show-tag-input');
-                }
-            }, 0);
-        };
+        const addTagInput = createInput({
+            type: 'text',
+            className: 'add-tag-input',
+            placeholder: 'Add tag...',
+            onFocus: function (e) {
+                tagInputFocused = true;
+                el.classList.add('show-tag-input');
+                TaskAPI.getTagSuggestions().then(tags => {
+                    tagSuggestions = tags;
+                });
+            },
+            onBlur: function (e) {
+                tagInputFocused = false;
+                setTimeout(() => {
+                    if (!mouseOverCard) {
+                        el.classList.remove('show-tag-input');
+                    }
+                }, 0);
+            }
+        });
         
         const suggestionBox = createTagSuggestionBox(addTagInput, task, () => tagSuggestions);
         addTagInput.oninput = function () {
@@ -739,13 +730,13 @@ function createTaskTooltip(task, el) {
         return;
     }
     
-    const hourglass = document.createElement('span');
-    hourglass.className = 'task-hourglass';
-    hourglass.tabIndex = 0;
-    hourglass.textContent = '\u23F3'; // Unicode hourglass not done
+    const hourglass = createSpan({
+        className: 'task-hourglass',
+        text: '\u23F3', // Unicode hourglass not done
+        attributes: { tabIndex: '0' }
+    });
     
-    const tooltip = document.createElement('span');
-    tooltip.className = 'hourglass-tooltip';
+    const tooltip = createElement('span', 'hourglass-tooltip');
     let dateStr = '';
     if (task.status === 'done' && task.closed_at) {
         dateStr = `Closed: ${formatDate(task.closed_at)}`;
@@ -780,15 +771,15 @@ function createTaskTooltip(task, el) {
  * @returns {HTMLElement} Plus button element
  */
 function createPlusButton(task) {
-    const plusBtn = document.createElement('button');
-    plusBtn.className = 'add-beneath-btn';
-    plusBtn.title = 'Add task beneath';
-    plusBtn.innerHTML = '<span>+</span>';
-    plusBtn.onclick = function (e) {
-        e.stopPropagation();
-        addTask(task.status, (task.order || 0) + 1);
-    };
-    return plusBtn;
+    return createButton({
+        className: 'add-beneath-btn',
+        title: 'Add task beneath',
+        innerHTML: '<span>+</span>',
+        onClick: function (e) {
+            e.stopPropagation();
+            addTask(task.status, (task.order || 0) + 1);
+        }
+    });
 }
 
 /**
@@ -809,10 +800,12 @@ function renderTasks(focusCallback, focusTaskId) {
         });
         
         tasks.forEach(task => {
-            const el = document.createElement('div');
-            el.className = 'task';
-            el.dataset.id = task.id;
-            el.dataset.order = task.order.toString() || '0';
+            const el = createElement('div', 'task', {
+                dataset: {
+                    id: task.id,
+                    order: task.order.toString() || '0'
+                }
+            });
             
             // Create header with type, ID, and delete button
             const {headRow, typeBtn, idDiv, buttonGroup} = createTaskHeader(task);
