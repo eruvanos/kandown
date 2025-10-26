@@ -5,10 +5,21 @@
 
 const STORAGE_KEY = 'kandown_demo_tasks';
 const SETTINGS_KEY = 'kandown_demo_settings';
+const LAST_ID_KEY = 'kandown_demo_last_id';
 
-// Generate unique IDs
+// Generate unique IDs based on stored last ID counter
 function generateId() {
-    return `K_${Date.now()}`;
+    // Get the last used ID from localStorage
+    let lastId = parseInt(localStorage.getItem(LAST_ID_KEY) || '0', 10);
+
+    // Increment for new task
+    const newId = lastId + 1;
+
+    // Store the new last ID
+    localStorage.setItem(LAST_ID_KEY, newId.toString());
+
+    // Format with leading zeros (e.g., K-001, K-002, ...)
+    return `K-${String(newId).padStart(3, '0')}`;
 }
 
 // Default settings
@@ -21,6 +32,7 @@ const DEFAULT_SETTINGS = {
 function initializeStorage() {
     const existing = localStorage.getItem(STORAGE_KEY);
     if (!existing) {
+        // No tasks exist, initialize with demo tasks
         const demoTasks = [
             {
                 id: generateId(),
@@ -64,6 +76,22 @@ function initializeStorage() {
             }
         ];
         localStorage.setItem(STORAGE_KEY, JSON.stringify(demoTasks));
+    } else {
+        // Tasks exist, ensure last ID counter is synchronized
+        const lastIdStored = localStorage.getItem(LAST_ID_KEY);
+        if (!lastIdStored) {
+            // Calculate the max ID from existing tasks and set it
+            const tasks = JSON.parse(existing);
+            const numericIds = tasks
+                .map(task => {
+                    const match = task.id.match(/K[-_](\d+)/);
+                    return match ? parseInt(match[1], 10) : 0;
+                })
+                .filter(num => !isNaN(num));
+
+            const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
+            localStorage.setItem(LAST_ID_KEY, maxId.toString());
+        }
     }
     
     const existingSettings = localStorage.getItem(SETTINGS_KEY);
@@ -246,6 +274,7 @@ export function clearAllData() {
     if (confirm('Are you sure you want to delete all tasks and settings? This cannot be undone!')) {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(SETTINGS_KEY);
+        localStorage.removeItem(LAST_ID_KEY);
         initializeStorage();
         window.location.reload();
     }
