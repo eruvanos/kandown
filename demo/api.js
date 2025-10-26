@@ -8,7 +8,7 @@ const SETTINGS_KEY = 'kandown_demo_settings';
 
 // Generate unique IDs
 function generateId() {
-    return `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `K_${Date.now()}`;
 }
 
 // Default settings
