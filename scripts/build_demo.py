@@ -47,7 +47,7 @@ def build_demo():
             print(f"✗ Warning: {filename} not found in source")
 
     # Verify required demo files exist
-    required_demo_files = ["index.html", "api.js", "settings-demo.js"]
+    required_demo_files = ["index.html", "api.js", "api-filesystem.js", "settings-demo.js"]
     print()
     print("Verifying demo-specific files...")
     for filename in required_demo_files:

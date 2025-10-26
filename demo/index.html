@@ -5,6 +5,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kandown Demo - Kanban Board</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6.2.1/dist/umd.js"></script>
+  <!-- Fallbacks for CDN libraries if blocked -->
+  <script>
+    // Simple YAML library fallback (basic subset for our needs)
+    if (typeof jsyaml === 'undefined') {
+      const jsyaml = {
+        load: function(yamlStr) {
+          // Very basic YAML parser - NOT production ready, just for demo fallback
+          try {
+            // If it looks like JSON, try parsing as JSON
+            if (yamlStr.trim().startsWith('{')) {
+              return JSON.parse(yamlStr);
+            }
+            // Otherwise return minimal structure
+            return { settings: {}, tasks: [] };
+          } catch (e) {
+            console.error('YAML parse error:', e);
+            return { settings: {}, tasks: [] };
+          }
+        },
+        dump: function(obj) {
+          // Very basic YAML serializer - just use JSON for now
+          return JSON.stringify(obj, null, 2);
+        }
+      };
+      window.jsyaml = jsyaml;
+      console.warn('Using fallback YAML parser - install js-yaml for full YAML support');
+    }
+
+    // Simple IndexedDB wrapper as fallback for idb-keyval
+    if (typeof idbKeyval === 'undefined') {
+      const idbKeyval = (function() {
+        const dbName = 'keyval-store';
+        const storeName = 'keyval';
+        let dbPromise;
+
+        function getDB() {
+          if (!dbPromise) {
+            dbPromise = new Promise((resolve, reject) => {
+              const request = indexedDB.open(dbName, 1);
+              request.onerror = () => reject(request.error);
+              request.onsuccess = () => resolve(request.result);
+              request.onupgradeneeded = () => {
+                request.result.createObjectStore(storeName);
+              };
+            });
+          }
+          return dbPromise;
+        }
+
+        async function get(key) {
+          const db = await getDB();
+          return new Promise((resolve, reject) => {
+            const transaction = db.transaction(storeName, 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.get(key);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result);
+          });
+        }
+
+        async function set(key, value) {
+          const db = await getDB();
+          return new Promise((resolve, reject) => {
+            const transaction = db.transaction(storeName, 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.put(value, key);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve();
+          });
+        }
+
+        async function del(key) {
+          const db = await getDB();
+          return new Promise((resolve, reject) => {
+            const transaction = db.transaction(storeName, 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.delete(key);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve();
+          });
+        }
+
+        return { get, set, del };
+      })();
+      window.idbKeyval = idbKeyval;
+    }
+  </script>
   <script type="module" src="./board.js"></script>
   <script type="module" src="./settings-demo.js"></script>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -18,6 +107,9 @@
       font-weight: 500;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
+    .demo-banner.fs-active {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
     .demo-banner a {
       color: #fff;
       text-decoration: underline;
@@ -26,12 +118,30 @@
     .demo-banner a:hover {
       opacity: 0.9;
     }
+    .storage-mode-indicator {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      z-index: 1000;
+    }
+    .storage-mode-indicator.filesystem {
+      background: rgba(17, 153, 142, 0.9);
+    }
   </style>
 </head>
 <body>
-<div class="demo-banner">
-  🎯 Demo Mode - All data is stored in your browser's local storage | 
+<div id="demo-banner" class="demo-banner">
+  🎯 Demo Mode - Data stored in browser localStorage | 
   <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>
+</div>
+
+<div id="storage-mode-indicator" class="storage-mode-indicator">
+  💾 localStorage
 </div>
 <div class="main-content">
   <h1 style="text-align:center;">Kanban Board</h1>
@@ -107,6 +217,28 @@
         <strong>Warning:</strong> This will delete all tasks and settings stored in your browser's local storage. This action cannot be undone.
       </div>
     </div>
+    <!-- Storage Mode Section -->
+    <div class="setting-item" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; margin-bottom: 16px;">💾 Storage Mode</h3>
+      <div style="margin-bottom: 16px;">
+        <p style="margin: 8px 0; font-size: 0.95em;">
+          Current mode: <strong id="current-storage-mode">localStorage</strong>
+        </p>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <button id="switch-to-filesystem" class="btn-mode" style="background: #11998e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 500;">
+          📂 Use File System (Chrome/Edge)
+        </button>
+        <button id="switch-to-localstorage" class="btn-mode" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 500;">
+          💾 Use localStorage (All browsers)
+        </button>
+      </div>
+      <div class="setting-desc" style="margin-left:0; margin-top: 12px; background:rgba(247,247,250,0.27); border-radius:7px; padding:12px 16px;">
+        <strong>File System Mode:</strong> Connect to a local folder and work with real backlog.yaml files. Only available in Chrome/Edge browsers.
+        <br><br>
+        <strong>localStorage Mode:</strong> Store data in your browser. Works in all browsers but data is only available in this browser.
+      </div>
+    </div>
   </div>
 </div>
 <footer style="text-align:center; margin-top:48px; color:#888; font-size:1em;">
@@ -119,5 +251,32 @@
     Developed together with the <span style="font-weight:bold; color:#24292f;">GitHub Copilot</span> agent
   </div>
 </footer>
+
+<script type="module">
+  import { getStorageMode } from './api.js';
+  
+  // Update UI based on current storage mode
+  function updateModeUI() {
+    const mode = getStorageMode();
+    const banner = document.getElementById('demo-banner');
+    const indicator = document.getElementById('storage-mode-indicator');
+    
+    if (mode === 'filesystem') {
+      banner.innerHTML = '📂 File System Mode - Connected to local backlog.yaml | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
+      banner.classList.add('fs-active');
+      indicator.textContent = '📂 File System';
+      indicator.classList.add('filesystem');
+    } else {
+      banner.innerHTML = '🎯 Demo Mode - Data stored in browser localStorage | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
+      banner.classList.remove('fs-active');
+      indicator.textContent = '💾 localStorage';
+      indicator.classList.remove('filesystem');
+    }
+  }
+  
+  // Update on load (with delay to ensure API is initialized)
+  setTimeout(updateModeUI, 200);
+</script>
+
 </body>
 </html>

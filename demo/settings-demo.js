@@ -1,4 +1,4 @@
-import {SettingsAPI, clearAllData} from './api.js';
+import { SettingsAPI, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage } from './api.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
 const modal = document.getElementById('settings-modal');
@@ -67,3 +67,69 @@ if (clearDataBtn) {
         clearAllData();
     };
 }
+
+// Storage mode switcher handlers
+const switchToFilesystemBtn = document.getElementById('switch-to-filesystem');
+const switchToLocalStorageBtn = document.getElementById('switch-to-localstorage');
+const currentStorageModeSpan = document.getElementById('current-storage-mode');
+
+// Update current mode display
+function updateStorageModeUI() {
+    const mode = getStorageMode();
+    if (currentStorageModeSpan) {
+        currentStorageModeSpan.textContent = mode === 'filesystem' ? 'File System' : 'localStorage';
+    }
+    
+    // Update button states
+    if (switchToFilesystemBtn && switchToLocalStorageBtn) {
+        if (mode === 'filesystem') {
+            switchToFilesystemBtn.disabled = true;
+            switchToFilesystemBtn.style.opacity = '0.5';
+            switchToLocalStorageBtn.disabled = false;
+            switchToLocalStorageBtn.style.opacity = '1';
+        } else {
+            switchToFilesystemBtn.disabled = false;
+            switchToFilesystemBtn.style.opacity = '1';
+            switchToLocalStorageBtn.disabled = true;
+            switchToLocalStorageBtn.style.opacity = '0.5';
+        }
+    }
+}
+
+// Initialize storage mode UI
+updateStorageModeUI();
+
+// Event handler for switching to filesystem mode
+if (switchToFilesystemBtn) {
+    switchToFilesystemBtn.onclick = async function () {
+        try {
+            const success = await switchToFileSystem();
+            if (success) {
+                alert('Successfully connected to file system! The page will reload.');
+                window.location.reload();
+            } else {
+                alert('Failed to connect to file system. Please make sure you selected a valid folder.');
+            }
+        } catch (err) {
+            alert('Your browser does not support the File System Access API. Please use Chrome or Edge.');
+            console.error(err);
+        }
+    };
+}
+
+// Event handler for switching to localStorage mode
+if (switchToLocalStorageBtn) {
+    switchToLocalStorageBtn.onclick = function () {
+        if (confirm('Switch to localStorage mode? Your file system data will remain unchanged, but you will see the localStorage data instead.')) {
+            switchToLocalStorage();
+            alert('Switched to localStorage mode. The page will reload.');
+            window.location.reload();
+        }
+    };
+}
+
+// Update UI when settings modal is opened
+settingsBtn.onclick = function () {
+    modal.style.display = 'block';
+    updateStorageModeUI();
+};
