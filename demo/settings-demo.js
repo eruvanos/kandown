@@ -1,4 +1,4 @@
-import { SettingsAPI, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage } from './api.js';
+import { SettingsAPI, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage, waitForStorageInit } from './api.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
 const modal = document.getElementById('settings-modal');
@@ -21,7 +21,10 @@ let dark = false;
 let randomPort = false;
 let storeImagesInSubfolder = false;
 
-function loadSettings() {
+async function loadSettings() {
+    // Wait for storage mode to be initialized before loading settings
+    await waitForStorageInit();
+
     settingsAPI.getSettings().then(settings => {
         dark = !!settings.darkmode;
         setDarkMode(dark);

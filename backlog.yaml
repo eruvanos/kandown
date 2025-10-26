@@ -101,7 +101,7 @@ tasks:
     .
   type: experiment
   updated: '2025-10-05T22:59:37.200686'
-  updated_at: '2025-10-26T22:07:19.352851'
+  updated_at: '2025-10-27T00:02:18.253792'
 - created_at: '2025-10-05T00:42:26.424016'
   id: K-008
   order: 14
@@ -116,7 +116,7 @@ tasks:
     - [ ] publish'
   type: feature
   updated: '2025-10-06T20:55:15.406069'
-  updated_at: '2025-10-26T22:07:19.352924'
+  updated_at: '2025-10-27T00:02:18.253902'
 - created_at: '2025-10-05T00:42:55.951795'
   id: K-009
   order: 6
@@ -127,7 +127,7 @@ tasks:
 
     - [ ] somewhere document the keyboard shortcuts'
   type: feature
-  updated_at: '2025-10-26T22:07:19.352963'
+  updated_at: '2025-10-27T00:02:18.253935'
 - closed_at: '2025-10-07T01:22:12.597958'
   created_at: '2025-10-05T00:43:39.477296'
   id: K-010
@@ -156,7 +156,7 @@ tasks:
   - v0.2
   text: Allow connections between tasks
   type: epic
-  updated_at: '2025-10-26T22:07:19.352988'
+  updated_at: '2025-10-27T00:02:18.253953'
 - closed_at: '2025-10-07T01:22:46.629149'
   created_at: '2025-10-07T01:22:28.535004'
   id: K-014
@@ -192,7 +192,7 @@ tasks:
   - v0.1
   text: fix tag input field does not disappear after usage
   type: bug
-  updated_at: '2025-10-26T22:07:19.353010'
+  updated_at: '2025-10-27T00:02:18.253973'
 - created_at: '2025-10-07T01:27:47.814031'
   id: K-018
   order: 30
@@ -200,7 +200,7 @@ tasks:
   tags: []
   text: evaluate if we could also have a Pivotal tracker like experience🤔
   type: experiment
-  updated_at: '2025-10-26T22:07:19.353031'
+  updated_at: '2025-10-27T00:02:18.254005'
 - created_at: '2025-10-07T01:33:34.938879'
   id: K-020
   order: 32
@@ -210,7 +210,7 @@ tasks:
 
     Auto archive done tasks after x days'
   type: experiment
-  updated_at: '2025-10-26T22:07:19.353049'
+  updated_at: '2025-10-27T00:02:18.254065'
 - created_at: '2025-10-07T01:34:14.026741'
   id: K-021
   order: 0
@@ -219,7 +219,7 @@ tasks:
   - v0.1
   text: Add special divider cards, which can be used in the backlog
   type: feature
-  updated_at: '2025-10-26T23:24:22.856717'
+  updated_at: '2025-10-27T00:02:18.254088'
 - created_at: '2025-10-07T01:35:11.463963'
   id: K-022
   order: 22
@@ -228,7 +228,7 @@ tasks:
   - v0.2
   text: Settings to keep deleted tasks in an archived file
   type: feature
-  updated_at: '2025-10-26T22:07:19.353084'
+  updated_at: '2025-10-27T00:02:18.254107'
 - closed_at: '2025-10-09T23:53:26.371251'
   created_at: '2025-10-07T01:37:42.767201'
   id: K-023
@@ -285,7 +285,7 @@ tasks:
     \ --help`: subcommand help page\n- support direct cli\n  - `kandown <yaml>` should\
     \ still support basic serve options"
   type: experiment
-  updated_at: '2025-10-26T22:07:19.353107'
+  updated_at: '2025-10-27T00:02:18.254135'
 - created_at: '2025-10-12T21:01:52.344775'
   id: K-030
   order: 12
@@ -294,7 +294,7 @@ tasks:
   - v0.1
   text: Add an action to clean up unreferenced files
   type: feature
-  updated_at: '2025-10-26T22:07:19.353129'
+  updated_at: '2025-10-27T00:02:18.254150'
 - created_at: '2025-10-12T21:03:03.019950'
   id: K-031
   order: 26
@@ -304,7 +304,7 @@ tasks:
   text: add button to extract embedded images from tasks and move them into attachment
     folder
   type: feature
-  updated_at: '2025-10-26T22:07:19.353141'
+  updated_at: '2025-10-27T00:02:18.254169'
 - created_at: '2025-10-12T21:48:23.603078'
   id: K-032
   order: 8
@@ -313,7 +313,7 @@ tasks:
   - v0.1
   text: Support CMD+z for undo (especially for moving tasks around!
   type: feature
-  updated_at: '2025-10-26T22:07:19.353154'
+  updated_at: '2025-10-27T00:02:18.254183'
 - closed_at: '2025-10-12T22:32:38.472151'
   created_at: '2025-10-12T22:29:22.350779'
   id: K-035
@@ -332,7 +332,7 @@ tasks:
   text: "# Multiselect\n\n- [ ] hold CMD to show multiselect checkboxes\n- [ ] show\
     \ header with actions\n  - [ ] apply tag action\n  - [ ] delete action"
   type: feature
-  updated_at: '2025-10-26T22:07:19.353172'
+  updated_at: '2025-10-27T00:02:18.254197'
 - created_at: '2025-10-12T22:38:49.960568'
   id: K-037
   order: 2
@@ -341,7 +341,7 @@ tasks:
   - v0.1
   text: make tag suggestions acceptable via keyboard
   type: feature
-  updated_at: '2025-10-26T22:07:19.353189'
+  updated_at: '2025-10-27T00:02:18.254208'
 - created_at: '2025-10-12T22:39:58.674657'
   id: K-038
   order: 16
@@ -350,7 +350,7 @@ tasks:
   - v0.2
   text: Filter for types
   type: feature
-  updated_at: '2025-10-26T22:07:19.353203'
+  updated_at: '2025-10-27T00:02:18.254219'
 - closed_at: '2025-10-12T23:41:36.424603'
   created_at: '2025-10-12T22:40:40.386821'
   id: K-039
@@ -376,7 +376,7 @@ tasks:
 
     start with [K-030]'
   type: epic
-  updated_at: '2025-10-26T22:07:19.353219'
+  updated_at: '2025-10-27T00:02:18.254232'
 - created_at: '2025-10-12T23:08:17.797033'
   id: K-042
   order: 24
@@ -389,7 +389,7 @@ tasks:
 
     Add some simple autocompletion for checklists and lists in general.'
   type: feature
-  updated_at: '2025-10-26T22:07:19.353233'
+  updated_at: '2025-10-27T00:02:18.254246'
 - closed_at: '2025-10-25T15:46:02.124980'
   created_at: '2025-10-24T21:43:05.263143'
   id: K-041

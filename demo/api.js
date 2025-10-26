@@ -15,6 +15,9 @@ let storageMode = 'localStorage'; // Default fallback
 // Check if File System Access API is available
 const hasFileSystemSupport = 'showDirectoryPicker' in window;
 
+// Promise that resolves when storage mode is initialized
+let storageModeInitialized = null;
+
 // Try to restore previous file system connection
 async function initializeStorageMode() {
     if (hasFileSystemSupport) {
@@ -26,8 +29,13 @@ async function initializeStorageMode() {
     }
 }
 
-// Initialize on load
-initializeStorageMode();
+// Initialize on load and store the promise
+storageModeInitialized = initializeStorageMode();
+
+// Export function to wait for initialization
+export async function waitForStorageInit() {
+    await storageModeInitialized;
+}
 
 // Export current mode getter
 export function getStorageMode() {
