@@ -152,7 +152,4 @@ class SettingsAPI {
 }
 
 // Create default instances for backward compatibility
-const taskAPI = new TaskAPI();
-const settingsAPI = new SettingsAPI();
-
-export { TaskAPI, SettingsAPI, taskAPI, settingsAPI };
+export { TaskAPI, SettingsAPI };

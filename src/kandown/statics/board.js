@@ -1,8 +1,8 @@
 // Import dependencies
-import {settingsAPI, taskAPI} from './api.js';
+import {SettingsAPI, TaskAPI} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
-import {createElement, createButton, createSpan, createInput, createDiv} from './ui-utils.js';
+import {createButton, createDiv, createElement, createInput, createSpan} from './ui-utils.js';
 
 /**
  * @typedef {import('./types.js').Task}
@@ -10,11 +10,11 @@ import {createElement, createButton, createSpan, createInput, createDiv} from '.
  */
 
 // --- State ---
-let editingTaskId = null;
-let inputEl = null;
 let columns = {};
 let doneCollapsed = {};
 const eventManager = new EventManager();
+const taskAPI = new TaskAPI()
+const settingsAPI = new SettingsAPI()
 
 // --- Kanban Board Setup ---
 if (window.marked) {
@@ -382,11 +382,11 @@ function createTypeDropdown(task) {
         title: typeInfo.label,
         innerHTML: `<span class="task-type-icon">${typeInfo.icon}</span>`
     });
-    
+
     const dropdown = createElement('div', 'type-dropdown');
 
     let openTypeDropdown = null;
-    
+
     Object.entries(TASK_TYPE_MAP).forEach(([key, {icon, label}]) => {
         const option = createElement('div', 'type-option');
         option.innerHTML = `<span class="type-icon">${icon}</span> ${label}`;
@@ -404,20 +404,20 @@ function createTypeDropdown(task) {
         };
         dropdown.appendChild(option);
     });
-    
+
     typeBtn.onclick = function (e) {
         e.stopPropagation();
         const isOpen = dropdown.style.display === 'block';
-        
+
         // Close all dropdowns and remove the global listener
         document.querySelectorAll('.type-dropdown').forEach(d => d.style.display = 'none');
         eventManager.removeListener('global-type-dropdown');
         openTypeDropdown = null;
-        
+
         if (!isOpen) {
             dropdown.style.display = 'block';
             openTypeDropdown = dropdown;
-            
+
             const closeHandler = function (event) {
                 if (openTypeDropdown && !openTypeDropdown.contains(event.target) && event.target !== typeBtn) {
                     openTypeDropdown.style.display = 'none';
@@ -430,7 +430,7 @@ function createTypeDropdown(task) {
             dropdown.style.display = 'none';
         }
     };
-    
+
     return {typeBtn, dropdown};
 }
 
@@ -441,17 +441,17 @@ function createTypeDropdown(task) {
  */
 function createTaskHeader(task) {
     const headRow = createElement('div', 'task-id-row');
-    
+
     const {typeBtn, dropdown} = createTypeDropdown(task);
     headRow.append(typeBtn);
     headRow.appendChild(dropdown);
-    
+
     const idDiv = createElement('div', 'task-id');
     idDiv.textContent = task.id;
     headRow.append(idDiv);
-    
+
     const buttonGroup = createElement('div', 'done-button-group');
-    
+
     const deleteBtn = createSpan({
         className: 'delete-task-btn',
         title: 'Delete task',
@@ -462,7 +462,7 @@ function createTaskHeader(task) {
         }
     });
     buttonGroup.appendChild(deleteBtn);
-    
+
     return {headRow, typeBtn, idDiv, buttonGroup};
 }
 
@@ -524,17 +524,17 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
     if (task.status !== 'done') {
         return false;
     }
-    
+
     // Initialize collapse state if not set
     if (typeof doneCollapsed[task.id] === 'undefined') {
         doneCollapsed[task.id] = true;
     }
-    
+
     // Create arrow button
     const arrowBtn = createSpan({
         className: 'collapse-arrow',
         text: doneCollapsed[task.id] ? '\u25B6' : '\u25BC', // ▶ or ▼
-        attributes: { style: { cursor: 'pointer' } },
+        attributes: {style: {cursor: 'pointer'}},
         onClick: function (e) {
             e.stopPropagation();
             doneCollapsed[task.id] = !doneCollapsed[task.id];
@@ -542,7 +542,7 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
         }
     });
     buttonGroup.appendChild(arrowBtn);
-    
+
     // Handle collapsed state
     if (doneCollapsed[task.id]) {
         // Show arrow, and strikethrough title in one row
@@ -557,13 +557,13 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
         }
         const titleDiv = createElement('div', 'collapsed-title');
         titleDiv.innerHTML = `<s>${title}</s>`;
-        
+
         const rowDiv = createDiv('collapsed-row', [typeBtn, idDiv, titleDiv]);
-        
+
         el.appendChild(rowDiv);
         return true;
     }
-    
+
     return false;
 }
 
@@ -575,14 +575,14 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
  */
 function createTagsSection(task, el) {
     const tagsDiv = createElement('div', 'tags');
-    
+
     (task.tags || []).forEach(tag => {
         const tagLabel = createElement('span', 'tag-label');
         tagLabel.textContent = tag;
         const removeBtn = createButton({
             className: 'remove-tag',
             text: '×',
-            attributes: { type: 'button' },
+            attributes: {type: 'button'},
             onClick: function (e) {
                 e.stopPropagation();
                 const newTags = (task.tags || []).filter(t => t !== tag);
@@ -592,13 +592,13 @@ function createTagsSection(task, el) {
         tagLabel.appendChild(removeBtn);
         tagsDiv.appendChild(tagLabel);
     });
-    
+
     // Add tag input (only if not editing text)
     if (!el.querySelector('textarea.edit-input')) {
         let tagSuggestions = [];
         let tagInputFocused = false;
         let mouseOverCard = false;
-        
+
         const addTagInput = createInput({
             type: 'text',
             className: 'add-tag-input',
@@ -619,12 +619,12 @@ function createTagsSection(task, el) {
                 }, 0);
             }
         });
-        
+
         const suggestionBox = createTagSuggestionBox(addTagInput, task, () => tagSuggestions);
         addTagInput.oninput = function () {
             suggestionBox.updateSuggestions();
         };
-        
+
         addTagInput.onkeydown = function (e) {
             if (e.key === 'Enter' && addTagInput.value.trim()) {
                 const newTag = addTagInput.value.trim();
@@ -652,12 +652,12 @@ function createTagsSection(task, el) {
                 suggestionBox.style.display = 'none';
             }
         };
-        
+
         addTagInput.addEventListener('click', e => e.stopPropagation());
         tagsDiv.style.position = 'relative';
         tagsDiv.appendChild(addTagInput);
         tagsDiv.appendChild(suggestionBox);
-        
+
         // Show addTagInput only on hover for non-collapsed tasks
         if (!el.classList.contains('collapsed')) {
             el.addEventListener('mouseenter', function () {
@@ -674,7 +674,7 @@ function createTagsSection(task, el) {
             });
         }
     }
-    
+
     return tagsDiv;
 }
 
@@ -694,7 +694,7 @@ function attachTaskEditHandler(el, task, textSpan) {
             (e.target.classList && e.target.classList.contains('collapse-arrow'))
         ) return;
         if (el.querySelector('textarea.edit-input')) return;
-        
+
         el.removeAttribute('draggable');
         el.ondragstart = ev => ev.preventDefault();
         const oldText = task.text;
@@ -729,13 +729,13 @@ function createTaskTooltip(task, el) {
     if (task.status === 'done' && doneCollapsed[task.id]) {
         return;
     }
-    
+
     const hourglass = createSpan({
         className: 'task-hourglass',
         text: '\u23F3', // Unicode hourglass not done
-        attributes: { tabIndex: '0' }
+        attributes: {tabIndex: '0'}
     });
-    
+
     const tooltip = createElement('span', 'hourglass-tooltip');
     let dateStr = '';
     if (task.status === 'done' && task.closed_at) {
@@ -746,7 +746,7 @@ function createTaskTooltip(task, el) {
         dateStr = 'No date available';
     }
     tooltip.textContent = dateStr;
-    
+
     el.style.position = 'relative';
     hourglass.onmouseenter = () => {
         tooltip.style.display = 'block';
@@ -760,7 +760,7 @@ function createTaskTooltip(task, el) {
     hourglass.onblur = () => {
         tooltip.style.display = 'none';
     };
-    
+
     el.appendChild(hourglass);
     el.appendChild(tooltip);
 }
@@ -792,13 +792,13 @@ function renderTasks(focusCallback, focusTaskId) {
     taskAPI.getTasks().then(tasks => {
         // Clean up all tracked event listeners before re-rendering
         eventManager.cleanup();
-        
+
         // Sort tasks by order before rendering
         tasks.sort((a, b) => (a.order || 0) - (b.order || 0));
         Object.values(columns).forEach(col => {
             while (col.children.length > 1) col.removeChild(col.lastChild);
         });
-        
+
         tasks.forEach(task => {
             const el = createElement('div', 'task', {
                 dataset: {
@@ -806,41 +806,41 @@ function renderTasks(focusCallback, focusTaskId) {
                     order: task.order.toString() || '0'
                 }
             });
-            
+
             // Create header with type, ID, and delete button
             const {headRow, typeBtn, idDiv, buttonGroup} = createTaskHeader(task);
             el.appendChild(buttonGroup);
-            
+
             // Handle collapsed view for done tasks
             if (createCollapsedView(task, el, typeBtn, idDiv, buttonGroup)) {
                 columns[task.status].appendChild(el);
                 return;
             }
-            
+
             // For non-collapsed tasks, show full content
             el.appendChild(headRow);
-            
+
             // Create and append task text
             const textSpan = createTaskText(task, focusTaskId);
             el.appendChild(textSpan);
-            
+
             // Create and append tags section
             const tagsDiv = createTagsSection(task, el);
             el.appendChild(tagsDiv);
-            
+
             // Attach edit handler
             attachTaskEditHandler(el, task, textSpan);
-            
+
             // Create and append tooltip
             createTaskTooltip(task, el);
-            
+
             // Create and append plus button
             const plusBtn = createPlusButton(task);
             el.appendChild(plusBtn);
-            
+
             columns[task.status].appendChild(el);
         });
-        
+
         makeDraggable();
         if (focusCallback) focusCallback();
     });

@@ -1,4 +1,4 @@
-import {settingsAPI} from './api.js';
+import {SettingsAPI} from './api.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
 const modal = document.getElementById('settings-modal');
@@ -16,6 +16,7 @@ function setDarkMode(on) {
 let dark = false;
 let randomPort = false;
 let storeImagesInSubfolder = false;
+const settingsAPI = new SettingsAPI();
 
 function loadSettings() {
     settingsAPI.getSettings().then(settings => {
