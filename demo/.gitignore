@@ -6,6 +6,7 @@ board.js
 modal-manager.js
 event-manager.js
 types.js
+ui-utils.js
 favicon.svg
 
 # Keep these source files:
