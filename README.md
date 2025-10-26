@@ -26,7 +26,7 @@ The app features a clean, responsive web UI started by the CLI.
 - 📄 **YAML-backed storage**: All tasks are stored in a simple YAML file
 - 🔄 **Jetbrains IDE integration**: View and track tasks directly from JetBrains IDEs
 - 🚀 **CLI**: Start the server, choose host/port/debug, auto-create YAML file if missing
-- 🌐 **Demo mode**: Try it in your browser with localStorage backend (no server required)
+- 🌐 **Hybrid demo mode**: Try it in your browser with localStorage or connect to local files (Chrome/Edge)
 
 ## Installation
 
@@ -69,12 +69,25 @@ kandown --port 5001 demo.yml
 
 ## Demo Mode
 
-Kandown includes a **demo mode** that runs entirely in your browser without requiring a server. This mode is perfect for:
+Kandown includes a **hybrid demo mode** that runs entirely in your browser without requiring a server. The demo supports two storage modes:
 
-- **Quick trials**: Test Kandown without installing anything
-- **Static hosting**: Deploy to GitHub Pages, Netlify, or any static host
-- **Offline use**: Works completely offline after initial load
-- **Privacy**: All data stays in your browser's localStorage
+### Storage Modes
+
+**localStorage Mode (Default - All Browsers):**
+- ✅ Works in all modern browsers
+- ✅ Data stored in browser's localStorage
+- ✅ Quick trials without any setup
+- ✅ Privacy: Data stays in your browser
+- ✅ Offline use after initial load
+
+**File System Mode (Chrome/Edge Only - Optional):**
+- ✅ Connect to a local folder on your computer
+- ✅ Read and write real `backlog.yaml` files
+- ✅ Work with existing Kandown projects
+- ✅ True file system integration
+- ✅ Changes persist to actual files
+
+The demo automatically uses localStorage mode by default. Chrome and Edge users can optionally switch to File System mode through the settings panel (⚙️).
 
 ### Try the Live Demo
 
@@ -99,13 +112,25 @@ python -m http.server 8080 --directory demo
 The demo mode includes all core features:
 - ✅ Drag-and-drop task management
 - ✅ Markdown rendering
-- ✅ Image paste support (stored as base64)
+- ✅ Image paste support (stored as base64 in localStorage, or as files in File System mode)
 - ✅ Task tags and types
 - ✅ Dark mode
-- ✅ Data persistence via localStorage
+- ✅ Data persistence (localStorage or file system)
+- ✅ Storage mode switcher (localStorage ↔ File System)
 - ✅ Clear data option in settings
 
-**Note**: In demo mode, data is stored in your browser's localStorage. Clearing browser data will delete all tasks.
+### Using File System Mode
+
+1. Open the demo in Chrome or Edge browser
+2. Click the settings button (⚙️)
+3. Scroll to "Storage Mode" section
+4. Click "📂 Use File System (Chrome/Edge)"
+5. Select a folder on your computer (it will look for or create `backlog.yaml`)
+6. Start working with your local files!
+
+**Note**: 
+- In localStorage mode, data is stored in your browser's localStorage. Clearing browser data will delete all tasks.
+- In File System mode, your data is stored in actual files on your computer. The browser needs permission to access the folder, which you can revoke at any time.
 
 ### Deploy Your Own Demo
 
