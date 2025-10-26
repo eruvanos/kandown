@@ -5,6 +5,10 @@ A simple, markdown-inspired Kanban board powered by YAML and Flask.
 
 ![screenshot.png](docs/screenshot.png)
 
+## 🎯 Try the Demo
+
+Try Kandown instantly without installation! Visit our **[live demo](https://eruvanos.github.io/kandown/)** - all data is stored locally in your browser.
+
 ## Overview
 
 Kandown is a lightweight web application for visualizing and managing 
@@ -22,6 +26,7 @@ The app features a clean, responsive web UI started by the CLI.
 - 📄 **YAML-backed storage**: All tasks are stored in a simple YAML file
 - 🔄 **Jetbrains IDE integration**: View and track tasks directly from JetBrains IDEs
 - 🚀 **CLI**: Start the server, choose host/port/debug, auto-create YAML file if missing
+- 🌐 **Demo mode**: Try it in your browser with localStorage backend (no server required)
 
 ## Installation
 
@@ -61,6 +66,54 @@ kandown
 # Start server with a custom YAML file on a custom port
 kandown --port 5001 demo.yml
 ```
+
+## Demo Mode
+
+Kandown includes a **demo mode** that runs entirely in your browser without requiring a server. This mode is perfect for:
+
+- **Quick trials**: Test Kandown without installing anything
+- **Static hosting**: Deploy to GitHub Pages, Netlify, or any static host
+- **Offline use**: Works completely offline after initial load
+- **Privacy**: All data stays in your browser's localStorage
+
+### Try the Live Demo
+
+Visit **[https://eruvanos.github.io/kandown/](https://eruvanos.github.io/kandown/)** to try the demo mode immediately.
+
+### Build and Run Demo Locally
+
+To build and run the demo mode on your local machine:
+
+```bash
+# Build the demo (copies static assets)
+python scripts/build_demo.py
+
+# Serve the demo locally
+python -m http.server 8080 --directory demo
+
+# Open http://localhost:8080 in your browser
+```
+
+### Demo Mode Features
+
+The demo mode includes all core features:
+- ✅ Drag-and-drop task management
+- ✅ Markdown rendering
+- ✅ Image paste support (stored as base64)
+- ✅ Task tags and types
+- ✅ Dark mode
+- ✅ Data persistence via localStorage
+- ✅ Clear data option in settings
+
+**Note**: In demo mode, data is stored in your browser's localStorage. Clearing browser data will delete all tasks.
+
+### Deploy Your Own Demo
+
+The demo can be deployed to any static hosting service. A GitHub Actions workflow is included to automatically deploy to GitHub Pages:
+
+1. Enable GitHub Pages in your repository settings (Settings → Pages → Source: GitHub Actions)
+2. Push to the `main` branch or trigger the workflow manually
+3. The demo will be built and deployed automatically
 
 ## Jetbrains Task Integration
 
