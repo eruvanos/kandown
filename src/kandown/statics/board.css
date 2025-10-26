@@ -785,3 +785,38 @@ body.darkmode .modal-btn-cancel:hover {
 body.darkmode .task-text-placeholder {
   color: #888;
 }
+
+/* Demo banner */
+.demo-banner {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    color: var(--color-on-primary, #fff);
+    padding: 12px 20px;
+    text-align: center;
+    font-weight: 500;
+    box-shadow: 0 2px 8px var(--shadow-color, rgba(0, 0, 0, 0.15));
+}
+.demo-banner.fs-active {
+    background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-light) 100%);
+}
+.demo-banner a {
+    color: var(--color-link, #fff);
+    text-decoration: underline;
+    font-weight: 600;
+}
+.demo-banner a:hover {
+    opacity: 0.9;
+}
+.storage-mode-indicator {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    background: var(--color-storage-bg, rgba(0, 0, 0, 0.8));
+    color: var(--color-storage-text, #fff);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    z-index: 1000;
+}
+.storage-mode-indicator.filesystem {
+    background: var(--color-success, rgba(17, 153, 142, 0.9));
+}

@@ -1,5 +1,5 @@
 // Import dependencies
-import {SettingsAPI, TaskAPI} from './api.js';
+import {settingsAPI, taskAPI} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
 import {createElement, createButton, createSpan, createInput, createDiv} from './ui-utils.js';
@@ -40,7 +40,7 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
     if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
 
     textarea.addEventListener('paste', async (e) => {
-        const settings = await SettingsAPI.getSettings()
+        const settings = await settingsAPI.getSettings()
         const storeImagesInSubfolder = settings.store_images_in_subfolder || false;
 
         const items = e.clipboardData.items;
@@ -216,7 +216,7 @@ function setupDropZones() {
             }
             if (dragOverIndex === tasks.length) newOrder.push(id);
             // Fetch all tasks to get the original status
-            TaskAPI.getTasks().then(allTasks => {
+            taskAPI.getTasks().then(allTasks => {
                 const draggedTask = allTasks.find(t => t.id === id);
                 const originalStatus = draggedTask ? draggedTask.status : null;
                 updateColumnOrder(status, newOrder, id, originalStatus);
@@ -263,7 +263,7 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
             showConfetti();
         }
     }
-    TaskAPI.batchUpdateTasks(payload).then(() => {
+    taskAPI.batchUpdateTasks(payload).then(() => {
         renderTasks();
     });
 }
@@ -277,7 +277,7 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
  * @returns {void}
  */
 function addTask(status, order) {
-    TaskAPI.createTask(status, order).then(task => {
+    taskAPI.createTask(status, order).then(task => {
         renderTasks(() => {
             setTimeout(() => {
                 const col = columns[status];
@@ -398,7 +398,7 @@ function createTypeDropdown(task) {
             dropdown.style.display = 'none';
             eventManager.removeListener('global-type-dropdown');
             openTypeDropdown = null;
-            TaskAPI.updateTask(task.id, {type: key}).then(() => {
+            taskAPI.updateTask(task.id, {type: key}).then(() => {
                 renderTasks();
             });
         };
@@ -477,7 +477,7 @@ function createTaskText(task, focusTaskId) {
     if (focusTaskId && task.id === focusTaskId && !task.text) {
         textSpan = createTextarea('', function () {
             if (textSpan.value.trim() !== '') {
-                TaskAPI.updateTaskText(task.id, textSpan.value).then(() => renderTasks());
+                taskAPI.updateTaskText(task.id, textSpan.value).then(() => renderTasks());
             } else {
                 renderTasks();
             }
@@ -586,7 +586,7 @@ function createTagsSection(task, el) {
             onClick: function (e) {
                 e.stopPropagation();
                 const newTags = (task.tags || []).filter(t => t !== tag);
-                TaskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
+                taskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
             }
         });
         tagLabel.appendChild(removeBtn);
@@ -606,7 +606,7 @@ function createTagsSection(task, el) {
             onFocus: function (e) {
                 tagInputFocused = true;
                 el.classList.add('show-tag-input');
-                TaskAPI.getTagSuggestions().then(tags => {
+                taskAPI.getTagSuggestions().then(tags => {
                     tagSuggestions = tags;
                 });
             },
@@ -635,7 +635,7 @@ function createTagsSection(task, el) {
                     return;
                 }
                 const newTags = [...(task.tags || []), newTag];
-                TaskAPI.updateTaskTags(task.id, newTags).then(() => {
+                taskAPI.updateTaskTags(task.id, newTags).then(() => {
                     renderTasks(() => {
                         setTimeout(() => {
                             const col = columns[task.status];
@@ -702,7 +702,7 @@ function attachTaskEditHandler(el, task, textSpan) {
             el.setAttribute('draggable', 'true');
             el.ondragstart = null;
             if (textarea.value.trim() !== '') {
-                TaskAPI.updateTaskText(task.id, textarea.value).then(() => renderTasks());
+                taskAPI.updateTaskText(task.id, textarea.value).then(() => renderTasks());
             } else {
                 renderTasks();
             }
@@ -789,7 +789,7 @@ function createPlusButton(task) {
  * @returns {void}
  */
 function renderTasks(focusCallback, focusTaskId) {
-    TaskAPI.getTasks().then(tasks => {
+    taskAPI.getTasks().then(tasks => {
         // Clean up all tracked event listeners before re-rendering
         eventManager.cleanup();
         
@@ -856,7 +856,7 @@ function showDeleteModal(taskId) {
         'Delete Task?',
         'This action cannot be undone.',
         () => {
-            TaskAPI.deleteTask(taskId).then(() => {
+            taskAPI.deleteTask(taskId).then(() => {
                 renderTasks();
             });
         }
@@ -894,7 +894,7 @@ function handleCheckboxClick(ev) {
     const checkIndex = Array.from(allCheckboxes).findIndex(el => el === ev.target);
     if (checkIndex === -1) return;
     // Get the original markdown from the API (or store it in a data attribute)
-    TaskAPI.getTasks().then(tasks => {
+    taskAPI.getTasks().then(tasks => {
         const task = tasks.find(t => t.id === taskId);
         if (!task || !task.text) return;
         // Split markdown into lines
@@ -913,7 +913,7 @@ function handleCheckboxClick(ev) {
             }
         }
         const newText = lines.join('\n');
-        TaskAPI.updateTaskText(taskId, newText).then(() => {
+        taskAPI.updateTaskText(taskId, newText).then(() => {
             renderTasks();
         });
     });

@@ -20,7 +20,7 @@ class TaskAPI {
      * @param {number} order
      * @returns {Promise<Task>}
      */
-    static createTask(status, order) {
+    createTask(status, order) {
         return fetch('/api/tasks', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -32,7 +32,7 @@ class TaskAPI {
      * Fetches all tasks.
      * @returns {Promise<Task[]>}
      */
-    static getTasks() {
+    getTasks() {
         return fetch('/api/tasks').then(r => r.json());
     }
 
@@ -40,7 +40,7 @@ class TaskAPI {
      * Fetches tag suggestions.
      * @returns {Promise<string[]>}
      */
-    static getTagSuggestions() {
+    getTagSuggestions() {
         return fetch('/api/tags/suggestions').then(r => r.json());
     }
 
@@ -50,7 +50,7 @@ class TaskAPI {
      * @param {Partial<Task>} update
      * @returns {Promise<Task>}
      */
-    static updateTask(id, update) {
+    updateTask(id, update) {
         return fetch(`/api/tasks/${id}`, {
             method: 'PATCH',
             headers: {'Content-Type': 'application/json'},
@@ -64,8 +64,8 @@ class TaskAPI {
      * @param {string} text
      * @returns {Promise<Task>}
      */
-    static updateTaskText(id, text) {
-        return TaskAPI.updateTask(id, {text});
+    updateTaskText(id, text) {
+        return this.updateTask(id, {text});
     }
 
     /**
@@ -74,8 +74,8 @@ class TaskAPI {
      * @param {string[]} tags
      * @returns {Promise<Task>}
      */
-    static updateTaskTags(id, tags) {
-        return TaskAPI.updateTask(id, {tags});
+    updateTaskTags(id, tags) {
+        return this.updateTask(id, {tags});
     }
 
     /**
@@ -83,7 +83,7 @@ class TaskAPI {
      * @param {{[id: string]: Partial<Task>}} updates
      * @returns {Promise<Task[]>}
      */
-    static batchUpdateTasks(updates) {
+    batchUpdateTasks(updates) {
         return fetch('/api/tasks', {
             method: 'PATCH',
             headers: {'Content-Type': 'application/json'},
@@ -96,7 +96,7 @@ class TaskAPI {
      * @param {string} id
      * @returns {Promise<any>}
      */
-    static deleteTask(id) {
+    deleteTask(id) {
         return fetch(`/api/tasks/${id}`, {
             method: 'DELETE'
         }).then(r => r.json());
@@ -115,20 +115,22 @@ class TaskAPI {
  * @classdesc Handles all settings-related backend interactions.
  */
 class SettingsAPI {
-    /** @type {Settings|null} */
-    static _settingsCache = null;
+    constructor() {
+        /** @type {Settings|null} */
+        this._settingsCache = null;
+    }
 
     /**
      * Fetches all settings, using cache if available.
      * @returns {Promise<Settings>}
      */
-    static async getSettings() {
-        if (SettingsAPI._settingsCache) {
-            return Promise.resolve(SettingsAPI._settingsCache);
+    async getSettings() {
+        if (this._settingsCache) {
+            return Promise.resolve(this._settingsCache);
         }
         const res = await fetch('/api/settings');
         const settings = await res.json();
-        SettingsAPI._settingsCache = settings;
+        this._settingsCache = settings;
         return settings;
     }
 
@@ -137,16 +139,20 @@ class SettingsAPI {
      * @param {Object} update
      * @returns {Promise<Object>}
      */
-    static async updateSettings(update) {
+    async updateSettings(update) {
         const res = await fetch('/api/settings', {
             method: 'PATCH',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(update)
         });
         const newSettings = await res.json();
-        SettingsAPI._settingsCache = newSettings;
+        this._settingsCache = newSettings;
         return newSettings;
     }
 }
 
-export { TaskAPI, SettingsAPI };
+// Create default instances for backward compatibility
+const taskAPI = new TaskAPI();
+const settingsAPI = new SettingsAPI();
+
+export { TaskAPI, SettingsAPI, taskAPI, settingsAPI };

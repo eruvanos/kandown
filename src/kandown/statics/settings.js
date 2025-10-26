@@ -1,4 +1,4 @@
-import {SettingsAPI} from './api.js';
+import {settingsAPI} from './api.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
 const modal = document.getElementById('settings-modal');
@@ -18,7 +18,7 @@ let randomPort = false;
 let storeImagesInSubfolder = false;
 
 function loadSettings() {
-    SettingsAPI.getSettings().then(settings => {
+    settingsAPI.getSettings().then(settings => {
         dark = !!settings.darkmode;
         setDarkMode(dark);
         randomPort = !!settings.random_port;
@@ -33,7 +33,7 @@ loadSettings();
 darkModeToggleBtn.onclick = async function () {
     dark = !dark;
     setDarkMode(dark);
-    await SettingsAPI.updateSettings({darkmode: dark});
+    await settingsAPI.updateSettings({darkmode: dark});
 };
 
 settingsBtn.onclick = function () {
@@ -52,10 +52,10 @@ window.onclick = function (event) {
 
 randomPortCheckbox.onchange = async function () {
     randomPort = randomPortCheckbox.checked;
-    await SettingsAPI.updateSettings({random_port: randomPort});
+    await settingsAPI.updateSettings({random_port: randomPort});
 };
 
 storeImagesInSubfolderCheckbox.onchange = async function () {
     storeImagesInSubfolder = storeImagesInSubfolderCheckbox.checked;
-    await SettingsAPI.updateSettings({store_images_in_subfolder: storeImagesInSubfolder});
+    await settingsAPI.updateSettings({store_images_in_subfolder: storeImagesInSubfolder});
 }
