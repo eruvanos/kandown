@@ -118,6 +118,27 @@ The demo mode includes all core features:
 - ✅ Data persistence (localStorage or file system)
 - ✅ Storage mode switcher (localStorage ↔ File System)
 - ✅ Clear data option in settings
+- ✅ Load backlog files via URL parameter
+
+### Loading a Backlog File via URL Parameter
+
+You can load a specific backlog YAML file in demo mode using URL parameters:
+
+```
+https://eruvanos.github.io/kandown/?backlog=example.yaml
+https://eruvanos.github.io/kandown/?file=path/to/backlog.yaml
+```
+
+This is useful for:
+- 📤 Sharing pre-configured backlogs with team members
+- 📚 Providing example projects or templates
+- 🎓 Creating tutorial or demo workflows
+- 🚀 Quick-starting with a specific project setup
+
+**Requirements:**
+- The YAML file must be accessible via HTTP
+- Either same-origin or CORS must be enabled on the file's server
+- If the file cannot be loaded, the demo falls back to default demo tasks
 
 ### Using File System Mode
 

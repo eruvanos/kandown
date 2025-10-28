@@ -65,9 +65,6 @@ tasks:
             # Wait a bit for async initialization
             page.wait_for_timeout(1000)
             
-            # Check that the test tasks are loaded
-            page_content = page.content()
-            
             # Verify test tasks appear
             expect(page.locator("text=Test task from URL parameter")).to_be_visible()
             expect(page.locator("text=Another test task")).to_be_visible()
