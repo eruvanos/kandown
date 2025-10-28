@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
 """
 Build script for Kandown demo mode.
 Copies necessary static assets from the main app to the demo directory.

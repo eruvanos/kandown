@@ -1,35 +1,40 @@
-import os
+#!/usr/bin/env -S uv run --script
+#
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "flask",
+# ]
+# ///
+from pathlib import Path
 
 from flask import Flask, jsonify, send_from_directory
 
 app = Flask(__name__, static_folder=None)
 
-SRC_DIR = os.path.join(os.path.dirname(__file__), "..", "src", "kandown")
-STATICS_DIR = os.path.join(SRC_DIR, "statics")
-DEMO_DIR = os.path.join(os.path.dirname(__file__), "..", "demo")
+SCRIPT_DIR = Path(__file__).resolve().parent
+SRC_DIR = SCRIPT_DIR.parent / "src" / "kandown"
+STATICS_DIR = SRC_DIR / "statics"
+TEMPLATE_DIR = SRC_DIR / "templates"
 
 
 @app.route("/")
 def index():
-    return send_from_directory(DEMO_DIR, "index.html")
+    return send_from_directory(TEMPLATE_DIR, "index.html")
 
 
-@app.route("/<path:path>")
+@app.route("/statics/<path:path>")
 def serve_demo(path):
     # Serve demo static files first
-    demo_path = os.path.join(DEMO_DIR, path)
-    if os.path.isfile(demo_path):
-        return send_from_directory(DEMO_DIR, path)
-    # Serve src/kandown/statics files
-    statics_path = os.path.join(STATICS_DIR, path)
-    if os.path.isfile(statics_path):
+    statics_path = STATICS_DIR / path
+    if statics_path.is_file():
         return send_from_directory(STATICS_DIR, path)
     return "Not Found", 404
 
 
 @app.route("/api/health")
 def health():
-    return jsonify({"status": "ok", "mode": "demo"})
+    return jsonify({"available": False})
 
 
 if __name__ == "__main__":
