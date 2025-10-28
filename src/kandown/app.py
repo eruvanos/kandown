@@ -195,6 +195,11 @@ def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
         """Download the current backlog.yaml file."""
         # Ensure we use absolute path for send_file
         yaml_path_absolute = repo.yaml_path.resolve()
+        
+        # Check if file exists
+        if not yaml_path_absolute.exists():
+            return {"error": "Backlog file not found"}, 404
+            
         return send_file(
             yaml_path_absolute,
             as_attachment=True,
