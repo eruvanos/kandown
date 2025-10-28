@@ -33,7 +33,7 @@ def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
     @app.route("/")
     def index():
         """Render the kanban board as the index page."""
-        return render_template("kanban.html")
+        return render_template("index.html")
 
     @app.route("/statics/<path:filename>")
     def serve_static(filename):

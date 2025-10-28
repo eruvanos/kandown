@@ -9,8 +9,53 @@
   <script type="module" src="/statics/settings.js"></script>
   <link rel="icon" type="image/svg+xml" href="/statics/favicon.svg">
   <link rel="stylesheet" href="/statics/board.css">
+  <style>
+    .demo-banner {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 20px;
+      text-align: center;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      display: none; /* Hidden by default, shown in demo mode */
+    }
+    .demo-banner.fs-active {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    .demo-banner a {
+      color: #fff;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .demo-banner a:hover {
+      opacity: 0.9;
+    }
+    .storage-mode-indicator {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      z-index: 1000;
+      display: none; /* Hidden by default, shown in demo mode */
+    }
+    .storage-mode-indicator.filesystem {
+      background: rgba(17, 153, 142, 0.9);
+    }
+  </style>
 </head>
 <body>
+<div id="demo-banner" class="demo-banner">
+  🎯 Demo Mode - Data stored in browser localStorage | 
+  <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>
+</div>
+
+<div id="storage-mode-indicator" class="storage-mode-indicator">
+  💾 localStorage
+</div>
 <div class="main-content">
   <h1 style="text-align:center;">Kanban Board</h1>
   <div id="board" class="board">
@@ -118,6 +163,7 @@
 <script type="module">
   // Show demo mode UI elements when in demo mode
   import { getServerMode } from '/statics/init.js';
+  import { getStorageMode } from '/statics/api.js';
   
   // Wait for initialization to complete
   window.addEventListener('DOMContentLoaded', async () => {
@@ -125,13 +171,47 @@
     setTimeout(() => {
       const mode = getServerMode();
       if (mode === 'demo') {
+        // Show demo mode settings sections
         const clearDataSection = document.getElementById('demo-clear-data');
         const storageModeSection = document.getElementById('demo-storage-mode');
         if (clearDataSection) clearDataSection.style.display = 'block';
         if (storageModeSection) storageModeSection.style.display = 'block';
+        
+        // Show demo banner and storage indicator
+        const demoBanner = document.getElementById('demo-banner');
+        const storageIndicator = document.getElementById('storage-mode-indicator');
+        if (demoBanner) demoBanner.style.display = 'block';
+        if (storageIndicator) storageIndicator.style.display = 'block';
+        
+        // Update banner and indicator based on storage mode
+        updateDemoModeUI();
       }
     }, 100);
   });
+  
+  // Update UI based on current storage mode (demo mode only)
+  function updateDemoModeUI() {
+    const mode = getStorageMode();
+    const banner = document.getElementById('demo-banner');
+    const indicator = document.getElementById('storage-mode-indicator');
+    
+    if (!banner || !indicator) return;
+    
+    if (mode === 'filesystem') {
+      banner.innerHTML = '📂 File System Mode - Connected to local backlog.yaml | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
+      banner.classList.add('fs-active');
+      indicator.textContent = '📂 File System';
+      indicator.classList.add('filesystem');
+    } else {
+      banner.innerHTML = '🎯 Demo Mode - Data stored in browser localStorage | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
+      banner.classList.remove('fs-active');
+      indicator.textContent = '💾 localStorage';
+      indicator.classList.remove('filesystem');
+    }
+  }
+  
+  // Export function so it can be called when storage mode changes
+  window.updateDemoModeUI = updateDemoModeUI;
 </script>
 <footer style="text-align:center; margin-top:48px; color:#888; font-size:1em;">
   <hr style="margin-bottom:16px;">

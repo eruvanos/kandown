@@ -106,6 +106,7 @@
       text-align: center;
       font-weight: 500;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      display: none; /* Hidden by default, shown in demo mode */
     }
     .demo-banner.fs-active {
       background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
@@ -128,6 +129,7 @@
       border-radius: 6px;
       font-size: 0.9em;
       z-index: 1000;
+      display: none; /* Hidden by default, shown in demo mode */
     }
     .storage-mode-indicator.filesystem {
       background: rgba(17, 153, 142, 0.9);
@@ -168,7 +170,7 @@
     <div class="setting-item">
       <div style="display:flex; align-items:center; margin-bottom:8px;">
         <div class="checkbox-toggle" style="margin-left:8px;">
-          <input type="checkbox" id="random-port" disabled />
+          <input type="checkbox" id="random-port" />
           <label for="random-port" class="toggle">
             <span>
               <svg width="10px" height="10px" viewBox="0 0 10 10">
@@ -177,21 +179,22 @@
             </span>
           </label>
         </div>
-        <label for="random-port" class="setting-label" style="font-size:1.15em; font-weight:600; margin-left:18px; opacity: 0.5;">Use random port (Server only)</label>
+        <label for="random-port" class="setting-label" style="font-size:1.15em; font-weight:600; margin-left:18px;">Use random port</label>
       </div>
       <div class="setting-desc"
            style="margin-left:24px; background:rgba(247,247,250,0.27); border-radius:7px; padding:12px 16px; margin-bottom:12px;">
-        <strong>Note:</strong>
+        <strong>Description:</strong>
         <div style="margin-top:6px; margin-bottom:8px;">
-          This setting is only available in the server mode. In demo mode, all data is stored locally in your browser.
+          When enabled, Kandown will start the server on a random available port instead of the default port (5001).
         </div>
+        <span style="font-size:0.95em; display:block; margin-bottom:4px;">Useful for avoiding port conflicts or running multiple instances.</span>
       </div>
     </div>
-    <!-- Image storage setting -->
+    <!-- New setting for image storage mode -->
     <div class="setting-item">
       <div style="display:flex; align-items:center; margin-bottom:8px;">
         <div class="checkbox-toggle" style="margin-left:8px;">
-          <input type="checkbox" id="store-images-in-subfolder" disabled />
+          <input type="checkbox" id="store-images-in-subfolder" />
           <label for="store-images-in-subfolder" class="toggle">
             <span>
               <svg width="10px" height="10px" viewBox="0 0 10 10">
@@ -200,16 +203,21 @@
             </span>
           </label>
         </div>
-        <label for="store-images-in-subfolder" class="setting-label" style="font-size:1.15em; font-weight:600; margin-left:18px; opacity: 0.5;">Store images in .backlog subfolder (Server only)</label>
+        <label for="store-images-in-subfolder" class="setting-label" style="font-size:1.15em; font-weight:600; margin-left:18px;">Store images in .backlog subfolder</label>
       </div>
       <div class="setting-desc" style="margin-left:24px; background:rgba(247,247,250,0.27); border-radius:7px; padding:12px 16px; margin-bottom:12px;">
-        <strong>Note:</strong>
+        <strong>Description:</strong>
         <div style="margin-top:6px; margin-bottom:8px;">
-          In demo mode, images are always stored as base64 data URLs in local storage.
+          When enabled, images added to tasks will be stored as separate files in the <code>.backlog</code> subfolder instead of being embedded directly in markdown as base64 URLs.
         </div>
+        <span style="font-size:0.95em; display:block; margin-bottom:4px;">
+          <b>Subfolder mode:</b> Easier to manage and edit images externally. <br>
+          <b>Inline base64 mode:</b> Keeps the YAML file portable, but images are harder to edit outside Kandown.
+        </span>
       </div>
     </div>
-    <div class="setting-item">
+    <!-- Demo mode specific settings (hidden by default, shown by JS if in demo mode) -->
+    <div class="setting-item" id="demo-clear-data" style="display: none;">
       <button id="clear-data-btn" style="background: #e53935; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: 600; margin-top: 12px;">
         🗑️ Clear All Data
       </button>
@@ -217,8 +225,8 @@
         <strong>Warning:</strong> This will delete all tasks and settings stored in your browser's local storage. This action cannot be undone.
       </div>
     </div>
-    <!-- Storage Mode Section -->
-    <div class="setting-item" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
+    <!-- Storage Mode Section (demo mode only) -->
+    <div class="setting-item" id="demo-storage-mode" style="display: none; margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
       <h3 style="margin-top: 0; margin-bottom: 16px;">💾 Storage Mode</h3>
       <div style="margin-bottom: 16px;">
         <p style="margin: 8px 0; font-size: 0.95em;">
@@ -241,25 +249,42 @@
     </div>
   </div>
 </div>
-<footer style="text-align:center; margin-top:48px; color:#888; font-size:1em;">
-  <hr style="margin-bottom:16px;">
-  <div>
-    Project page: <a href="https://github.com/eruvanos/kandown" target="_blank"
-                     style="color:#2c3e50; text-decoration:underline;">github.com/eruvanos/kandown</a>
-  </div>
-  <div style="margin-top:8px; margin-bottom:16px; font-size:0.95em;">
-    Developed together with the <span style="font-weight:bold; color:#24292f;">GitHub Copilot</span> agent
-  </div>
-</footer>
-
 <script type="module">
+  // Show demo mode UI elements when in demo mode
+  import { getServerMode } from './init.js';
   import { getStorageMode } from './api.js';
   
-  // Update UI based on current storage mode
-  function updateModeUI() {
+  // Wait for initialization to complete
+  window.addEventListener('DOMContentLoaded', async () => {
+    // Small delay to ensure init.js has loaded
+    setTimeout(() => {
+      const mode = getServerMode();
+      if (mode === 'demo') {
+        // Show demo mode settings sections
+        const clearDataSection = document.getElementById('demo-clear-data');
+        const storageModeSection = document.getElementById('demo-storage-mode');
+        if (clearDataSection) clearDataSection.style.display = 'block';
+        if (storageModeSection) storageModeSection.style.display = 'block';
+        
+        // Show demo banner and storage indicator
+        const demoBanner = document.getElementById('demo-banner');
+        const storageIndicator = document.getElementById('storage-mode-indicator');
+        if (demoBanner) demoBanner.style.display = 'block';
+        if (storageIndicator) storageIndicator.style.display = 'block';
+        
+        // Update banner and indicator based on storage mode
+        updateDemoModeUI();
+      }
+    }, 100);
+  });
+  
+  // Update UI based on current storage mode (demo mode only)
+  function updateDemoModeUI() {
     const mode = getStorageMode();
     const banner = document.getElementById('demo-banner');
     const indicator = document.getElementById('storage-mode-indicator');
+    
+    if (!banner || !indicator) return;
     
     if (mode === 'filesystem') {
       banner.innerHTML = '📂 File System Mode - Connected to local backlog.yaml | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
@@ -274,9 +299,18 @@
     }
   }
   
-  // Update on load (with delay to ensure API is initialized)
-  setTimeout(updateModeUI, 200);
+  // Export function so it can be called when storage mode changes
+  window.updateDemoModeUI = updateDemoModeUI;
 </script>
-
+<footer style="text-align:center; margin-top:48px; color:#888; font-size:1em;">
+  <hr style="margin-bottom:16px;">
+  <div>
+    Project page: <a href="https://github.com/eruvanos/kandown" target="_blank"
+                     style="color:#2c3e50; text-decoration:underline;">github.com/eruvanos/kandown</a>
+  </div>
+  <div style="margin-top:8px; margin-bottom:16px; font-size:0.95em;">
+    Developed together with the <span style="font-weight:bold; color:#24292f;">GitHub Copilot</span> agent
+  </div>
+</footer>
 </body>
 </html>
