@@ -190,6 +190,16 @@ def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
             return {"error": "File not found"}, 404
         return send_file(file)
 
+    @app.route("/api/download", methods=["GET"])
+    def download_backlog():
+        """Download the current backlog.yaml file."""
+        return send_file(
+            repo.yaml_path,
+            as_attachment=True,
+            download_name="backlog.yaml",
+            mimetype="application/x-yaml"
+        )
+
     # @app.route("/events")
     # def events():
     #     """Server-sent events endpoint for real-time task updates."""

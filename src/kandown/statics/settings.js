@@ -149,3 +149,62 @@ if (switchToLocalStorageBtn) {
         }
     };
 }
+
+// Download button handler
+const downloadBtn = document.getElementById('download-toggle');
+if (downloadBtn) {
+    downloadBtn.onclick = async function () {
+        try {
+            const mode = getServerMode();
+            
+            if (mode === 'cli') {
+                // CLI mode: download from backend
+                window.location.href = '/api/download';
+            } else {
+                // Demo mode: generate and download from frontend
+                const {TaskAPI} = await import('./api.js');
+                const taskAPI = new TaskAPI();
+                const tasks = await taskAPI.getTasks();
+                const settings = await settingsAPI.getSettings();
+                
+                // Build the YAML structure
+                const yamlData = {
+                    settings: {
+                        random_port: settings.random_port || false,
+                        store_images_in_subfolder: settings.store_images_in_subfolder || false
+                    },
+                    tasks: tasks.map(task => ({
+                        id: task.id,
+                        text: task.text,
+                        status: task.status,
+                        tags: task.tags || [],
+                        order: task.order || 0,
+                        type: task.type || 'task',
+                        ...(task.created_at && {created_at: task.created_at}),
+                        ...(task.updated_at && {updated_at: task.updated_at}),
+                        ...(task.closed_at && {closed_at: task.closed_at})
+                    }))
+                };
+                
+                // Convert to YAML using js-yaml library
+                const yamlString = '# Project page: https://github.com/eruvanos/kandown\n' +
+                    '# To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown backlog.yaml\n' +
+                    jsyaml.dump(yamlData);
+                
+                // Create a blob and download it
+                const blob = new Blob([yamlString], {type: 'application/x-yaml'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'backlog.yaml';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        } catch (err) {
+            console.error('Download failed:', err);
+            alert('Failed to download backlog.yaml. Please try again.');
+        }
+    };
+}
