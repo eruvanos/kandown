@@ -468,7 +468,8 @@ export async function importFromYamlFile() {
                     reject(new Error('No file selected'));
                 }
             };
-            input.oncancel = () => reject(new Error('File selection cancelled'));
+            // Note: oncancel is not reliable, so we rely on the user closing the picker
+            // without selecting a file, which will leave files[0] as undefined
         });
         
         // Trigger file picker
@@ -483,12 +484,12 @@ export async function importFromYamlFile() {
         // Parse YAML using jsyaml (loaded via CDN)
         const data = jsyaml.load(text);
         
-        if (!data) {
-            throw new Error('Invalid YAML file');
+        if (data === null || data === undefined) {
+            throw new Error('Invalid YAML file - no data found');
         }
         
         // Confirm before importing
-        const taskCount = data.tasks ? data.tasks.length : 0;
+        const taskCount = Array.isArray(data.tasks) ? data.tasks.length : 0;
         if (!confirm(`Import ${taskCount} tasks from ${file.name}? This will replace all existing tasks.`)) {
             return false;
         }
