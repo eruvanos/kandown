@@ -1,24 +1,45 @@
-# Kandown Demo Mode - Hybrid Edition
+# Kandown Demo Mode - Unified Edition
 
-This directory contains the hybrid demo version of Kandown that runs entirely in the browser with support for both localStorage and File System Access API.
+⚠️ **IMPORTANT:** The demo mode has been unified with the main CLI application. This directory is now primarily for GitHub Pages deployment and backward compatibility.
+
+The demo functionality is now built into the main CLI application - when the server is unavailable, the app automatically switches to demo mode with localStorage/filesystem support.
 
 ## What's in this directory
 
 ### Source files (tracked in git):
 - `index.html` - Demo-specific HTML page with hybrid storage support
-- `api.js` - Hybrid API that routes between localStorage and File System Access API
-- `api-filesystem.js` - File System Access API implementation for reading/writing backlog.yaml
 - `settings-demo.js` - Demo-specific settings with storage mode switching
 - `.gitignore` - Excludes copied files from git
 
-### Generated files (copied during build):
-- `board.css` - Kanban board styles (copied from `src/kandown/statics/`)
-- `board.js` - Main board UI logic (copied from `src/kandown/statics/`)
-- `modal-manager.js` - Modal dialog manager (copied from `src/kandown/statics/`)
-- `event-manager.js` - Event handling utilities (copied from `src/kandown/statics/`)
-- `types.js` - TypeScript type definitions (copied from `src/kandown/statics/`)
-- `ui-utils.js` - UI utility functions (copied from `src/kandown/statics/`)
-- `favicon.svg` - Application icon (copied from `src/kandown/statics/`)
+### Generated files (copied during build from `src/kandown/statics/`):
+- `board.css` - Kanban board styles
+- `board.js` - Main board UI logic
+- `modal-manager.js` - Modal dialog manager
+- `event-manager.js` - Event handling utilities
+- `types.js` - TypeScript type definitions
+- `ui-utils.js` - UI utility functions
+- `favicon.svg` - Application icon
+- `init.js` - Initialization and server detection logic
+- `api.js` - API factory that chooses CLI or demo implementation
+- `api-cli.js` - CLI server API implementation
+- `api-demo.js` - Demo mode API (localStorage/filesystem hybrid)
+- `api-filesystem.js` - File System Access API implementation
+
+## Architecture Change
+
+**Before:** Demo mode had separate `api.js` and `api-filesystem.js` files with conditional routing based on storage mode.
+
+**Now:** The main application uses an API factory pattern:
+1. `init.js` checks server health via `/api/health` endpoint
+2. If server is available → uses `api-cli.js` (fetch-based)
+3. If server unavailable → uses `api-demo.js` (localStorage/filesystem)
+4. `api.js` acts as a factory, dynamically importing the correct implementation
+
+This means:
+- CLI mode users get automatic demo mode fallback
+- Demo mode is no longer a separate codebase
+- Both modes share the same UI code (board.js, settings.js, etc.)
+
 
 ## Building the demo
 
@@ -46,25 +67,28 @@ Then open http://localhost:8080 in your browser.
 
 ## How it works
 
-The demo mode provides a hybrid storage system that supports two backends:
+The unified demo mode provides automatic fallback when the CLI server is unavailable:
 
-### localStorage Mode (Default)
-1. **api.js** detects storage mode and routes to `LocalStorageTaskAPI` and `LocalStorageSettingsAPI`
-2. Data is stored in browser's localStorage
-3. Works in all modern browsers
-4. Initial demo tasks are created automatically on first load
+### Initialization Flow
+1. App loads and `init.js` runs health check on `/api/health`
+2. If health check succeeds with `server: "cli"` → CLI mode
+3. If health check fails or timeout → Demo mode
+4. `api.js` factory dynamically imports the appropriate API implementation
 
-### File System Mode (Chrome/Edge)
-1. **api.js** routes to `FileSystemTaskAPI` and `FileSystemSettingsAPI` from `api-filesystem.js`
-2. Reads/writes to actual `backlog.yaml` files on the user's computer
-3. Uses File System Access API (Chrome/Edge only)
-4. Directory handle is persisted in IndexedDB for reconnection
+### Demo Mode Storage (when CLI server unavailable)
+The demo mode supports two storage backends:
 
-### Storage Mode Switching
-- Users can switch between modes via the settings panel (⚙️)
-- Current mode is displayed in the top-right corner
-- Banner color changes based on mode (purple = localStorage, green = filesystem)
-- File system connections are restored on page reload
+#### localStorage Mode (Default)
+1. Data stored in browser's localStorage
+2. Works in all modern browsers
+3. Initial demo tasks created automatically
+4. Fast and reliable
+
+#### File System Mode (Chrome/Edge)
+1. Reads/writes actual `backlog.yaml` files on user's computer
+2. Uses File System Access API
+3. Directory handle persisted in IndexedDB
+4. Users can switch modes via settings panel
 
 ## Browser Compatibility
 

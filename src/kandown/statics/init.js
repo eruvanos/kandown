@@ -42,7 +42,7 @@ async function checkHealth() {
         const data = await response.json();
         
         // Validate the response format
-        if (!data.status || !data.server || typeof data.available !== 'boolean') {
+        if (typeof data.available !== 'boolean') {
             throw new Error('Invalid health response format');
         }
 
@@ -82,15 +82,13 @@ async function initializeApp() {
         console.log('Health check result:', healthResponse);
         
         // Determine server mode based on health response
-        if (healthResponse.available && healthResponse.server === 'cli') {
+        if (healthResponse.available) {
             serverMode = 'cli';
             console.log('✓ CLI server is available');
-        } else if (healthResponse.server === 'demo') {
-            serverMode = 'demo';
-            console.log('ℹ Running in demo mode');
         } else {
-            serverMode = 'unknown';
-            console.warn('⚠ Server mode could not be determined');
+            // Switch to demo mode if server is unavailable
+            serverMode = 'demo';
+            console.log('ℹ Running in demo mode (server unavailable)');
         }
         
         initializationComplete = true;

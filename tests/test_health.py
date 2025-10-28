@@ -13,8 +13,6 @@ def test_health_endpoint_returns_ok(kandown_server):
     assert response.status_code == 200
     data = response.json()
 
-    assert data["status"] == "ok"
-    assert data["server"] == "cli"
     assert data["available"] is True
 
 
@@ -27,6 +25,4 @@ def test_demo_health_file_content():
     content = demo_health_file.read_text()
     data = json.loads(content)
 
-    assert data["status"] == "unavailable"
-    assert data["server"] == "demo"
     assert data["available"] is False

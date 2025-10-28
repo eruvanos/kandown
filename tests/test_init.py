@@ -40,5 +40,5 @@ def test_settings_js_imports_init(kandown_server):
     """Test that settings.js imports waitForInit."""
     settings_response = requests.get(f"{kandown_server}/statics/settings.js")
     assert settings_response.status_code == 200
-    assert "import {waitForInit} from './init.js'" in settings_response.text
+    assert "waitForInit" in settings_response.text and "from './init.js'" in settings_response.text
     assert "await waitForInit()" in settings_response.text

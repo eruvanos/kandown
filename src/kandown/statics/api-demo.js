@@ -1,6 +1,6 @@
 /**
- * Hybrid API for demo mode
- * Automatically switches between File System Access API and localStorage
+ * Demo mode API implementations
+ * Supports both localStorage and File System Access API
  */
 
 import { FileSystemAPI, FileSystemTaskAPI, FileSystemSettingsAPI } from './api-filesystem.js';
@@ -98,6 +98,13 @@ const DEFAULT_SETTINGS = {
 
 // Initialize with demo data if no data exists
 function initializeStorage() {
+    // Only initialize localStorage with demo data if we're NOT in filesystem mode
+    if (storageMode === 'filesystem') {
+        // Don't populate localStorage with demo data if we're using filesystem
+        console.warn("prevented demo content initialization in filesystem mode");
+        return;
+    }
+
     const existing = localStorage.getItem(STORAGE_KEY);
     if (!existing) {
         // No tasks exist, reset the counter to 0 before generating demo tasks
@@ -331,7 +338,7 @@ class LocalStorageSettingsAPI {
     }
 }
 
-// Hybrid API that routes to the appropriate backend
+// Hybrid API that routes to the appropriate backend (localStorage or filesystem)
 export class TaskAPI {
     constructor() {
         this.localStorageAPI = new LocalStorageTaskAPI();
@@ -410,7 +417,7 @@ export class SettingsAPI {
     }
 }
 
-// Clear all data function
+// Clear all data function (for demo mode only)
 export function clearAllData() {
     if (confirm('Are you sure you want to delete all tasks and settings? This cannot be undone!')) {
         localStorage.removeItem(STORAGE_KEY);

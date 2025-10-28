@@ -33,7 +33,7 @@ def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
     @app.route("/")
     def index():
         """Render the kanban board as the index page."""
-        return render_template("kanban.html")
+        return render_template("index.html")
 
     @app.route("/statics/<path:filename>")
     def serve_static(filename):
@@ -44,7 +44,7 @@ def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
     @app.route("/api/health")
     def health_check():
         """Health check endpoint indicating the CLI server is available."""
-        return jsonify({"status": "ok", "server": "cli", "available": True})
+        return jsonify({"available": True})
 
     @app.route("/api/tasks")
     def get_tasks():
