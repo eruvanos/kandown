@@ -3,6 +3,7 @@ import {SettingsAPI, TaskAPI} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
 import {createButton, createDiv, createElement, createInput, createSpan} from './ui-utils.js';
+import {initializeApp} from './init.js';
 
 /**
  * @typedef {import('./types.js').Task}
@@ -921,7 +922,10 @@ function handleCheckboxClick(ev) {
 
 
 // --- Main Entrypoint ---
-function initBoardApp() {
+async function initBoardApp() {
+    // Initialize and check server availability
+    await initializeApp();
+    
     columns = {
         'todo': document.getElementById('todo-col'),
         'in_progress': document.getElementById('inprogress-col'),

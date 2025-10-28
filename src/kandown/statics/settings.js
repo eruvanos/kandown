@@ -1,4 +1,5 @@
 import {SettingsAPI} from './api.js';
+import {waitForInit} from './init.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
 const modal = document.getElementById('settings-modal');
@@ -18,7 +19,10 @@ let randomPort = false;
 let storeImagesInSubfolder = false;
 const settingsAPI = new SettingsAPI();
 
-function loadSettings() {
+async function loadSettings() {
+    // Wait for initialization to complete
+    await waitForInit();
+    
     settingsAPI.getSettings().then(settings => {
         dark = !!settings.darkmode;
         setDarkMode(dark);
