@@ -41,6 +41,11 @@ def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
         statics_dir = os.path.join(os.path.dirname(__file__), "statics")
         return send_from_directory(statics_dir, filename)
 
+    @app.route("/api/health")
+    def health_check():
+        """Health check endpoint indicating the CLI server is available."""
+        return jsonify({"server_available": True})
+
     @app.route("/api/tasks")
     def get_tasks():
         """Return all tasks as JSON."""
