@@ -26,7 +26,7 @@ let initializationPromise = null;
  */
 async function checkHealth() {
     try {
-        const response = await fetch('/api/health', {
+        const response = await fetch('./api/health', {
             method: 'GET',
             headers: {
                 'Accept': 'application/json'
@@ -107,14 +107,6 @@ function getServerMode() {
 }
 
 /**
- * Checks if initialization is complete
- * @returns {boolean}
- */
-function isInitialized() {
-    return initializationComplete;
-}
-
-/**
  * Waits for initialization to complete
  * @returns {Promise<ServerMode>}
  */
@@ -128,8 +120,6 @@ async function waitForInit() {
 // Export the initialization functions
 export {
     initializeApp,
-    checkHealth,
     getServerMode,
-    isInitialized,
     waitForInit
 };
