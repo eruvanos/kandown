@@ -98,6 +98,13 @@ const DEFAULT_SETTINGS = {
 
 // Initialize with demo data if no data exists
 function initializeStorage() {
+    // Only initialize localStorage with demo data if we're NOT in filesystem mode
+    if (storageMode === 'filesystem') {
+        // Don't populate localStorage with demo data if we're using filesystem
+        console.warn("prevented demo content initialization in filesystem mode");
+        return;
+    }
+
     const existing = localStorage.getItem(STORAGE_KEY);
     if (!existing) {
         // No tasks exist, reset the counter to 0 before generating demo tasks
