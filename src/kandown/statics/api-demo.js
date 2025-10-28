@@ -17,6 +17,7 @@ const hasFileSystemSupport = 'showDirectoryPicker' in window;
 
 // Promise that resolves when storage mode is initialized
 let storageModeInitialized = null;
+let storageDataInitialized = null;
 
 // Try to restore previous file system connection
 async function initializeStorageMode() {
@@ -35,6 +36,7 @@ storageModeInitialized = initializeStorageMode();
 // Export function to wait for initialization
 export async function waitForStorageInit() {
     await storageModeInitialized;
+    await storageDataInitialized;
 }
 
 // Export current mode getter
@@ -96,8 +98,54 @@ const DEFAULT_SETTINGS = {
     store_images_in_subfolder: false
 };
 
+/**
+ * Check URL parameters for a backlog file to load
+ * @returns {string|null} URL or path to backlog file, or null if not specified
+ */
+function getBacklogUrlParameter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('backlog') || urlParams.get('file');
+}
+
+/**
+ * Load backlog data from a URL or path
+ * @param {string} url - URL or path to the YAML file
+ * @returns {Promise<{tasks: Array, settings?: Object}>}
+ */
+async function loadBacklogFromUrl(url) {
+    try {
+        console.log(`Loading backlog from: ${url}`);
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch backlog file: ${response.status} ${response.statusText}`);
+        }
+        
+        const yamlText = await response.text();
+        
+        // Parse YAML (jsyaml should be loaded via CDN)
+        if (typeof jsyaml === 'undefined') {
+            throw new Error('js-yaml library not loaded');
+        }
+        
+        const data = jsyaml.load(yamlText);
+        
+        if (!data || typeof data !== 'object') {
+            throw new Error('Invalid YAML format');
+        }
+        
+        return {
+            tasks: data.tasks || [],
+            settings: data.settings || DEFAULT_SETTINGS
+        };
+    } catch (error) {
+        console.error('Error loading backlog from URL:', error);
+        throw error;
+    }
+}
+
 // Initialize with demo data if no data exists
-function initializeStorage() {
+async function initializeStorage() {
     // Only initialize localStorage with demo data if we're NOT in filesystem mode
     if (storageMode === 'filesystem') {
         // Don't populate localStorage with demo data if we're using filesystem
@@ -106,6 +154,35 @@ function initializeStorage() {
     }
 
     const existing = localStorage.getItem(STORAGE_KEY);
+    
+    // Check for URL parameter to load a specific backlog file
+    const backlogUrl = getBacklogUrlParameter();
+    
+    if (!existing && backlogUrl) {
+        // Try to load from URL parameter
+        try {
+            const backlogData = await loadBacklogFromUrl(backlogUrl);
+            
+            // Store loaded data in localStorage
+            if (backlogData.tasks && backlogData.tasks.length > 0) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(backlogData.tasks));
+                initializeLastIdCounter(backlogData.tasks);
+                console.log(`✓ Loaded ${backlogData.tasks.length} tasks from ${backlogUrl}`);
+            } else {
+                throw new Error('No tasks found in the loaded file');
+            }
+            
+            if (backlogData.settings) {
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(backlogData.settings));
+            }
+            
+            return; // Successfully loaded from URL
+        } catch (error) {
+            console.error('Failed to load backlog from URL, falling back to demo data:', error);
+            // Fall through to create demo data
+        }
+    }
+    
     if (!existing) {
         // No tasks exist, reset the counter to 0 before generating demo tasks
         localStorage.setItem(LAST_ID_KEY, '0');
@@ -166,8 +243,11 @@ function initializeStorage() {
     }
 }
 
-// Initialize storage on load
-initializeStorage();
+// Initialize storage on load (now async) and store the promise
+storageDataInitialized = (async () => {
+    await storageModeInitialized; // Wait for storage mode to be determined first
+    await initializeStorage();
+})();
 
 // LocalStorage-based implementations
 class LocalStorageTaskAPI {

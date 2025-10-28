@@ -84,6 +84,25 @@ The demo mode supports two storage backends:
 3. Initial demo tasks created automatically
 4. Fast and reliable
 
+##### Loading a Backlog File via URL Parameter
+You can load a specific backlog YAML file using URL parameters:
+
+```
+http://localhost:8080/?backlog=example.yaml
+http://localhost:8080/?file=path/to/backlog.yaml
+```
+
+When a URL parameter is provided:
+- The demo will fetch the specified YAML file
+- Tasks and settings from the file will be loaded into localStorage
+- If the file cannot be loaded, it falls back to the default demo tasks
+- The file must be accessible via HTTP (same origin or CORS-enabled)
+
+Example use cases:
+- Share pre-configured backlogs with team members
+- Load example projects for demonstrations
+- Quick-start with template backlogs
+
 #### File System Mode (Chrome/Edge)
 1. Reads/writes actual `backlog.yaml` files on user's computer
 2. Uses File System Access API
