@@ -8,6 +8,7 @@ event-manager.js
 types.js
 ui-utils.js
 favicon.svg
+init.js
 
 # Keep these source files:
 # - index.html (demo-specific)
