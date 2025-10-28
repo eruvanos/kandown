@@ -1,6 +1,5 @@
 """Test the initialization routine."""
 
-import json
 from pathlib import Path
 import requests
 
