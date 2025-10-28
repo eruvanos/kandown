@@ -185,7 +185,7 @@ class LocalStorageTaskAPI {
             status: status || 'todo',
             tags: [],
             order: order !== undefined ? order : tasks.filter(t => t.status === status).length,
-            type: 'task'
+            type: 'feature'
         };
         tasks.push(newTask);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));

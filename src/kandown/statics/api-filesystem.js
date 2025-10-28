@@ -255,7 +255,7 @@ export class FileSystemTaskAPI {
             status: status || 'todo',
             tags: [],
             order: order !== undefined ? order : data.tasks.filter(t => t.status === status).length,
-            type: 'task',
+            type: 'feature',
             created_at: new Date().toISOString()
         };
         
