@@ -41,6 +41,9 @@ async function initializeAPIs() {
         demoFunctions.switchToFileSystem = demoModule.switchToFileSystem;
         demoFunctions.switchToLocalStorage = demoModule.switchToLocalStorage;
         demoFunctions.waitForStorageInit = demoModule.waitForStorageInit;
+
+        // Ensure storage is initialized
+        await demoModule.waitForStorageInit()
     }
 }
 
@@ -71,4 +74,3 @@ export const clearAllData = () => demoFunctions.clearAllData?.();
 export const getStorageMode = () => demoFunctions.getStorageMode?.() || 'cli';
 export const switchToFileSystem = () => demoFunctions.switchToFileSystem?.();
 export const switchToLocalStorage = () => demoFunctions.switchToLocalStorage?.();
-export const waitForStorageInit = () => demoFunctions.waitForStorageInit?.() || Promise.resolve();

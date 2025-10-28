@@ -1,4 +1,4 @@
-import {SettingsAPI, initializeAPIs, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage, waitForStorageInit} from './api.js';
+import {SettingsAPI, initializeAPIs, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage} from './api.js';
 import {waitForInit, getServerMode} from './init.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
@@ -28,12 +28,6 @@ async function loadSettings() {
     
     // Create settings API instance
     settingsAPI = new SettingsAPI();
-    
-    // If in demo mode, wait for storage initialization
-    if (getServerMode() === 'demo') {
-        await waitForStorageInit();
-    }
-    
     settingsAPI.getSettings().then(settings => {
         dark = !!settings.darkmode;
         setDarkMode(dark);
