@@ -1,5 +1,5 @@
 // Import dependencies
-import {SettingsAPI, TaskAPI} from './api.js';
+import {SettingsAPI, TaskAPI, initializeAPIs} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
 import {createButton, createDiv, createElement, createInput, createSpan} from './ui-utils.js';
@@ -14,8 +14,8 @@ import {initializeApp} from './init.js';
 let columns = {};
 let doneCollapsed = {};
 const eventManager = new EventManager();
-const taskAPI = new TaskAPI()
-const settingsAPI = new SettingsAPI()
+let taskAPI = null;
+let settingsAPI = null;
 
 // --- Kanban Board Setup ---
 if (window.marked) {
@@ -925,6 +925,13 @@ function handleCheckboxClick(ev) {
 async function initBoardApp() {
     // Initialize and check server availability
     await initializeApp();
+    
+    // Initialize the appropriate API implementations based on server mode
+    await initializeAPIs();
+    
+    // Create API instances
+    taskAPI = new TaskAPI();
+    settingsAPI = new SettingsAPI();
     
     columns = {
         'todo': document.getElementById('todo-col'),
