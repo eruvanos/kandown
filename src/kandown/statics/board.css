@@ -219,6 +219,27 @@ body {
   align-items: center;
 }
 
+/* Import button (demo mode localStorage only) */
+.import-toggle {
+  font-size: 1.2em;
+  background: var(--btn-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px var(--shadow-medium);
+  color: var(--text-primary);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.import-toggle:hover {
+  background: var(--btn-hover);
+}
+
 /* Settings button */
 .settings-toggle {
   font-size: 1.2em;
