@@ -152,9 +152,7 @@
             const mode = getServerMode();
             if (mode === 'demo') {
                 // Show demo mode settings sections
-                const clearDataSection = document.getElementById('demo-clear-data');
                 const storageModeSection = document.getElementById('demo-storage-mode');
-                if (clearDataSection) clearDataSection.style.display = 'block';
                 if (storageModeSection) storageModeSection.style.display = 'block';
 
                 // Show demo banner and storage indicator
@@ -162,6 +160,12 @@
                 const storageIndicator = document.getElementById('storage-mode-indicator');
                 if (demoBanner) demoBanner.style.display = 'block';
                 if (storageIndicator) storageIndicator.style.display = 'block';
+
+                // disable the setting for random port in demo mode
+                const randomPortCheckbox = document.getElementById('random-port');
+                if (randomPortCheckbox) {
+                    randomPortCheckbox.disabled = true;
+                }
 
                 // Update banner and indicator based on storage mode
                 updateDemoModeUI();
@@ -174,6 +178,9 @@
         const mode = getStorageMode();
         const banner = document.getElementById('demo-banner');
         const indicator = document.getElementById('storage-mode-indicator');
+        const clearDataSection = document.getElementById('demo-clear-data');
+        const storeImagesCheckbox = document.getElementById('store-images-in-subfolder');
+
 
         if (!banner || !indicator) return;
 
@@ -183,17 +190,20 @@
             banner.classList.add('fs-active');
             indicator.textContent = '📂 File System';
             indicator.classList.add('filesystem');
+
+            clearDataSection.style.display = 'none';
+            storeImagesCheckbox.disabled = false;
         } else {
             console.log('Setting demo mode UI to localStorage');
             banner.innerHTML = '🎯 Demo Mode - Data stored in browser localStorage | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
             banner.classList.remove('fs-active');
             indicator.textContent = '💾 localStorage';
             indicator.classList.remove('filesystem');
+
+            clearDataSection.style.display = 'block';
+            storeImagesCheckbox.disabled = true;
         }
     }
-
-    // Export function so it can be called when storage mode changes
-    window.updateDemoModeUI = updateDemoModeUI;
 </script>
 <footer style="text-align:center; margin-top:48px; color:#888; font-size:1em;">
   <hr style="margin-bottom:16px;">
