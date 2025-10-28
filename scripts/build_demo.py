@@ -28,6 +28,7 @@ def build_demo():
         "ui-utils.js",
         "types.js",
         "favicon.svg",
+        "init.js",
     ]
 
     print("Building Kandown demo...")
