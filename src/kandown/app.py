@@ -193,8 +193,10 @@ def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
     @app.route("/api/download", methods=["GET"])
     def download_backlog():
         """Download the current backlog.yaml file."""
+        # Ensure we use absolute path for send_file
+        yaml_path_absolute = repo.yaml_path.resolve()
         return send_file(
-            repo.yaml_path,
+            yaml_path_absolute,
             as_attachment=True,
             download_name="backlog.yaml",
             mimetype="application/x-yaml"
