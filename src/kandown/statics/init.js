@@ -42,7 +42,7 @@ async function checkHealth() {
         const data = await response.json();
         
         // Validate the response format
-        if (!data.status || !data.server || typeof data.available !== 'boolean') {
+        if (typeof data.available !== 'boolean') {
             throw new Error('Invalid health response format');
         }
 
@@ -82,7 +82,7 @@ async function initializeApp() {
         console.log('Health check result:', healthResponse);
         
         // Determine server mode based on health response
-        if (healthResponse.available && healthResponse.server === 'cli') {
+        if (healthResponse.available) {
             serverMode = 'cli';
             console.log('✓ CLI server is available');
         } else {
