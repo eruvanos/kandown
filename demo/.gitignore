@@ -1,19 +1,5 @@
 # Demo directory .gitignore
 # These files are copied from src/kandown/statics during build
 
-board.css
-board.js
-modal-manager.js
-event-manager.js
-types.js
-ui-utils.js
-favicon.svg
-init.js
-api.js
-api-cli.js
-api-demo.js
-api-filesystem.js
-
-# Keep these source files:
-# - index.html (demo-specific)
-# - settings-demo.js (demo-specific settings with storage mode switcher)
+index.html
+statics/

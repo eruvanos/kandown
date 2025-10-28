@@ -15,24 +15,26 @@ def build_demo():
     repo_root = Path(__file__).parent.parent
     src_statics = repo_root / "src" / "kandown" / "statics"
     demo_dir = repo_root / "demo"
+    demo_statics_dir = demo_dir / "statics"
 
-    # Ensure demo directory exists
-    demo_dir.mkdir(exist_ok=True)
+    # Ensure demo/static directory exists
+    demo_statics_dir.mkdir(exist_ok=True)
 
     # Files to copy from statics
     files_to_copy = [
+        "api-cli.js",
+        "api-demo.js",
+        "api-filesystem.js",
+        "api.js",
         "board.css",
         "board.js",
-        "modal-manager.js",
         "event-manager.js",
-        "ui-utils.js",
-        "types.js",
         "favicon.svg",
         "init.js",
-        "api.js",  # New: API factory
-        "api-cli.js",  # New: CLI API implementation
-        "api-demo.js",  # New: Demo API implementation (replaces old demo/api.js)
-        "api-filesystem.js",  # New: Filesystem API implementation
+        "modal-manager.js",
+        "settings.js",
+        "types.js",
+        "ui-utils.js",
     ]
 
     print("Building Kandown demo...")
@@ -40,10 +42,10 @@ def build_demo():
     print(f"Destination: {demo_dir}")
     print()
 
-    # Copy files
+    # Copy static files
     for filename in files_to_copy:
         src_file = src_statics / filename
-        dest_file = demo_dir / filename
+        dest_file = demo_statics_dir / filename
 
         if src_file.exists():
             shutil.copy2(src_file, dest_file)
@@ -51,31 +53,14 @@ def build_demo():
         else:
             print(f"✗ Warning: {filename} not found in source")
 
-    # Verify required demo files exist
-    # Note: api.js, api-filesystem.js are now copied from statics
-    # The old demo/api.js and demo/api-filesystem.js are deprecated
-    required_demo_files = ["index.html", "settings-demo.js"]
-    print()
-    print("Verifying demo-specific files...")
-    for filename in required_demo_files:
-        demo_file = demo_dir / filename
-        if demo_file.exists():
-            print(f"✓ {filename} exists")
-        else:
-            print(f"✗ Error: {filename} is missing!")
-            return False
-
-    # Check that copied API files exist
-    copied_api_files = ["api.js", "api-cli.js", "api-demo.js", "api-filesystem.js"]
-    print()
-    print("Verifying copied API files...")
-    for filename in copied_api_files:
-        demo_file = demo_dir / filename
-        if demo_file.exists():
-            print(f"✓ {filename} copied")
-        else:
-            print(f"✗ Warning: {filename} not copied")
-
+    # copy index.html separately
+    index_src = repo_root / "src" / "kandown" / "templates" / "index.html"
+    index_dest = demo_dir / "index.html"
+    if index_src.exists():
+        shutil.copy2(index_src, index_dest)
+        print("✓ Copied index.html")
+    else:
+        print("✗ Warning: index.html not found in source")
 
     print()
     print("✅ Demo build completed successfully!")

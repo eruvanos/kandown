@@ -5,47 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kandown - Kanban Board</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script type="module" src="/statics/board.js"></script>
-  <script type="module" src="/statics/settings.js"></script>
-  <link rel="icon" type="image/svg+xml" href="/statics/favicon.svg">
-  <link rel="stylesheet" href="/statics/board.css">
-  <style>
-    .demo-banner {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 12px 20px;
-      text-align: center;
-      font-weight: 500;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      display: none; /* Hidden by default, shown in demo mode */
-    }
-    .demo-banner.fs-active {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    .demo-banner a {
-      color: #fff;
-      text-decoration: underline;
-      font-weight: 600;
-    }
-    .demo-banner a:hover {
-      opacity: 0.9;
-    }
-    .storage-mode-indicator {
-      position: fixed;
-      top: 60px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 0.9em;
-      z-index: 1000;
-      display: none; /* Hidden by default, shown in demo mode */
-    }
-    .storage-mode-indicator.filesystem {
-      background: rgba(17, 153, 142, 0.9);
-    }
-  </style>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6.2.1/dist/umd.js"></script>
+  <script type="module" src="./statics/board.js"></script>
+  <script type="module" src="./statics/settings.js"></script>
+  <link rel="icon" type="image/svg+xml" href="./statics/favicon.svg">
+  <link rel="stylesheet" href="./statics/board.css">
 </head>
 <body>
 <div id="demo-banner" class="demo-banner">
