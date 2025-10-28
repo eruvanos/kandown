@@ -469,7 +469,7 @@ export async function importFromYamlFile() {
                 }
             };
             // Note: oncancel is not reliable, so we rely on the user closing the picker
-            // without selecting a file, which will leave files[0] as undefined
+            // without selecting a file, which will leave e.target.files[0] as undefined
         });
         
         // Trigger file picker
@@ -484,7 +484,7 @@ export async function importFromYamlFile() {
         // Parse YAML using jsyaml (loaded via CDN)
         const data = jsyaml.load(text);
         
-        if (data === null || data === undefined) {
+        if (data == null) {
             throw new Error('Invalid YAML file - no data found');
         }
         
