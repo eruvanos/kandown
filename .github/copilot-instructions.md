@@ -5,12 +5,7 @@ Kandown is a lightweight Kanban board application for managing tasks using a sim
 
 ## Main Structure
 - `backlog.yaml`: Default YAML file for storing tasks (auto-created if missing).
-- `demo/`: Hybrid demo web application that runs entirely in the browser.
-  - `index.html`: Demo-specific HTML page with hybrid storage support.
-  - `api.js`: Hybrid API routing between localStorage and File System Access API.
-  - `api-filesystem.js`: File System Access API implementation for reading/writing backlog.yaml.
-  - `settings-demo.js`: Demo-specific settings with storage mode switching.
-  - Build artifacts (copied from `src/kandown/statics/` via `scripts/build_demo.py`).
+- `demo/`: This directory is now primarily to build artefact for GitHub Pages deployment
 - `src/kandown/`: Python source code for the CLI, web server, and core logic.
   - `cli.py`: Command-line interface for starting the server.
   - `app.py`: Flask application and API routes.
@@ -22,7 +17,11 @@ Kandown is a lightweight Kanban board application for managing tasks using a sim
   - `statics/`: Static files (CSS, JS, images) for the web UI.
     - `board.js`: Main Kanban board UI logic.
     - `board.css`: Kanban board styles.
-    - `api.js`: API client for the Flask backend.
+    - `api.js`: API factory for CLI/demo mode.
+    - `api-cli.js`: CLI server API implementation.
+    - `api-demo.js`: Demo mode API (localStorage/filesystem hybrid).
+    - `api-filesystem.js`: File System Access API implementation.
+    - `init.js`: Initialization and server detection logic.
     - `settings.js`: Settings panel implementation.
     - `modal-manager.js`: Modal dialog utilities.
     - `event-manager.js`: Event handling and cleanup utilities.
@@ -31,17 +30,13 @@ Kandown is a lightweight Kanban board application for managing tasks using a sim
     - `favicon.svg`: Application icon.
 - `scripts/`: Build and deployment scripts.
   - `build_demo.py`: Copies static assets to the demo directory.
+  - `clean_demo.py`: Cleans old files from the demo directory.
+  - `serve_demo.py`: Serves the demo locally for testing.
 - `docs/`: Documentation files.
   - `screenshot.png`: Application screenshot.
-  - `DEMO_MODE.md`: Demo mode implementation details.
-  - `FILESYSTEM_MODE.md`: File System Access API integration guide.
 - `tests/`: Automated tests for core functionality.
-  - `test_task_repo.py`: Unit tests for task repository.
-  - `test_health.py`: Health endpoint tests.
-  - `test_e2e.py`: End-to-end tests using Playwright.
 - `README.md`: Project overview, installation, and usage instructions.
 - `DEV.md`: Development notes and design decisions.
-- `FRONTEND_IMPROVEMENTS.md`: Frontend code improvement suggestions.
 
 ## Key Concepts
 - **Tasks** are stored in YAML files and visualized in a Kanban board (To Do, In Progress, Done).
