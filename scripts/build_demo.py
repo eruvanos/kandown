@@ -29,6 +29,10 @@ def build_demo():
         "types.js",
         "favicon.svg",
         "init.js",
+        "api.js",  # New: API factory
+        "api-cli.js",  # New: CLI API implementation
+        "api-demo.js",  # New: Demo API implementation (replaces old demo/api.js)
+        "api-filesystem.js",  # New: Filesystem API implementation
     ]
 
     print("Building Kandown demo...")
@@ -48,7 +52,9 @@ def build_demo():
             print(f"✗ Warning: {filename} not found in source")
 
     # Verify required demo files exist
-    required_demo_files = ["index.html", "api.js", "api-filesystem.js", "settings-demo.js"]
+    # Note: api.js, api-filesystem.js are now copied from statics
+    # The old demo/api.js and demo/api-filesystem.js are deprecated
+    required_demo_files = ["index.html", "settings-demo.js"]
     print()
     print("Verifying demo-specific files...")
     for filename in required_demo_files:
@@ -58,6 +64,18 @@ def build_demo():
         else:
             print(f"✗ Error: {filename} is missing!")
             return False
+
+    # Check that copied API files exist
+    copied_api_files = ["api.js", "api-cli.js", "api-demo.js", "api-filesystem.js"]
+    print()
+    print("Verifying copied API files...")
+    for filename in copied_api_files:
+        demo_file = demo_dir / filename
+        if demo_file.exists():
+            print(f"✓ {filename} copied")
+        else:
+            print(f"✗ Warning: {filename} not copied")
+
 
     print()
     print("✅ Demo build completed successfully!")

@@ -1,4 +1,5 @@
-import { SettingsAPI, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage, waitForStorageInit } from './api.js';
+import { SettingsAPI, initializeAPIs, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage, waitForStorageInit } from './api.js';
+import { waitForInit } from './init.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
 const modal = document.getElementById('settings-modal');
@@ -7,9 +8,6 @@ const randomPortCheckbox = document.getElementById('random-port');
 const storeImagesInSubfolderCheckbox = document.getElementById('store-images-in-subfolder');
 const darkModeToggleBtn = document.getElementById('darkmode-toggle');
 const clearDataBtn = document.getElementById('clear-data-btn');
-
-// Create instance of SettingsAPI
-const settingsAPI = new SettingsAPI();
 
 function setDarkMode(on) {
     document.body.classList.toggle('darkmode', on);
@@ -20,9 +18,19 @@ function setDarkMode(on) {
 let dark = false;
 let randomPort = false;
 let storeImagesInSubfolder = false;
+let settingsAPI = null;
 
 async function loadSettings() {
-    // Wait for storage mode to be initialized before loading settings
+    // Wait for app initialization
+    await waitForInit();
+    
+    // Initialize APIs
+    await initializeAPIs();
+    
+    // Create settings API instance
+    settingsAPI = new SettingsAPI();
+    
+    // Wait for storage mode to be initialized
     await waitForStorageInit();
 
     settingsAPI.getSettings().then(settings => {

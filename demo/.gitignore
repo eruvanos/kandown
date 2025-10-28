@@ -9,8 +9,11 @@ types.js
 ui-utils.js
 favicon.svg
 init.js
+api.js
+api-cli.js
+api-demo.js
+api-filesystem.js
 
 # Keep these source files:
 # - index.html (demo-specific)
-# - api.js (demo-specific localStorage implementation)
-# - settings-demo.js (demo-specific settings with clear data button)
+# - settings-demo.js (demo-specific settings with storage mode switcher)
