@@ -704,6 +704,7 @@ body {
   font-size: 0.9em;
   z-index: 1000;
   display: none; /* Hidden by default, shown in demo mode */
+  cursor: pointer;
 }
 
 .storage-mode-indicator.filesystem {

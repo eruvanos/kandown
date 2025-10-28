@@ -7,6 +7,7 @@ const closeBtn = document.querySelector('.close-btn');
 const randomPortCheckbox = document.getElementById('random-port');
 const storeImagesInSubfolderCheckbox = document.getElementById('store-images-in-subfolder');
 const darkModeToggleBtn = document.getElementById('darkmode-toggle');
+const storageModeIndicator = document.getElementById('storage-mode-indicator');
 
 function setDarkMode(on) {
     document.body.classList.toggle('darkmode', on);
@@ -53,6 +54,14 @@ settingsBtn.onclick = function () {
         updateStorageModeUI();
     }
 };
+
+storageModeIndicator.onclick = function () {
+    modal.style.display = 'block';
+    // Update storage mode UI when opening settings in demo mode
+    if (getServerMode() === 'demo') {
+        updateStorageModeUI();
+    }
+}
 
 closeBtn.onclick = function () {
     modal.style.display = 'none';
