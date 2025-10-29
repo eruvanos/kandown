@@ -130,7 +130,7 @@ function initializeStorage() {
             },
             {
                 id: generateId(),
-                text: "You can use **Markdown** formatting:\n\n- Lists\n- **Bold** and *italic*\n- [Links](https://github.com/eruvanos/kandown)\n- Images (paste from clipboard!)",
+                text: "You can use **Markdown** formatting:\n\n- Lists\n- **Bold** and *italic*\n- [Links](https://github.com/eruvanos/kandown)\n- Images (paste from clipboard!)\n- [ ] even checkboxes!",
                 status: "in_progress",
                 tags: ["tutorial"],
                 order: 0,
@@ -138,7 +138,7 @@ function initializeStorage() {
             },
             {
                 id: generateId(),
-                text: "Click the ✏️ icon to edit this task or the 🗑️ to delete it.\n\nDouble-click on task text to edit inline!",
+                text: "Click this text to edit or the ❌ to delete it.",
                 status: "in_progress",
                 tags: ["tutorial"],
                 order: 1,
