@@ -219,62 +219,40 @@ body {
   align-items: center;
 }
 
-/* Settings button */
-.settings-toggle {
-  font-size: 1.2em;
-  background: var(--btn-bg);
-  border: 1px solid var(--border-color);
+/* Base styles for floating control buttons */
+.floating-controls button {
   border-radius: 50%;
-  box-shadow: 0 2px 8px var(--shadow-medium);
-  color: var(--text-primary);
   cursor: pointer;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
 }
 
-.settings-toggle:hover {
-  background: var(--btn-hover);
-}
-
-/* Download button */
-.download-toggle {
-  font-size: 1.2em;
+/* Small floating buttons (settings, download, etc.) */
+.floating-control-secondary {
+  font-size: 0.9em;
   background: var(--btn-bg);
   border: 1px solid var(--border-color);
-  border-radius: 50%;
   box-shadow: 0 2px 8px var(--shadow-medium);
   color: var(--text-primary);
-  cursor: pointer;
   width: 32px;
   height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
 }
 
-.download-toggle:hover {
+.floating-control-secondary {
   background: var(--btn-hover);
 }
 
 /* Dark mode toggle button */
-.darkmode-toggle {
+.floating-control-primary {
   font-size: 1.8em;
   background: var(--text-secondary);
   color: var(--bg-secondary);
   border: none;
-  border-radius: 50%;
   width: 56px;
   height: 56px;
   box-shadow: 0 2px 8px var(--shadow-strong);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: background 0.2s, color 0.2s;
 }
 

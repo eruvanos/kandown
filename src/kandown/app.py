@@ -190,40 +190,4 @@ def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
             return {"error": "File not found"}, 404
         return send_file(file)
 
-    @app.route("/api/download", methods=["GET"])
-    def download_backlog():
-        """Download the current backlog.yaml file."""
-        # Ensure we use absolute path for send_file
-        yaml_path_absolute = repo.yaml_path.resolve()
-        
-        # Check if file exists
-        if not yaml_path_absolute.exists():
-            return {"error": "Backlog file not found"}, 404
-            
-        return send_file(
-            yaml_path_absolute,
-            as_attachment=True,
-            download_name="backlog.yaml",
-            mimetype="application/x-yaml"
-        )
-
-    # @app.route("/events")
-    # def events():
-    #     """Server-sent events endpoint for real-time task updates."""
-    #
-    #     def event_stream():
-    #         while True:
-    #             # Wait for a change event
-    #             repo.change_event.wait(timeout=30)  # 30 second timeout to send keepalive
-    #             if repo.change_event.is_set():
-    #                 print("Change event detected, sending update")
-    #                 # Send update event with all tasks
-    #                 tasks = [t.to_dict() for t in repo.all()]
-    #                 yield f"data: {jsonify(tasks).get_data(as_text=True)}\n\n"
-    #             else:
-    #                 # Send keepalive event
-    #                 yield 'data: {"type": "keepalive"}\n\n'
-    #
-    #     return Response(event_stream(), mimetype="text/event-stream")
-
     return app
