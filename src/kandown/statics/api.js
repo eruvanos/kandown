@@ -15,7 +15,8 @@ let demoFunctions = {
     getStorageMode: null,
     switchToFileSystem: null,
     switchToLocalStorage: null,
-    waitForStorageInit: null
+    waitForStorageInit: null,
+    importFromYamlFile: null
 };
 
 /**
@@ -41,6 +42,7 @@ async function initializeAPIs() {
         demoFunctions.switchToFileSystem = demoModule.switchToFileSystem;
         demoFunctions.switchToLocalStorage = demoModule.switchToLocalStorage;
         demoFunctions.waitForStorageInit = demoModule.waitForStorageInit;
+        demoFunctions.importFromYamlFile = demoModule.importFromYamlFile;
 
         // Ensure storage is initialized
         await demoModule.waitForStorageInit()
@@ -74,3 +76,4 @@ export const clearAllData = () => demoFunctions.clearAllData?.();
 export const getStorageMode = () => demoFunctions.getStorageMode?.() || 'cli';
 export const switchToFileSystem = () => demoFunctions.switchToFileSystem?.();
 export const switchToLocalStorage = () => demoFunctions.switchToLocalStorage?.();
+export const importFromYamlFile = () => demoFunctions.importFromYamlFile?.();

@@ -1,4 +1,4 @@
-import {SettingsAPI, initializeAPIs, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage} from './api.js';
+import {SettingsAPI, initializeAPIs, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage, importFromYamlFile} from './api.js';
 import {waitForInit, getServerMode} from './init.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
@@ -8,6 +8,7 @@ const randomPortCheckbox = document.getElementById('random-port');
 const storeImagesInSubfolderCheckbox = document.getElementById('store-images-in-subfolder');
 const darkModeToggleBtn = document.getElementById('darkmode-toggle');
 const storageModeIndicator = document.getElementById('storage-mode-indicator');
+const importBtn = document.getElementById('import-toggle');
 
 function setDarkMode(on) {
     document.body.classList.toggle('darkmode', on);
@@ -147,5 +148,12 @@ if (switchToLocalStorageBtn) {
             alert('Switched to localStorage mode. The page will reload.');
             window.location.reload();
         }
+    };
+}
+
+// Event handler for import button (demo mode localStorage only)
+if (importBtn) {
+    importBtn.onclick = async function () {
+        await importFromYamlFile();
     };
 }
