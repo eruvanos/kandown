@@ -1,0 +1,66 @@
+/* Mode-specific visibility utilities */
+/* Show only in CLI mode */
+.show-cli {
+  display: none !important;
+}
+body.mode-cli .show-cli {
+  display: revert !important;
+}
+
+/* Show only in demo localStorage mode */
+.show-demo-local {
+  display: none !important;
+}
+body.mode-demo-local .show-demo-local {
+  display: revert !important;
+}
+
+/* Show only in demo filesystem mode */
+.show-demo-file {
+  display: none !important;
+}
+body.mode-demo-file .show-demo-file {
+  display: revert !important;
+}
+
+/* Show in any demo mode (localStorage OR filesystem) */
+.show-demo {
+  display: none !important;
+}
+body.mode-demo-local .show-demo,
+body.mode-demo-file .show-demo {
+  display: revert !important;
+}
+
+/* Hide in CLI mode */
+.hide-cli {
+  display: revert !important;
+}
+body.mode-cli .hide-cli {
+  display: none !important;
+}
+
+/* Hide in demo localStorage mode */
+.hide-demo-local {
+  display: revert !important;
+}
+body.mode-demo-local .hide-demo-local {
+  display: none !important;
+}
+
+/* Hide in demo filesystem mode */
+.hide-demo-file {
+  display: revert !important;
+}
+body.mode-demo-file .hide-demo-file {
+  display: none !important;
+}
+
+/* Hide in any demo mode */
+.hide-demo {
+  display: revert !important;
+}
+body.mode-demo-local .hide-demo,
+body.mode-demo-file .hide-demo {
+  display: none !important;
+}

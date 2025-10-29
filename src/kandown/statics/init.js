@@ -59,6 +59,20 @@ async function checkHealth() {
 }
 
 /**
+ * Sets the appropriate CSS class on the body element based on the mode
+ * @param {string} mode - The mode to set ('cli', 'demo-local', or 'demo-file')
+ */
+function setModeClass(mode) {
+    // Remove any existing mode classes
+    document.body.classList.remove('mode-cli', 'mode-demo-local', 'mode-demo-file');
+
+    // Add the new mode class
+    document.body.classList.add(`mode-${mode}`);
+
+    console.log(`✓ Set mode class: mode-${mode}`);
+}
+
+/**
  * Initializes the application by checking server health
  * @returns {Promise<ServerMode>}
  */
@@ -85,10 +99,22 @@ async function initializeApp() {
         if (healthResponse.available) {
             serverMode = 'cli';
             console.log('✓ CLI server is available');
+            setModeClass('cli');
         } else {
             // Switch to demo mode if server is unavailable
             serverMode = 'demo';
             console.log('ℹ Running in demo mode (server unavailable)');
+
+            // Determine demo storage mode
+            const { getStorageMode, waitForStorageInit } = await import('./api-demo.js');
+            await waitForStorageInit();
+            const storageMode = getStorageMode();
+
+            if (storageMode === 'filesystem') {
+                setModeClass('demo-file');
+            } else {
+                setModeClass('demo-local');
+            }
         }
         
         initializationComplete = true;

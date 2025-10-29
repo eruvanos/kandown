@@ -1,9 +1,9 @@
 // Import dependencies
-import {SettingsAPI, TaskAPI, initializeAPIs} from './api.js';
+import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
 import {createButton, createDiv, createElement, createInput, createSpan} from './ui-utils.js';
-import {initializeApp} from './init.js';
+import {initializeApp, getServerMode} from './init.js';
 
 /**
  * @typedef {import('./types.js').Task}
@@ -920,6 +920,37 @@ function handleCheckboxClick(ev) {
     });
 }
 
+// --- Update UI based on current storage mode (demo mode only)
+async function updateDemoModeUI() {
+    if (getServerMode() !== 'demo') {
+        console.log('Not in demo mode, skipping demo mode UI update.');
+        return;
+    }
+
+    const mode = getStorageMode()
+
+    const banner = document.getElementById('demo-banner');
+    const indicator = document.getElementById('storage-mode-indicator');
+    if (!banner || !indicator) return;
+
+    if (mode === 'filesystem') {
+        console.log('Setting demo mode UI to File System');
+        banner.innerHTML = '📂 File System Mode - Connected to local backlog.yaml | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
+        banner.classList.add('fs-active');
+        indicator.textContent = '📂 File System';
+        indicator.classList.add('filesystem');
+    } else if (mode === 'localStorage') {
+        console.log('Setting demo mode UI to localStorage');
+        banner.innerHTML = '🎯 Demo Mode - Data stored in browser localStorage | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
+        banner.classList.remove('fs-active');
+        indicator.textContent = '💾 localStorage';
+        indicator.classList.remove('filesystem');
+    } else {
+        console.log('Unknown storage mode:', mode);
+        indicator.textContent = '❓ Unknown Mode';
+    }
+}
+
 
 // --- Main Entrypoint ---
 async function initBoardApp() {
@@ -928,6 +959,9 @@ async function initBoardApp() {
     
     // Initialize the appropriate API implementations based on server mode
     await initializeAPIs();
+
+    // Init DemoUI
+    await updateDemoModeUI()
     
     // Create API instances
     taskAPI = new TaskAPI();
