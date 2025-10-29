@@ -449,3 +449,58 @@ export function importData(data) {
     }
     window.location.reload();
 }
+
+// Import from YAML file (localStorage mode only)
+export async function importFromYamlFile() {
+    try {
+        // Create file input element
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.yaml,.yml';
+        
+        // Wait for file selection
+        const filePromise = new Promise((resolve, reject) => {
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    resolve(file);
+                } else {
+                    reject(new Error('No file selected'));
+                }
+            };
+            // Note: oncancel is not reliable, so we rely on the user closing the picker
+            // without selecting a file, which will leave e.target.files[0] as undefined
+        });
+        
+        // Trigger file picker
+        input.click();
+        
+        // Wait for file selection
+        const file = await filePromise;
+        
+        // Read file content
+        const text = await file.text();
+        
+        // Parse YAML using jsyaml (loaded via CDN)
+        const data = jsyaml.load(text);
+        
+        if (data == null) {
+            throw new Error('Invalid YAML file - no data found');
+        }
+        
+        // Confirm before importing
+        const taskCount = Array.isArray(data.tasks) ? data.tasks.length : 0;
+        if (!confirm(`Import ${taskCount} tasks from ${file.name}? This will replace all existing tasks.`)) {
+            return false;
+        }
+        
+        // Import the data
+        importData(data);
+        return true;
+        
+    } catch (err) {
+        console.error('Import error:', err);
+        alert(`Failed to import file: ${err.message}`);
+        return false;
+    }
+}

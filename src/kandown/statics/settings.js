@@ -1,4 +1,4 @@
-import {SettingsAPI, initializeAPIs, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage} from './api.js';
+import {SettingsAPI, initializeAPIs, clearAllData, getStorageMode, switchToFileSystem, switchToLocalStorage, importFromYamlFile} from './api.js';
 import {waitForInit, getServerMode} from './init.js';
 
 const settingsBtn = document.getElementById('settings-toggle');
@@ -84,7 +84,6 @@ storeImagesInSubfolderCheckbox.onchange = async function () {
 }
 
 // Demo mode specific functionality
-const clearDataBtn = document.getElementById('clear-data-btn');
 const switchToFilesystemBtn = document.getElementById('switch-to-filesystem');
 const switchToLocalStorageBtn = document.getElementById('switch-to-localstorage');
 const currentStorageModeSpan = document.getElementById('current-storage-mode');
@@ -115,6 +114,7 @@ function updateStorageModeUI() {
 }
 
 // Clear data button handler (demo mode only)
+const clearDataBtn = document.getElementById('clear-data-btn');
 if (clearDataBtn) {
     clearDataBtn.onclick = function () {
         clearAllData();
@@ -199,5 +199,13 @@ if (downloadBtn) {
             console.error('Download failed:', err);
             alert('Failed to download backlog.yaml. Please try again.');
         }
+    };
+}
+
+// Event handler for import button (demo mode localStorage only)
+const importBtn = document.getElementById('import-toggle');
+if (importBtn) {
+    importBtn.onclick = async function () {
+        await importFromYamlFile();
     };
 }
