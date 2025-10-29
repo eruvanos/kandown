@@ -5,6 +5,7 @@
 
 import { FileSystemAPI, FileSystemTaskAPI, FileSystemSettingsAPI } from './api-filesystem.js';
 
+// Storage keys
 const STORAGE_KEY = 'kandown_demo_tasks';
 const SETTINGS_KEY = 'kandown_demo_settings';
 const LAST_ID_KEY = 'kandown_demo_last_id';
@@ -18,7 +19,10 @@ const hasFileSystemSupport = 'showDirectoryPicker' in window;
 // Promise that resolves when storage mode is initialized
 let storageModeInitialized = null;
 
-// Try to restore previous file system connection
+/**
+ * Try to restore previous file system connection
+ * @returns {Promise<void>}
+ */
 async function initializeStorageMode() {
     if (hasFileSystemSupport) {
         const restored = await FileSystemAPI.restoreConnection();
@@ -32,17 +36,26 @@ async function initializeStorageMode() {
 // Initialize on load and store the promise
 storageModeInitialized = initializeStorageMode();
 
-// Export function to wait for initialization
+/**
+ * Export function to wait for initialization
+ * @returns {Promise<void>}
+ */
 export async function waitForStorageInit() {
     await storageModeInitialized;
 }
 
-// Export current mode getter
+/**
+ * Export current mode getter
+ * @returns {string} Current storage mode ('localStorage' or 'filesystem')
+ */
 export function getStorageMode() {
     return storageMode;
 }
 
-// Export mode switcher
+/**
+ * Switch to File System Access API mode
+ * @returns {Promise<boolean>} True if switch was successful
+ */
 export async function switchToFileSystem() {
     if (!hasFileSystemSupport) {
         throw new Error('File System Access API not supported');
@@ -56,15 +69,22 @@ export async function switchToFileSystem() {
     return false;
 }
 
+/**
+ * Switch to localStorage mode
+ * @returns {void}
+ */
 export function switchToLocalStorage() {
     storageMode = 'localStorage';
     FileSystemAPI.disconnect();
 }
 
-// Generate unique IDs based on stored last ID counter
+/**
+ * Generate unique IDs based on stored last ID counter
+ * @returns {string} Generated ID in format K-XXX
+ */
 function generateId() {
     // Get the last used ID from localStorage
-    let lastId = parseInt(localStorage.getItem(LAST_ID_KEY) || '0', 10);
+    const lastId = parseInt(localStorage.getItem(LAST_ID_KEY) ?? '0', 10);
 
     // Increment for new task
     const newId = lastId + 1;
@@ -76,14 +96,18 @@ function generateId() {
     return `K-${String(newId).padStart(3, '0')}`;
 }
 
-// Initialize the last ID counter based on existing tasks
+/**
+ * Initialize the last ID counter based on existing tasks
+ * @param {Array} tasks - Array of task objects
+ * @returns {number} Maximum ID found
+ */
 function initializeLastIdCounter(tasks) {
     const numericIds = tasks
         .map(task => {
             const match = task.id.match(/K[-_](\d+)/);
             return match ? parseInt(match[1], 10) : 0;
         })
-        .filter(num => !isNaN(num));
+        .filter(num => !Number.isNaN(num));
 
     const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
     localStorage.setItem(LAST_ID_KEY, maxId.toString());
@@ -96,7 +120,10 @@ const DEFAULT_SETTINGS = {
     store_images_in_subfolder: false
 };
 
-// Initialize with demo data if no data exists
+/**
+ * Initialize storage with demo data if no data exists
+ * @returns {void}
+ */
 function initializeStorage() {
     // Only initialize localStorage with demo data if we're NOT in filesystem mode
     if (storageMode === 'filesystem') {

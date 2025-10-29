@@ -8,6 +8,7 @@ const { get: idbGet, set: idbSet, del: idbDel } = idbKeyval;
 
 /**
  * Core File System Access API wrapper
+ * Provides methods for reading/writing to local filesystem using File System Access API
  */
 class FileSystemAPI {
     static fileHandle = null;
@@ -16,6 +17,7 @@ class FileSystemAPI {
     
     /**
      * Try to restore a previous directory connection from IndexedDB
+     * @returns {Promise<boolean>} True if connection was restored successfully
      */
     static async restoreConnection() {
         try {
@@ -32,7 +34,7 @@ class FileSystemAPI {
                 }
             }
         } catch (err) {
-            console.log('Could not restore connection:', err);
+            console.error('Could not restore connection:', err);
         }
         return false;
     }
@@ -40,6 +42,7 @@ class FileSystemAPI {
     /**
      * Request access to a directory from the user
      * This shows a browser directory picker dialog
+     * @returns {Promise<boolean>} True if directory access was granted
      */
     static async requestDirectoryAccess() {
         try {
@@ -74,6 +77,8 @@ class FileSystemAPI {
     
     /**
      * Find or create backlog.yaml file
+     * @private
+     * @returns {Promise<void>}
      */
     static async _findBacklogFile() {
         try {
@@ -103,6 +108,7 @@ class FileSystemAPI {
     
     /**
      * Disconnect from file system
+     * @returns {Promise<void>}
      */
     static async disconnect() {
         this.fileHandle = null;
@@ -113,43 +119,67 @@ class FileSystemAPI {
     
     /**
      * Load and parse the backlog.yaml file
+     * @returns {Promise<Object>} Parsed YAML data
      */
     static async loadBacklogData() {
         if (!this.fileHandle) {
             throw new Error('No file handle available');
         }
         
-        const file = await this.fileHandle.getFile();
-        const text = await file.text();
-        
-        // Parse YAML (jsyaml loaded via CDN in index.html)
-        this.backlogData = jsyaml.load(text) || { settings: {}, tasks: [] };
-        return this.backlogData;
+        try {
+            const file = await this.fileHandle.getFile();
+            const text = await file.text();
+            
+            // Parse YAML (jsyaml loaded via CDN in index.html)
+            this.backlogData = jsyaml.load(text);
+            
+            // Validate and provide defaults
+            if (!this.backlogData || typeof this.backlogData !== 'object') {
+                console.warn('Invalid YAML structure, using defaults');
+                this.backlogData = { settings: {}, tasks: [] };
+            }
+            
+            this.backlogData.settings = this.backlogData.settings ?? {};
+            this.backlogData.tasks = this.backlogData.tasks ?? [];
+            
+            return this.backlogData;
+        } catch (err) {
+            console.error('Error loading backlog data:', err);
+            throw new Error(`Failed to load backlog.yaml: ${err.message}`);
+        }
     }
     
     /**
      * Write backlog data back to the file
+     * @param {Object} data - Data to write to file
+     * @returns {Promise<void>}
      */
     static async writeBacklogData(data) {
         if (!this.fileHandle) {
             throw new Error('No file handle available');
         }
         
-        // Create a writable stream
-        const writable = await this.fileHandle.createWritable();
-        
-        // Serialize to YAML
-        const yamlText = jsyaml.dump(data);
-        
-        // Write to file
-        await writable.write(yamlText);
-        await writable.close();
-        
-        this.backlogData = data;
+        try {
+            // Create a writable stream
+            const writable = await this.fileHandle.createWritable();
+            
+            // Serialize to YAML
+            const yamlText = jsyaml.dump(data);
+            
+            // Write to file
+            await writable.write(yamlText);
+            await writable.close();
+            
+            this.backlogData = data;
+        } catch (err) {
+            console.error('Error writing backlog data:', err);
+            throw new Error(`Failed to write backlog.yaml: ${err.message}`);
+        }
     }
     
     /**
      * Check if we have file system access
+     * @returns {boolean} True if file handle is available
      */
     static hasAccess() {
         return this.fileHandle !== null;
@@ -157,9 +187,12 @@ class FileSystemAPI {
     
     /**
      * Verify we still have permission to access the directory
+     * @param {FileSystemHandle} [handle] - Handle to verify, defaults to directoryHandle
+     * @param {boolean} [readWrite=true] - Whether to check for read/write access
+     * @returns {Promise<boolean>} True if permission is granted
      */
     static async verifyPermission(handle = null, readWrite = true) {
-        const targetHandle = handle || this.directoryHandle;
+        const targetHandle = handle ?? this.directoryHandle;
         if (!targetHandle) {
             return false;
         }
@@ -187,19 +220,24 @@ class FileSystemAPI {
  * TaskAPI implementation using File System Access API
  */
 export class FileSystemTaskAPI {
+    /**
+     * Get all tasks from the backlog file
+     * @returns {Promise<Array>} Array of task objects
+     */
     async getTasks() {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
 
         // Ensure last ID counter is synchronized with loaded tasks
-        this._syncLastIdCounter(data.tasks || []);
+        this._syncLastIdCounter(data.tasks ?? []);
 
-        return data.tasks || [];
+        return data.tasks ?? [];
     }
     
     /**
      * Synchronize the last ID counter with existing tasks
      * @private
+     * @param {Array} tasks - Array of task objects
      */
     _syncLastIdCounter(tasks) {
         const LAST_ID_KEY = 'kandown_demo_last_id';
@@ -208,12 +246,12 @@ export class FileSystemTaskAPI {
                 const match = task.id.match(/K[-_](\d+)/);
                 return match ? parseInt(match[1], 10) : 0;
             })
-            .filter(num => !isNaN(num));
+            .filter(num => !Number.isNaN(num));
 
         const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
 
         // Only update if the found max is higher than stored value
-        const currentLastId = parseInt(localStorage.getItem(LAST_ID_KEY) || '0', 10);
+        const currentLastId = parseInt(localStorage.getItem(LAST_ID_KEY) ?? '0', 10);
         if (maxId > currentLastId) {
             localStorage.setItem(LAST_ID_KEY, maxId.toString());
         }
@@ -222,12 +260,13 @@ export class FileSystemTaskAPI {
     /**
      * Generate a new sequential ID
      * @private
+     * @returns {string} Generated ID in format K-XXX
      */
     _generateId() {
         const LAST_ID_KEY = 'kandown_demo_last_id';
 
         // Get the last used ID from localStorage
-        let lastId = parseInt(localStorage.getItem(LAST_ID_KEY) || '0', 10);
+        const lastId = parseInt(localStorage.getItem(LAST_ID_KEY) ?? '0', 10);
 
         // Increment for new task
         const newId = lastId + 1;
@@ -239,12 +278,18 @@ export class FileSystemTaskAPI {
         return `K-${String(newId).padStart(3, '0')}`;
     }
 
+    /**
+     * Create a new task
+     * @param {string} status - Task status ('todo', 'in_progress', or 'done')
+     * @param {number} [order] - Task order position
+     * @returns {Promise<Object>} Created task object
+     */
     async createTask(status, order) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         
         // Sync ID counter with existing tasks first
-        this._syncLastIdCounter(data.tasks || []);
+        this._syncLastIdCounter(data.tasks ?? []);
 
         // Generate unique sequential ID
         const newId = this._generateId();
@@ -252,7 +297,7 @@ export class FileSystemTaskAPI {
         const newTask = {
             id: newId,
             text: '',
-            status: status || 'todo',
+            status: status ?? 'todo',
             tags: [],
             order: order !== undefined ? order : data.tasks.filter(t => t.status === status).length,
             type: 'feature',
@@ -265,13 +310,19 @@ export class FileSystemTaskAPI {
         return newTask;
     }
     
+    /**
+     * Update a task
+     * @param {string} id - Task ID
+     * @param {Object} update - Fields to update
+     * @returns {Promise<Object>} Updated task object
+     */
     async updateTask(id, update) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         
         const taskIndex = data.tasks.findIndex(t => t.id === id);
         if (taskIndex === -1) {
-            throw new Error('Task not found');
+            throw new Error(`Task not found: ${id}`);
         }
         
         // Update fields
@@ -288,6 +339,11 @@ export class FileSystemTaskAPI {
         return data.tasks[taskIndex];
     }
     
+    /**
+     * Batch update multiple tasks
+     * @param {Object} updates - Object mapping task IDs to update objects
+     * @returns {Promise<Array>} Array of updated tasks
+     */
     async batchUpdateTasks(updates) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
@@ -310,6 +366,11 @@ export class FileSystemTaskAPI {
         return updatedTasks;
     }
     
+    /**
+     * Delete a task
+     * @param {string} id - Task ID to delete
+     * @returns {Promise<Object>} Result object with success status
+     */
     async deleteTask(id) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
@@ -318,28 +379,42 @@ export class FileSystemTaskAPI {
         data.tasks = data.tasks.filter(t => t.id !== id);
         
         if (data.tasks.length === initialLength) {
-            return {success: false, error: 'Task not found'};
+            return {success: false, error: `Task not found: ${id}`};
         }
         
         await FileSystemAPI.writeBacklogData(data);
         return {success: true};
     }
     
+    /**
+     * Get all unique tags from tasks
+     * @returns {Promise<Array<string>>} Sorted array of unique tags
+     */
     async getTagSuggestions() {
         const tasks = await this.getTasks();
         const tagsSet = new Set();
         tasks.forEach(task => {
-            if (task.tags) {
-                task.tags.forEach(tag => tagsSet.add(tag));
-            }
+            (task.tags ?? []).forEach(tag => tagsSet.add(tag));
         });
         return Array.from(tagsSet).sort();
     }
     
+    /**
+     * Update task text
+     * @param {string} id - Task ID
+     * @param {string} text - New task text
+     * @returns {Promise<Object>} Updated task object
+     */
     async updateTaskText(id, text) {
         return this.updateTask(id, {text});
     }
     
+    /**
+     * Update task tags
+     * @param {string} id - Task ID
+     * @param {Array<string>} tags - New tags array
+     * @returns {Promise<Object>} Updated task object
+     */
     async updateTaskTags(id, tags) {
         return this.updateTask(id, {tags});
     }
@@ -350,21 +425,31 @@ export class FileSystemTaskAPI {
  */
 export class FileSystemSettingsAPI {
     constructor() {
+        /** @type {Object|null} */
         this._settingsCache = null;
     }
 
+    /**
+     * Get settings from the backlog file
+     * @returns {Promise<Object>} Settings object
+     */
     async getSettings() {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
-        this._settingsCache = data.settings || {};
+        this._settingsCache = data.settings ?? {};
         return this._settingsCache;
     }
     
+    /**
+     * Update settings in the backlog file
+     * @param {Object} update - Fields to update
+     * @returns {Promise<Object>} Updated settings object
+     */
     async updateSettings(update) {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();
         
-        data.settings = data.settings || {};
+        data.settings = data.settings ?? {};
         Object.keys(update).forEach(key => {
             if (update[key] !== undefined) {
                 data.settings[key] = update[key];

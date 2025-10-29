@@ -10,9 +10,17 @@ import {initializeApp, getServerMode} from './init.js';
  * @typedef {import('./types.js').Columns}
  */
 
+// --- Constants ---
+const ORDER_GAP = 2;
+const CONFETTI_COUNT = 80;
+const CONFETTI_DURATION_FRAMES = 90;
+const COLLAPSED_TITLE_MAX_LENGTH = 35;
+const TAG_SUGGESTION_HIDE_DELAY = 100;
+const FOCUS_DELAY = 100;
+
 // --- State ---
 let columns = {};
-let doneCollapsed = {};
+const doneCollapsed = {};
 const eventManager = new EventManager();
 let taskAPI = null;
 let settingsAPI = null;
@@ -26,28 +34,45 @@ if (window.marked) {
 
 // --- Helpers ---
 /**
+ * Inserts text at the current cursor position in a textarea
+ * @param {HTMLTextAreaElement} textarea - Target textarea
+ * @param {string} text - Text to insert
+ */
+function insertAtCursor(textarea, text) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+    // Set cursor position after inserted text
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+}
+
+/**
  * Creates a textarea element for editing task text.
- * @param {string} value
- * @param {(this: HTMLTextAreaElement, ev: FocusEvent) => void} [onBlur]
- * @param {(this: HTMLTextAreaElement, ev: KeyboardEvent) => void} [onKeyDown]
+ * @param {string} value - Initial text value
+ * @param {(this: HTMLTextAreaElement, ev: FocusEvent) => void} [onBlur] - Blur event handler
+ * @param {(this: HTMLTextAreaElement, ev: KeyboardEvent) => void} [onKeyDown] - KeyDown event handler
  * @param {string} [taskId] - The id of the task being edited
- * @returns {HTMLTextAreaElement}
+ * @returns {HTMLTextAreaElement} The created textarea element
  */
 function createTextarea(value, onBlur, onKeyDown, taskId) {
     const textarea = document.createElement('textarea');
     textarea.className = 'edit-input';
-    textarea.value = value || '';
+    textarea.value = value ?? '';
     if (onBlur) textarea.addEventListener('blur', onBlur);
     if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
 
     textarea.addEventListener('paste', async (e) => {
-        const settings = await settingsAPI.getSettings()
-        const storeImagesInSubfolder = settings.store_images_in_subfolder || false;
+        const settings = await settingsAPI.getSettings();
+        const storeImagesInSubfolder = settings?.store_images_in_subfolder ?? false;
 
-        const items = e.clipboardData.items;
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
         for (let i = 0; i < items.length; i++) {
             if (items[i].type.indexOf('image') !== -1) {
                 const file = items[i].getAsFile();
+                if (!file) continue;
+
                 if (storeImagesInSubfolder && taskId) {
                     // Upload image to backend
                     const formData = new FormData();
@@ -59,16 +84,15 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
                         });
                         if (res.ok) {
                             const data = await res.json();
-                            const url = data.link;
-                            const md = `![](${url})`;
-                            const start = textarea.selectionStart;
-                            const end = textarea.selectionEnd;
-                            textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                            const md = `![](${data.link})`;
+                            insertAtCursor(textarea, md);
                         } else {
-                            alert('Image upload failed.');
+                            console.error('Image upload failed with status:', res.status);
+                            alert(`Image upload failed (${res.status}). Please try again.`);
                         }
                     } catch (err) {
-                        alert('Image upload error.');
+                        console.error('Image upload error:', err);
+                        alert(`Image upload error: ${err.message}`);
                     }
                 } else {
                     // Embed image as base64
@@ -76,9 +100,7 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
                     reader.onload = (event) => {
                         const base64 = event.target.result;
                         const md = `![](${base64})`;
-                        const start = textarea.selectionStart;
-                        const end = textarea.selectionEnd;
-                        textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                        insertAtCursor(textarea, md);
                     };
                     reader.readAsDataURL(file);
                 }
@@ -92,10 +114,10 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
 
 /**
  * Creates a tag suggestion box for tag input.
- * @param {HTMLInputElement} input
- * @param {Task} task
- * @param {() => string[]} getTagSuggestions
- * @returns {HTMLDivElement}
+ * @param {HTMLInputElement} input - The tag input element
+ * @param {Task} task - The task object
+ * @param {() => string[]} getTagSuggestions - Function to get tag suggestions
+ * @returns {HTMLDivElement} The suggestion box element
  */
 function createTagSuggestionBox(input, task, getTagSuggestions) {
     const box = createElement('div', 'tag-suggestion-box');
@@ -107,7 +129,9 @@ function createTagSuggestionBox(input, task, getTagSuggestions) {
             box.style.display = 'none';
             return;
         }
-        const matches = tagSuggestions.filter(tag => tag.toLowerCase().includes(val) && !(task.tags || []).includes(tag));
+        const matches = tagSuggestions.filter(tag => 
+            tag.toLowerCase().includes(val) && !(task.tags?.includes(tag) ?? false)
+        );
         if (matches.length === 0) {
             box.style.display = 'none';
             return;
@@ -128,7 +152,7 @@ function createTagSuggestionBox(input, task, getTagSuggestions) {
     input.onblur = () => {
         setTimeout(() => {
             box.style.display = 'none';
-        }, 100);
+        }, TAG_SUGGESTION_HIDE_DELAY);
     };
     return box;
 }
@@ -144,9 +168,9 @@ let placeholderEl = null;
  * @returns {void}
  */
 function makeDraggable() {
-    document.querySelectorAll('.task').forEach(function (card, idx) {
+    document.querySelectorAll('.task').forEach((card) => {
         card.setAttribute('draggable', 'true');
-        card.addEventListener('dragstart', function (e) {
+        card.addEventListener('dragstart', (e) => {
             dragSrcId = card.dataset.id;
             dragOverIndex = null;
             dragOverCol = null;
@@ -154,7 +178,7 @@ function makeDraggable() {
             e.dataTransfer.setData('text/plain', card.dataset.id);
             card.classList.add('dragging');
         });
-        card.addEventListener('dragend', function (e) {
+        card.addEventListener('dragend', (e) => {
             dragSrcId = null;
             dragOverIndex = null;
             dragOverCol = null;
@@ -181,14 +205,14 @@ function removePlaceholder() {
  */
 function setupDropZones() {
 
-    document.getElementById('board').addEventListener('dragover', function (e) {
+    document.getElementById('board').addEventListener('dragover', (e) => {
         e.preventDefault();
-        removePlaceholder()
+        removePlaceholder();
     });
 
     Object.entries(columns).forEach(([status, col]) => {
         if (!col) return;
-        col.addEventListener('dragover', function (e) {
+        col.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.stopPropagation();
             const tasks = Array.from(col.querySelectorAll('.task'));
@@ -204,13 +228,13 @@ function setupDropZones() {
             dragOverCol = col;
             showPlaceholder(col, insertIdx);
         });
-        col.addEventListener('drop', function (e) {
+        col.addEventListener('drop', (e) => {
             e.preventDefault();
             removePlaceholder();
             const id = dragSrcId || e.dataTransfer.getData('text/plain');
             if (!id) return;
             const tasks = Array.from(col.querySelectorAll('.task'));
-            let newOrder = [];
+            const newOrder = [];
             for (let i = 0; i < tasks.length; i++) {
                 if (i === dragOverIndex) newOrder.push(id);
                 if (tasks[i].dataset.id !== id) newOrder.push(tasks[i].dataset.id);
@@ -219,7 +243,7 @@ function setupDropZones() {
             // Fetch all tasks to get the original status
             taskAPI.getTasks().then(allTasks => {
                 const draggedTask = allTasks.find(t => t.id === id);
-                const originalStatus = draggedTask ? draggedTask.status : null;
+                const originalStatus = draggedTask?.status ?? null;
                 updateColumnOrder(status, newOrder, id, originalStatus);
             });
         });
@@ -245,17 +269,17 @@ function showPlaceholder(col, idx) {
 
 /**
  * Updates the order and status of tasks in a column via batch update.
- * @param {string} status
- * @param {string[]} newOrder
- * @param {string} movedId
- * @param {string} originalStatus
+ * @param {string} status - The target column status
+ * @param {string[]} newOrder - Array of task IDs in new order
+ * @param {string} movedId - ID of the moved task
+ * @param {string} originalStatus - Original status of the moved task
  * @returns {void}
  */
 function updateColumnOrder(status, newOrder, movedId, originalStatus) {
     // Build batch update payload
     const payload = {};
     newOrder.forEach((id, idx) => {
-        payload[id] = {order: idx * 2}; // Use gaps of 2 to allow easy insertion
+        payload[id] = {order: idx * ORDER_GAP}; // Use configurable gap to allow easy insertion
     });
     // If the moved task changed columns, update its status too
     if (movedId && originalStatus && originalStatus !== status) {
@@ -273,8 +297,8 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
 //--- Add Task ---
 /**
  * Adds a new task to the board.
- * @param {string} status
- * @param {number} [order]
+ * @param {string} status - The column status for the new task
+ * @param {number} [order] - Optional order position
  * @returns {void}
  */
 function addTask(status, order) {
@@ -284,19 +308,19 @@ function addTask(status, order) {
                 const col = columns[status];
                 if (!col) return;
                 const tasks = col.querySelectorAll('.task');
-                for (let el of tasks) {
+                for (const el of tasks) {
                     if (el.dataset.id === task.id) {
                         const textarea = el.querySelector('textarea.edit-input');
                         if (textarea) textarea.focus();
                     }
                 }
-            }, 100);
+            }, FOCUS_DELAY);
         }, task.id);
     });
 }
 
 /**
- * Shows a confetti animation on the board.
+ * Shows a confetti animation on the board when a task is completed.
  * @returns {void}
  */
 function showConfetti() {
@@ -311,12 +335,11 @@ function showConfetti() {
     canvas.style.zIndex = '9999';
     document.body.appendChild(canvas);
     const ctx = canvas.getContext('2d');
-    const confettiCount = 80;
-    const confetti = Array.from({length: confettiCount}, () => ({
+    const confetti = Array.from({length: CONFETTI_COUNT}, () => ({
         x: Math.random() * canvas.width,
         y: Math.random() * -canvas.height,
         r: Math.random() * 6 + 4,
-        d: Math.random() * confettiCount,
+        d: Math.random() * CONFETTI_COUNT,
         color: `hsl(${Math.random() * 360},100%,60%)`,
         tilt: Math.random() * 10 - 10
     }));
@@ -347,7 +370,7 @@ function showConfetti() {
     const animate = () => {
         draw();
         frame++;
-        if (frame < 90) {
+        if (frame < CONFETTI_DURATION_FRAMES) {
             requestAnimationFrame(animate);
         } else {
             document.body.removeChild(canvas);
@@ -406,7 +429,7 @@ function createTypeDropdown(task) {
         dropdown.appendChild(option);
     });
 
-    typeBtn.onclick = function (e) {
+    typeBtn.onclick = (e) => {
         e.stopPropagation();
         const isOpen = dropdown.style.display === 'block';
 
@@ -419,7 +442,7 @@ function createTypeDropdown(task) {
             dropdown.style.display = 'block';
             openTypeDropdown = dropdown;
 
-            const closeHandler = function (event) {
+            const closeHandler = (event) => {
                 if (openTypeDropdown && !openTypeDropdown.contains(event.target) && event.target !== typeBtn) {
                     openTypeDropdown.style.display = 'none';
                     eventManager.removeListener('global-type-dropdown');
@@ -457,7 +480,7 @@ function createTaskHeader(task) {
         className: 'delete-task-btn',
         title: 'Delete task',
         innerHTML: '&#10060;', // Red cross
-        onClick: function (e) {
+        onClick: (e) => {
             e.stopPropagation();
             showDeleteModal(task.id);
         }
@@ -536,7 +559,7 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
         className: 'collapse-arrow',
         text: doneCollapsed[task.id] ? '\u25B6' : '\u25BC', // ▶ or ▼
         attributes: {style: {cursor: 'pointer'}},
-        onClick: function (e) {
+        onClick: (e) => {
             e.stopPropagation();
             doneCollapsed[task.id] = !doneCollapsed[task.id];
             renderTasks();
@@ -548,12 +571,11 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
     if (doneCollapsed[task.id]) {
         // Show arrow, and strikethrough title in one row
         let title = 'No title';
-        if (task.text && task.text.trim()) {
+        if (task.text?.trim()) {
             title = task.text.split('\n')[0].trim();
             if (!title) title = 'No title';
-            const maxTitleLength = 35;
-            if (title.length > maxTitleLength) {
-                title = title.slice(0, maxTitleLength - 3) + '...';
+            if (title.length > COLLAPSED_TITLE_MAX_LENGTH) {
+                title = title.slice(0, COLLAPSED_TITLE_MAX_LENGTH - 3) + '...';
             }
         }
         const titleDiv = createElement('div', 'collapsed-title');
@@ -577,16 +599,16 @@ function createCollapsedView(task, el, typeBtn, idDiv, buttonGroup) {
 function createTagsSection(task, el) {
     const tagsDiv = createElement('div', 'tags');
 
-    (task.tags || []).forEach(tag => {
+    (task.tags ?? []).forEach(tag => {
         const tagLabel = createElement('span', 'tag-label');
         tagLabel.textContent = tag;
         const removeBtn = createButton({
             className: 'remove-tag',
             text: '×',
             attributes: {type: 'button'},
-            onClick: function (e) {
+            onClick: (e) => {
                 e.stopPropagation();
-                const newTags = (task.tags || []).filter(t => t !== tag);
+                const newTags = (task.tags ?? []).filter(t => t !== tag);
                 taskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
             }
         });
@@ -604,14 +626,14 @@ function createTagsSection(task, el) {
             type: 'text',
             className: 'add-tag-input',
             placeholder: 'Add tag...',
-            onFocus: function (e) {
+            onFocus: (e) => {
                 tagInputFocused = true;
                 el.classList.add('show-tag-input');
                 taskAPI.getTagSuggestions().then(tags => {
                     tagSuggestions = tags;
                 });
             },
-            onBlur: function (e) {
+            onBlur: (e) => {
                 tagInputFocused = false;
                 setTimeout(() => {
                     if (!mouseOverCard) {
@@ -622,20 +644,20 @@ function createTagsSection(task, el) {
         });
 
         const suggestionBox = createTagSuggestionBox(addTagInput, task, () => tagSuggestions);
-        addTagInput.oninput = function () {
+        addTagInput.oninput = () => {
             suggestionBox.updateSuggestions();
         };
 
-        addTagInput.onkeydown = function (e) {
+        addTagInput.onkeydown = (e) => {
             if (e.key === 'Enter' && addTagInput.value.trim()) {
                 const newTag = addTagInput.value.trim();
-                if ((task.tags || []).includes(newTag)) {
+                if ((task.tags ?? []).includes(newTag)) {
                     addTagInput.value = '';
                     suggestionBox.style.display = 'none';
                     addTagInput.focus();
                     return;
                 }
-                const newTags = [...(task.tags || []), newTag];
+                const newTags = [...(task.tags ?? []), newTag];
                 taskAPI.updateTaskTags(task.id, newTags).then(() => {
                     renderTasks(() => {
                         setTimeout(() => {
@@ -661,11 +683,11 @@ function createTagsSection(task, el) {
 
         // Show addTagInput only on hover for non-collapsed tasks
         if (!el.classList.contains('collapsed')) {
-            el.addEventListener('mouseenter', function () {
+            el.addEventListener('mouseenter', () => {
                 mouseOverCard = true;
                 el.classList.add('show-tag-input');
             });
-            el.addEventListener('mouseleave', function () {
+            el.addEventListener('mouseleave', () => {
                 mouseOverCard = false;
                 setTimeout(() => {
                     if (!tagInputFocused) {
@@ -686,20 +708,20 @@ function createTagsSection(task, el) {
  * @param {HTMLElement} textSpan - The text element to replace with textarea
  */
 function attachTaskEditHandler(el, task, textSpan) {
-    el.addEventListener('click', function (e) {
+    el.addEventListener('click', (e) => {
         if (
             e.target.classList.contains('tags') ||
             e.target.tagName === 'A' ||
-            (e.target.classList && e.target.classList.contains('add-tag-input')) ||
+            e.target.classList?.contains('add-tag-input') ||
             e.target.tagName === 'INPUT' ||
-            (e.target.classList && e.target.classList.contains('collapse-arrow'))
+            e.target.classList?.contains('collapse-arrow')
         ) return;
         if (el.querySelector('textarea.edit-input')) return;
 
         el.removeAttribute('draggable');
         el.ondragstart = ev => ev.preventDefault();
         const oldText = task.text;
-        const textarea = createTextarea(oldText, function () {
+        const textarea = createTextarea(oldText, () => {
             el.setAttribute('draggable', 'true');
             el.ondragstart = null;
             if (textarea.value.trim() !== '') {
@@ -707,7 +729,7 @@ function attachTaskEditHandler(el, task, textSpan) {
             } else {
                 renderTasks();
             }
-        }, function (e) {
+        }, (e) => {
             if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textarea.blur();
             else if (e.key === 'Escape') {
                 el.setAttribute('draggable', 'true');
@@ -785,8 +807,8 @@ function createPlusButton(task) {
 
 /**
  * Renders all tasks to the board.
- * @param {Function} [focusCallback]
- * @param {string} [focusTaskId]
+ * @param {Function} [focusCallback] - Optional callback to execute after rendering
+ * @param {string} [focusTaskId] - ID of task to focus after rendering
  * @returns {void}
  */
 function renderTasks(focusCallback, focusTaskId) {
@@ -795,7 +817,7 @@ function renderTasks(focusCallback, focusTaskId) {
         eventManager.cleanup();
 
         // Sort tasks by order before rendering
-        tasks.sort((a, b) => (a.order || 0) - (b.order || 0));
+        tasks.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         Object.values(columns).forEach(col => {
             while (col.children.length > 1) col.removeChild(col.lastChild);
         });
@@ -804,7 +826,7 @@ function renderTasks(focusCallback, focusTaskId) {
             const el = createElement('div', 'task', {
                 dataset: {
                     id: task.id,
-                    order: task.order.toString() || '0'
+                    order: task.order?.toString() ?? '0'
                 }
             });
 
@@ -867,13 +889,13 @@ function showDeleteModal(taskId) {
 
 /**
  * Formats a date string for display.
- * @param {string} dateStr
- * @returns {string}
+ * @param {string} dateStr - ISO date string
+ * @returns {string} Formatted date string (YYYY-MM-DD HH:mm)
  */
 function formatDate(dateStr) {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    if (isNaN(d)) return dateStr;
+    if (isNaN(d.getTime())) return dateStr;
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -953,6 +975,10 @@ async function updateDemoModeUI() {
 
 
 // --- Main Entrypoint ---
+/**
+ * Initializes the Kanban board application
+ * @returns {Promise<void>}
+ */
 async function initBoardApp() {
     // Initialize and check server availability
     await initializeApp();
@@ -961,7 +987,7 @@ async function initBoardApp() {
     await initializeAPIs();
 
     // Init DemoUI
-    await updateDemoModeUI()
+    await updateDemoModeUI();
     
     // Create API instances
     taskAPI = new TaskAPI();
