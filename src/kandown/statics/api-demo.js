@@ -157,7 +157,7 @@ async function initializeStorage() {
     
     // Check for URL parameter to load a specific backlog file
     const backlogUrl = getBacklogUrlParameter();
-    
+
     if (!existing && backlogUrl) {
         // Try to load from URL parameter
         try {
@@ -503,7 +503,6 @@ export function clearAllData() {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(SETTINGS_KEY);
         localStorage.removeItem(LAST_ID_KEY);
-        initializeStorage();
         window.location.reload();
     }
 }
