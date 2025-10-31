@@ -193,8 +193,8 @@ class FileSystemAPI {
         await writable.write(file);
         await writable.close();
         
-        // Return relative link to the image
-        const link = `.backlog/${filename}`;
+        // Return link in /api/attachment format (will be intercepted by fetch interceptor)
+        const link = `/api/attachment/${filename}`;
         
         return { filename, link };
     }
