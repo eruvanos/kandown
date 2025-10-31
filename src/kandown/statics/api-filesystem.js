@@ -156,6 +156,50 @@ class FileSystemAPI {
     }
     
     /**
+     * Upload an image file to the .backlog folder
+     * @param {string} taskId - The task ID to associate with the image
+     * @param {File} file - The image file to upload
+     * @returns {Promise<{filename: string, link: string}>} The filename and relative link to the image
+     */
+    static async uploadImage(taskId, file) {
+        if (!this.directoryHandle) {
+            throw new Error('No directory handle available');
+        }
+        
+        await this.verifyPermission();
+        
+        // Get or create .backlog directory
+        let backlogDirHandle;
+        try {
+            backlogDirHandle = await this.directoryHandle.getDirectoryHandle('.backlog', {
+                create: true
+            });
+        } catch (err) {
+            throw new Error(`Failed to create/access .backlog directory: ${err.message}`);
+        }
+        
+        // Generate unique filename
+        const ext = file.name.split('.').pop() || 'png';
+        const randomStr = Math.random().toString(36).substring(2, 10);
+        const filename = `${taskId}_${randomStr}.${ext}`;
+        
+        // Create file handle
+        const fileHandle = await backlogDirHandle.getFileHandle(filename, {
+            create: true
+        });
+        
+        // Write file
+        const writable = await fileHandle.createWritable();
+        await writable.write(file);
+        await writable.close();
+        
+        // Return relative link to the image
+        const link = `.backlog/${filename}`;
+        
+        return { filename, link };
+    }
+    
+    /**
      * Verify we still have permission to access the directory
      */
     static async verifyPermission(handle = null, readWrite = true) {
@@ -334,6 +378,16 @@ export class FileSystemTaskAPI {
             }
         });
         return Array.from(tagsSet).sort();
+    }
+    
+    /**
+     * Upload an image file to the .backlog folder
+     * @param {string} taskId - The task ID to associate with the image
+     * @param {File} file - The image file to upload
+     * @returns {Promise<{filename: string, link: string}>} The filename and relative link to the image
+     */
+    async uploadImage(taskId, file) {
+        return FileSystemAPI.uploadImage(taskId, file);
     }
     
     async updateTaskText(id, text) {

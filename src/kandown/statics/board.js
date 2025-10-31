@@ -77,8 +77,16 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
                         }
                     } else if (getServerMode() === 'demo' && getStorageMode() === 'filesystem') {
                         // Demo mode with filesystem storage: save image to filesystem
-                        console.warn('Uploading images in demo mode with filesystem storage is not implemented yet.');
-                        // TODO: Implement filesystem image upload in demo mode
+                        try {
+                            const result = await taskAPI.uploadImage(taskId, file);
+                            const md = `![](${result.link})`;
+                            const start = textarea.selectionStart;
+                            const end = textarea.selectionEnd;
+                            textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                        } catch (err) {
+                            console.error('Image upload error:', err);
+                            alert('Image upload failed: ' + err.message);
+                        }
                     }
                 } else {
                     // Embed image as base64

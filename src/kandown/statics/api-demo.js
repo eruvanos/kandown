@@ -596,6 +596,19 @@ export class TaskAPI {
     updateTaskTags(id, tags) {
         return this.updateTask(id, {tags});
     }
+    
+    /**
+     * Upload an image file (only supported in filesystem mode)
+     * @param {string} taskId - The task ID to associate with the image
+     * @param {File} file - The image file to upload
+     * @returns {Promise<{filename: string, link: string}>} The filename and relative link to the image
+     */
+    async uploadImage(taskId, file) {
+        if (storageMode === 'filesystem') {
+            return this.fileSystemAPI.uploadImage(taskId, file);
+        }
+        throw new Error('Image upload only supported in filesystem mode');
+    }
 }
 
 export class SettingsAPI {
