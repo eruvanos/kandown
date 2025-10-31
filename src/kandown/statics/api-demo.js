@@ -162,7 +162,7 @@ async function initializeStorage() {
     if (backlogUrl) {
         // Enable read-only mode for URL-loaded backlogs
         isReadOnlyMode = true;
-        storageMode = 'readonly';
+        storageMode = 'readOnly';
         
         try {
             const backlogData = await loadBacklogFromUrl(backlogUrl);
@@ -530,7 +530,7 @@ export class TaskAPI {
     }
 
     async getTasks() {
-        if (storageMode === 'readonly') {
+        if (storageMode === 'readOnly') {
             return this.readOnlyAPI.getTasks();
         }
         if (storageMode === 'filesystem') {
@@ -540,7 +540,7 @@ export class TaskAPI {
     }
     
     async createTask(status, order) {
-        if (storageMode === 'readonly') {
+        if (storageMode === 'readOnly') {
             return this.readOnlyAPI.createTask(status, order);
         }
         if (storageMode === 'filesystem') {
@@ -550,7 +550,7 @@ export class TaskAPI {
     }
     
     async updateTask(id, update) {
-        if (storageMode === 'readonly') {
+        if (storageMode === 'readOnly') {
             return this.readOnlyAPI.updateTask(id, update);
         }
         if (storageMode === 'filesystem') {
@@ -560,7 +560,7 @@ export class TaskAPI {
     }
     
     async batchUpdateTasks(updates) {
-        if (storageMode === 'readonly') {
+        if (storageMode === 'readOnly') {
             return this.readOnlyAPI.batchUpdateTasks(updates);
         }
         if (storageMode === 'filesystem') {
@@ -570,7 +570,7 @@ export class TaskAPI {
     }
     
     async deleteTask(id) {
-        if (storageMode === 'readonly') {
+        if (storageMode === 'readOnly') {
             return this.readOnlyAPI.deleteTask(id);
         }
         if (storageMode === 'filesystem') {
@@ -580,7 +580,7 @@ export class TaskAPI {
     }
     
     async getTagSuggestions() {
-        if (storageMode === 'readonly') {
+        if (storageMode === 'readOnly') {
             return this.readOnlyAPI.getTagSuggestions();
         }
         if (storageMode === 'filesystem') {
@@ -606,7 +606,7 @@ export class SettingsAPI {
     }
 
     async getSettings() {
-        if (storageMode === 'readonly') {
+        if (storageMode === 'readOnly') {
             return this.readOnlyAPI.getSettings();
         }
         if (storageMode === 'filesystem') {
@@ -616,7 +616,7 @@ export class SettingsAPI {
     }
     
     async updateSettings(update) {
-        if (storageMode === 'readonly') {
+        if (storageMode === 'readOnly') {
             return this.readOnlyAPI.updateSettings(update);
         }
         if (storageMode === 'filesystem') {

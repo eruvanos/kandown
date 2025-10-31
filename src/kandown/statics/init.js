@@ -64,7 +64,7 @@ async function checkHealth() {
  */
 function setModeClass(mode) {
     // Remove any existing mode classes
-    document.body.classList.remove('mode-cli', 'mode-demo-local', 'mode-demo-file');
+    document.body.classList.remove('mode-cli', 'mode-demo-local', 'mode-demo-file', 'mode-readOnly');
 
     // Add the new mode class
     document.body.classList.add(`mode-${mode}`);
@@ -112,8 +112,10 @@ async function initializeApp() {
 
             if (storageMode === 'filesystem') {
                 setModeClass('demo-file');
-            } else {
+            } else if (storageMode === 'localstorage') {
                 setModeClass('demo-local');
+            } else if (storageMode === 'readOnly') {
+                setModeClass('readOnly');
             }
         }
         

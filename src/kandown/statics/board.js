@@ -42,6 +42,7 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
     if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
 
     textarea.addEventListener('paste', async (e) => {
+        console.log('Paste event detected');
         const settings = await settingsAPI.getSettings()
         const storeImagesInSubfolder = settings.store_images_in_subfolder || false;
 
@@ -50,26 +51,34 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
             if (items[i].type.indexOf('image') !== -1) {
                 const file = items[i].getAsFile();
                 if (storeImagesInSubfolder && taskId) {
-                    // Upload image to backend
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    try {
-                        const res = await fetch(`/api/tasks/${taskId}/upload`, {
-                            method: 'POST',
-                            body: formData
-                        });
-                        if (res.ok) {
-                            const data = await res.json();
-                            const url = data.link;
-                            const md = `![](${url})`;
-                            const start = textarea.selectionStart;
-                            const end = textarea.selectionEnd;
-                            textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
-                        } else {
-                            alert('Image upload failed.');
+
+                    // Todo, this should be in api.js
+                    if (getServerMode() === 'cli') {
+                        // Upload image to backend
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        try {
+                            const res = await fetch(`/api/tasks/${taskId}/upload`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                            if (res.ok) {
+                                const data = await res.json();
+                                const url = data.link;
+                                const md = `![](${url})`;
+                                const start = textarea.selectionStart;
+                                const end = textarea.selectionEnd;
+                                textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                            } else {
+                                alert('Image upload failed.');
+                            }
+                        } catch (err) {
+                            alert('Image upload error.');
                         }
-                    } catch (err) {
-                        alert('Image upload error.');
+                    } else if (getServerMode() === 'demo' && getStorageMode() === 'filesystem') {
+                        // Demo mode with filesystem storage: save image to filesystem
+                        console.warn('Uploading images in demo mode with filesystem storage is not implemented yet.');
+                        // TODO: Implement filesystem image upload in demo mode
                     }
                 } else {
                     // Embed image as base64
@@ -865,8 +874,10 @@ function renderTasks(focusCallback, focusTaskId) {
             createTaskTooltip(task, el);
 
             // Create and append plus button
-            const plusBtn = createPlusButton(task);
-            el.appendChild(plusBtn);
+            if (!readOnlyMode) {
+                const plusBtn = createPlusButton(task);
+                el.appendChild(plusBtn);
+            }
 
             columns[task.status].appendChild(el);
         });
@@ -962,7 +973,13 @@ async function updateDemoModeUI() {
     const indicator = document.getElementById('storage-mode-indicator');
     if (!banner || !indicator) return;
 
-    if (mode === 'filesystem') {
+    if (mode === 'readOnly') {
+        console.log('Setting demo mode UI to Read-Only');
+        banner.innerHTML = '📖 Read-Only Mode - Viewing external backlog file (no modifications allowed) | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
+        banner.classList.remove('fs-active'); // TODO is remove necessary at all?
+        indicator.textContent = '📖 Read-Only';
+        indicator.classList.remove('filesystem');
+    } else if (mode === 'filesystem') {
         console.log('Setting demo mode UI to File System');
         banner.innerHTML = '📂 File System Mode - Connected to local backlog.yaml | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
         banner.classList.add('fs-active');
@@ -1006,16 +1023,12 @@ async function initBoardApp() {
         document.querySelectorAll('.add-task').forEach(btn => {
             btn.style.display = 'none';
         });
-        // Update banner to show read-only mode
-        const banner = document.getElementById('demo-mode-banner');
-        if (banner) {
-            banner.innerHTML = '📖 Read-Only Mode - Viewing external backlog file (no modifications allowed) | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
-            banner.classList.add('readonly-active');
-        }
+
+        // Disable pointer events on indicator button
         const indicator = document.getElementById('storage-mode-indicator');
         if (indicator) {
-            indicator.textContent = '📖 Read-Only';
-            indicator.classList.add('readonly');
+            indicator.style.pointerEvents = 'none';
+            indicator.style.cursor = 'default';
         }
     }
     
@@ -1026,16 +1039,14 @@ async function initBoardApp() {
     };
     setupDropZones();
     
-    // Only setup add task buttons if not in read-only mode
-    if (!readOnlyMode) {
-        document.querySelectorAll('.add-task').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const status = btn.getAttribute('data-status');
-                addTask(status);
-            });
+    // Setup add task buttons
+    document.querySelectorAll('.add-task').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const status = btn.getAttribute('data-status');
+            addTask(status);
         });
-    }
+    });
     
     window.renderTasks = renderTasks;
     renderTasks();
