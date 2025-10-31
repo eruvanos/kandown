@@ -503,6 +503,35 @@ function createTaskHeader(task) {
 }
 
 /**
+ * Process images in rendered markdown to load filesystem images as blob URLs
+ * @param {HTMLElement} element - The element containing rendered markdown
+ * @returns {Promise<void>}
+ */
+async function processFilesystemImages(element) {
+    if (getServerMode() !== 'demo' || getStorageMode() !== 'filesystem') {
+        return; // Only process in filesystem mode
+    }
+    
+    const images = element.querySelectorAll('img');
+    for (const img of images) {
+        const src = img.getAttribute('src');
+        if (src && src.startsWith('.backlog/')) {
+            try {
+                // Extract filename from path
+                const filename = src.replace('.backlog/', '');
+                // Load image from filesystem and get blob URL
+                const blobUrl = await taskAPI.loadImage(filename);
+                // Replace src with blob URL
+                img.setAttribute('src', blobUrl);
+            } catch (err) {
+                console.error(`Failed to load image ${src}:`, err);
+                // Leave original src if loading fails
+            }
+        }
+    }
+}
+
+/**
  * Creates the task text element (either textarea or rendered markdown)
  * @param {Object} task - The task object
  * @param {string} focusTaskId - ID of task to focus
@@ -532,6 +561,12 @@ function createTaskText(task, focusTaskId) {
         } else {
             if (window.marked) {
                 textSpan.innerHTML = window.marked.parse(task.text);
+                
+                // Process filesystem images asynchronously
+                processFilesystemImages(textSpan).catch(err => {
+                    console.error('Error processing filesystem images:', err);
+                });
+                
                 setTimeout(() => {
                     const checkboxes = textSpan.querySelectorAll('input[type="checkbox"]');
                     checkboxes.forEach(cb => {

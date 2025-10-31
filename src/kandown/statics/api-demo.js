@@ -609,6 +609,18 @@ export class TaskAPI {
         }
         throw new Error('Image upload only supported in filesystem mode');
     }
+    
+    /**
+     * Load an image file and return as blob URL (only supported in filesystem mode)
+     * @param {string} filename - The filename to load
+     * @returns {Promise<string>} A blob URL for the image
+     */
+    async loadImage(filename) {
+        if (storageMode === 'filesystem') {
+            return this.fileSystemAPI.loadImage(filename);
+        }
+        throw new Error('Image loading only supported in filesystem mode');
+    }
 }
 
 export class SettingsAPI {
