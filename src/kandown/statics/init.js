@@ -112,7 +112,7 @@ async function initializeApp() {
 
             if (storageMode === 'filesystem') {
                 setModeClass('demo-file');
-            } else if (storageMode === 'localstorage') {
+            } else if (storageMode === 'localStorage') {
                 setModeClass('demo-local');
             } else if (storageMode === 'readOnly') {
                 setModeClass('readOnly');
