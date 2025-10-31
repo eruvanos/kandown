@@ -1,5 +1,5 @@
 // Import dependencies
-import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode} from './api.js';
+import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode, isReadOnly} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
 import {createButton, createDiv, createElement, createInput, createSpan} from './ui-utils.js';
@@ -16,6 +16,7 @@ let doneCollapsed = {};
 const eventManager = new EventManager();
 let taskAPI = null;
 let settingsAPI = null;
+let readOnlyMode = false;
 
 // --- Kanban Board Setup ---
 if (window.marked) {
@@ -141,9 +142,15 @@ let placeholderEl = null;
 
 /**
  * Makes all task cards draggable and sets up drag event listeners.
+ * Disabled in read-only mode.
  * @returns {void}
  */
 function makeDraggable() {
+    // Skip making cards draggable in read-only mode
+    if (readOnlyMode) {
+        return;
+    }
+    
     document.querySelectorAll('.task').forEach(function (card, idx) {
         card.setAttribute('draggable', 'true');
         card.addEventListener('dragstart', function (e) {
@@ -437,6 +444,7 @@ function createTypeDropdown(task) {
 
 /**
  * Creates the task header with type button, ID, and delete button
+ * In read-only mode, hides delete button and disables type changes.
  * @param {Object} task - The task object
  * @returns {{headRow: HTMLElement, typeBtn: HTMLElement, idDiv: HTMLElement, buttonGroup: HTMLElement}} Header elements
  */
@@ -444,6 +452,13 @@ function createTaskHeader(task) {
     const headRow = createElement('div', 'task-id-row');
 
     const {typeBtn, dropdown} = createTypeDropdown(task);
+    
+    // Disable type changes in read-only mode
+    if (readOnlyMode) {
+        typeBtn.style.pointerEvents = 'none';
+        typeBtn.style.cursor = 'default';
+    }
+    
     headRow.append(typeBtn);
     headRow.appendChild(dropdown);
 
@@ -453,16 +468,19 @@ function createTaskHeader(task) {
 
     const buttonGroup = createElement('div', 'done-button-group');
 
-    const deleteBtn = createSpan({
-        className: 'delete-task-btn',
-        title: 'Delete task',
-        innerHTML: '&#10060;', // Red cross
-        onClick: function (e) {
-            e.stopPropagation();
-            showDeleteModal(task.id);
-        }
-    });
-    buttonGroup.appendChild(deleteBtn);
+    // Don't show delete button in read-only mode
+    if (!readOnlyMode) {
+        const deleteBtn = createSpan({
+            className: 'delete-task-btn',
+            title: 'Delete task',
+            innerHTML: '&#10060;', // Red cross
+            onClick: function (e) {
+                e.stopPropagation();
+                showDeleteModal(task.id);
+            }
+        });
+        buttonGroup.appendChild(deleteBtn);
+    }
 
     return {headRow, typeBtn, idDiv, buttonGroup};
 }
@@ -580,22 +598,27 @@ function createTagsSection(task, el) {
     (task.tags || []).forEach(tag => {
         const tagLabel = createElement('span', 'tag-label');
         tagLabel.textContent = tag;
-        const removeBtn = createButton({
-            className: 'remove-tag',
-            text: '×',
-            attributes: {type: 'button'},
-            onClick: function (e) {
-                e.stopPropagation();
-                const newTags = (task.tags || []).filter(t => t !== tag);
-                taskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
-            }
-        });
-        tagLabel.appendChild(removeBtn);
+        
+        // Don't show remove button in read-only mode
+        if (!readOnlyMode) {
+            const removeBtn = createButton({
+                className: 'remove-tag',
+                text: '×',
+                attributes: {type: 'button'},
+                onClick: function (e) {
+                    e.stopPropagation();
+                    const newTags = (task.tags || []).filter(t => t !== tag);
+                    taskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
+                }
+            });
+            tagLabel.appendChild(removeBtn);
+        }
+        
         tagsDiv.appendChild(tagLabel);
     });
 
-    // Add tag input (only if not editing text)
-    if (!el.querySelector('textarea.edit-input')) {
+    // Add tag input (only if not editing text and not in read-only mode)
+    if (!el.querySelector('textarea.edit-input') && !readOnlyMode) {
         let tagSuggestions = [];
         let tagInputFocused = false;
         let mouseOverCard = false;
@@ -681,11 +704,17 @@ function createTagsSection(task, el) {
 
 /**
  * Attaches the click-to-edit handler to a task element
+ * Disabled in read-only mode.
  * @param {HTMLElement} el - The task element
  * @param {Object} task - The task object
  * @param {HTMLElement} textSpan - The text element to replace with textarea
  */
 function attachTaskEditHandler(el, task, textSpan) {
+    // Skip edit handler in read-only mode
+    if (readOnlyMode) {
+        return;
+    }
+    
     el.addEventListener('click', function (e) {
         if (
             e.target.classList.contains('tags') ||
@@ -967,19 +996,47 @@ async function initBoardApp() {
     taskAPI = new TaskAPI();
     settingsAPI = new SettingsAPI();
     
+    // Check if we're in read-only mode
+    readOnlyMode = isReadOnly();
+    
+    // Update UI for read-only mode
+    if (readOnlyMode) {
+        console.log('📖 Read-only mode enabled - modifications disabled');
+        // Hide all "Add task" buttons
+        document.querySelectorAll('.add-task').forEach(btn => {
+            btn.style.display = 'none';
+        });
+        // Update banner to show read-only mode
+        const banner = document.getElementById('demo-mode-banner');
+        if (banner) {
+            banner.innerHTML = '📖 Read-Only Mode - Viewing external backlog file (no modifications allowed) | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
+            banner.classList.add('readonly-active');
+        }
+        const indicator = document.getElementById('storage-mode-indicator');
+        if (indicator) {
+            indicator.textContent = '📖 Read-Only';
+            indicator.classList.add('readonly');
+        }
+    }
+    
     columns = {
         'todo': document.getElementById('todo-col'),
         'in_progress': document.getElementById('inprogress-col'),
         'done': document.getElementById('done-col')
     };
     setupDropZones();
-    document.querySelectorAll('.add-task').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const status = btn.getAttribute('data-status');
-            addTask(status);
+    
+    // Only setup add task buttons if not in read-only mode
+    if (!readOnlyMode) {
+        document.querySelectorAll('.add-task').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const status = btn.getAttribute('data-status');
+                addTask(status);
+            });
         });
-    });
+    }
+    
     window.renderTasks = renderTasks;
     renderTasks();
 }

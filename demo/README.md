@@ -84,24 +84,32 @@ The demo mode supports two storage backends:
 3. Initial demo tasks created automatically
 4. Fast and reliable
 
-##### Loading a Backlog File via URL Parameter
-You can load a specific backlog YAML file using URL parameters:
+##### Loading a Backlog File via URL Parameter (Read-Only Mode)
+You can load and view a specific backlog YAML file using URL parameters:
 
 ```
 http://localhost:8080/?backlog=example.yaml
 http://localhost:8080/?file=path/to/backlog.yaml
 ```
 
-When a URL parameter is provided:
-- The demo will fetch the specified YAML file
-- Tasks and settings from the file will be loaded into localStorage
-- If the file cannot be loaded, it falls back to the default demo tasks
-- The file must be accessible via HTTP (same origin or CORS-enabled)
+**Important: Read-Only Mode**
+When a URL parameter is provided, the application enters read-only mode:
+- ✅ The demo will fetch and display the specified YAML file
+- ✅ Tasks are shown but cannot be modified
+- ✅ Data is kept only in memory (not stored in localStorage)
+- 🚫 Drag and drop disabled
+- 🚫 Text editing disabled
+- 🚫 Type and tag changes disabled
+- 🚫 Task creation/deletion disabled
+- ✅ If the file cannot be loaded, it falls back to default demo tasks (editable)
+- ✅ The file must be accessible via HTTP (same origin or CORS-enabled)
+
+This prevents accidentally overwriting your localStorage backlog and ensures the feature is used for viewing/sharing existing backlogs.
 
 Example use cases:
-- Share pre-configured backlogs with team members
-- Load example projects for demonstrations
-- Quick-start with template backlogs
+- Share backlogs with team members for viewing
+- Display example projects for demonstrations
+- Preview backlog files without modifying local data
 
 #### File System Mode (Chrome/Edge)
 1. Reads/writes actual `backlog.yaml` files on user's computer

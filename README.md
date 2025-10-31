@@ -120,25 +120,35 @@ The demo mode includes all core features:
 - ✅ Clear data option in settings
 - ✅ Load backlog files via URL parameter
 
-### Loading a Backlog File via URL Parameter
+### Loading a Backlog File via URL Parameter (Read-Only Mode)
 
-You can load a specific backlog YAML file in demo mode using URL parameters:
+You can load and view a specific backlog YAML file in demo mode using URL parameters:
 
 ```
 https://eruvanos.github.io/kandown/?backlog=example.yaml
 https://eruvanos.github.io/kandown/?file=path/to/backlog.yaml
 ```
 
+**Read-Only Mode Features:**
+When loading a backlog via URL parameter, the application enters read-only mode to protect your data:
+- 📖 View-only access - no modifications allowed
+- 🚫 Drag and drop disabled
+- 🚫 Text editing disabled
+- 🚫 Type changes disabled
+- 🚫 Tag editing disabled
+- 🚫 Task creation/deletion disabled
+- 💾 Data not stored in localStorage - kept only in memory
+
 This is useful for:
-- 📤 Sharing pre-configured backlogs with team members
+- 📤 Sharing backlogs with team members for viewing
 - 📚 Providing example projects or templates
 - 🎓 Creating tutorial or demo workflows
-- 🚀 Quick-starting with a specific project setup
+- 👁️ Previewing backlog files without modifying your local data
 
 **Requirements:**
 - The YAML file must be accessible via HTTP
 - Either same-origin or CORS must be enabled on the file's server
-- If the file cannot be loaded, the demo falls back to default demo tasks
+- If the file cannot be loaded, the demo falls back to default demo tasks (editable)
 
 ### Using File System Mode
 
