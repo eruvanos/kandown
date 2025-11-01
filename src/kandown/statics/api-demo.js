@@ -15,8 +15,14 @@ let storageMode = 'localStorage'; // Default fallback
 // Check if File System Access API is available
 const hasFileSystemSupport = 'showDirectoryPicker' in window;
 
+// Read-only mode flag and in-memory storage for URL-loaded backlogs
+let isReadOnlyMode = false;
+let readOnlyTasks = null;
+let readOnlySettings = null;
+
 // Promise that resolves when storage mode is initialized
 let storageModeInitialized = null;
+let storageDataInitialized = null;
 
 // Try to restore previous file system connection
 async function initializeStorageMode() {
@@ -35,11 +41,17 @@ storageModeInitialized = initializeStorageMode();
 // Export function to wait for initialization
 export async function waitForStorageInit() {
     await storageModeInitialized;
+    await storageDataInitialized;
 }
 
 // Export current mode getter
 export function getStorageMode() {
     return storageMode;
+}
+
+// Export read-only mode getter
+export function isReadOnly() {
+    return isReadOnlyMode;
 }
 
 // Export mode switcher
@@ -96,8 +108,83 @@ const DEFAULT_SETTINGS = {
     store_images_in_subfolder: false
 };
 
+/**
+ * Check URL parameters for a backlog file to load
+ * @returns {string|null} URL or path to backlog file, or null if not specified
+ */
+function getBacklogUrlParameter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('backlog') || urlParams.get('file');
+}
+
+/**
+ * Load backlog data from a URL or path
+ * @param {string} url - URL or path to the YAML file
+ * @returns {Promise<{tasks: Array, settings?: Object}>}
+ */
+async function loadBacklogFromUrl(url) {
+    try {
+        console.log(`Loading backlog from: ${url}`);
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch backlog file: ${response.status} ${response.statusText}`);
+        }
+        
+        const yamlText = await response.text();
+        
+        // Parse YAML (jsyaml should be loaded via CDN)
+        if (typeof jsyaml === 'undefined') {
+            throw new Error('js-yaml library not loaded');
+        }
+        
+        const data = jsyaml.load(yamlText);
+        
+        if (!data || typeof data !== 'object') {
+            throw new Error('Invalid YAML format');
+        }
+        
+        return {
+            tasks: data.tasks || [],
+            settings: data.settings || DEFAULT_SETTINGS
+        };
+    } catch (error) {
+        console.error('Error loading backlog from URL:', error);
+        throw error;
+    }
+}
+
 // Initialize with demo data if no data exists
-function initializeStorage() {
+async function initializeStorage() {
+    // Check for URL parameter to load a specific backlog file (read-only mode)
+    const backlogUrl = getBacklogUrlParameter();
+    
+    if (backlogUrl) {
+        // Enable read-only mode for URL-loaded backlogs
+        isReadOnlyMode = true;
+        storageMode = 'readOnly';
+        
+        try {
+            const backlogData = await loadBacklogFromUrl(backlogUrl);
+            
+            // Store in memory only, not in localStorage
+            if (backlogData.tasks && backlogData.tasks.length > 0) {
+                readOnlyTasks = backlogData.tasks;
+                readOnlySettings = backlogData.settings || DEFAULT_SETTINGS;
+                console.log(`✓ Loaded ${backlogData.tasks.length} tasks from ${backlogUrl} (read-only mode)`);
+            } else {
+                throw new Error('No tasks found in the loaded file');
+            }
+            
+            return; // Successfully loaded from URL in read-only mode
+        } catch (error) {
+            console.error('Failed to load backlog from URL:', error);
+            // Disable read-only mode and fall through to normal initialization
+            isReadOnlyMode = false;
+            storageMode = 'localStorage';
+        }
+    }
+    
     // Only initialize localStorage with demo data if we're NOT in filesystem mode
     if (storageMode === 'filesystem') {
         // Don't populate localStorage with demo data if we're using filesystem
@@ -166,8 +253,104 @@ function initializeStorage() {
     }
 }
 
-// Initialize storage on load
-initializeStorage();
+// Initialize storage on load (now async) and store the promise
+storageDataInitialized = (async () => {
+    await storageModeInitialized; // Wait for storage mode to be determined first
+    await initializeStorage();
+})();
+
+// Read-only TaskAPI implementation (for URL-loaded backlogs)
+class ReadOnlyTaskAPI {
+    /**
+     * Creates a new task - disabled in read-only mode
+     */
+    async createTask(status, order) {
+        console.warn('Cannot create tasks in read-only mode');
+        throw new Error('Read-only mode: modifications not allowed');
+    }
+
+    /**
+     * Fetches all tasks from memory
+     * @returns {Promise<Task[]>}
+     */
+    async getTasks() {
+        return readOnlyTasks || [];
+    }
+
+    /**
+     * Fetches tag suggestions
+     * @returns {Promise<string[]>}
+     */
+    async getTagSuggestions() {
+        const tasks = await this.getTasks();
+        const tagsSet = new Set();
+        tasks.forEach(task => {
+            if (task.tags) {
+                task.tags.forEach(tag => tagsSet.add(tag));
+            }
+        });
+        return Array.from(tagsSet).sort();
+    }
+
+    /**
+     * Updates a task - disabled in read-only mode
+     */
+    async updateTask(id, update) {
+        console.warn('Cannot update tasks in read-only mode');
+        throw new Error('Read-only mode: modifications not allowed');
+    }
+
+    /**
+     * Updates the text of a task - disabled in read-only mode
+     */
+    updateTaskText(id, text) {
+        console.warn('Cannot update task text in read-only mode');
+        throw new Error('Read-only mode: modifications not allowed');
+    }
+
+    /**
+     * Updates the tags of a task - disabled in read-only mode
+     */
+    updateTaskTags(id, tags) {
+        console.warn('Cannot update task tags in read-only mode');
+        throw new Error('Read-only mode: modifications not allowed');
+    }
+
+    /**
+     * Batch updates multiple tasks - disabled in read-only mode
+     */
+    async batchUpdateTasks(updates) {
+        console.warn('Cannot batch update tasks in read-only mode');
+        throw new Error('Read-only mode: modifications not allowed');
+    }
+
+    /**
+     * Deletes a task - disabled in read-only mode
+     */
+    async deleteTask(id) {
+        console.warn('Cannot delete tasks in read-only mode');
+        throw new Error('Read-only mode: modifications not allowed');
+    }
+}
+
+// Read-only SettingsAPI implementation
+class ReadOnlySettingsAPI {
+    /**
+     * Fetches all settings from memory
+     * @returns {Promise<Settings>}
+     */
+    async getSettings() {
+        return readOnlySettings || DEFAULT_SETTINGS;
+    }
+
+    /**
+     * Updates settings - disabled in read-only mode
+     */
+    async updateSettings(update) {
+        console.warn('Cannot update settings in read-only mode');
+        throw new Error('Read-only mode: modifications not allowed');
+    }
+}
 
 // LocalStorage-based implementations
 class LocalStorageTaskAPI {
@@ -338,14 +521,18 @@ class LocalStorageSettingsAPI {
     }
 }
 
-// Hybrid API that routes to the appropriate backend (localStorage or filesystem)
+// Hybrid API that routes to the appropriate backend (localStorage, filesystem, or readonly)
 export class TaskAPI {
     constructor() {
         this.localStorageAPI = new LocalStorageTaskAPI();
         this.fileSystemAPI = new FileSystemTaskAPI();
+        this.readOnlyAPI = new ReadOnlyTaskAPI();
     }
 
     async getTasks() {
+        if (storageMode === 'readOnly') {
+            return this.readOnlyAPI.getTasks();
+        }
         if (storageMode === 'filesystem') {
             return this.fileSystemAPI.getTasks();
         }
@@ -353,6 +540,9 @@ export class TaskAPI {
     }
     
     async createTask(status, order) {
+        if (storageMode === 'readOnly') {
+            return this.readOnlyAPI.createTask(status, order);
+        }
         if (storageMode === 'filesystem') {
             return this.fileSystemAPI.createTask(status, order);
         }
@@ -360,6 +550,9 @@ export class TaskAPI {
     }
     
     async updateTask(id, update) {
+        if (storageMode === 'readOnly') {
+            return this.readOnlyAPI.updateTask(id, update);
+        }
         if (storageMode === 'filesystem') {
             return this.fileSystemAPI.updateTask(id, update);
         }
@@ -367,6 +560,9 @@ export class TaskAPI {
     }
     
     async batchUpdateTasks(updates) {
+        if (storageMode === 'readOnly') {
+            return this.readOnlyAPI.batchUpdateTasks(updates);
+        }
         if (storageMode === 'filesystem') {
             return this.fileSystemAPI.batchUpdateTasks(updates);
         }
@@ -374,6 +570,9 @@ export class TaskAPI {
     }
     
     async deleteTask(id) {
+        if (storageMode === 'readOnly') {
+            return this.readOnlyAPI.deleteTask(id);
+        }
         if (storageMode === 'filesystem') {
             return this.fileSystemAPI.deleteTask(id);
         }
@@ -381,6 +580,9 @@ export class TaskAPI {
     }
     
     async getTagSuggestions() {
+        if (storageMode === 'readOnly') {
+            return this.readOnlyAPI.getTagSuggestions();
+        }
         if (storageMode === 'filesystem') {
             return this.fileSystemAPI.getTagSuggestions();
         }
@@ -394,15 +596,44 @@ export class TaskAPI {
     updateTaskTags(id, tags) {
         return this.updateTask(id, {tags});
     }
+    
+    /**
+     * Upload an image file (only supported in filesystem mode)
+     * @param {string} taskId - The task ID to associate with the image
+     * @param {File} file - The image file to upload
+     * @returns {Promise<{filename: string, link: string}>} The filename and relative link to the image
+     */
+    async uploadImage(taskId, file) {
+        if (storageMode === 'filesystem') {
+            return this.fileSystemAPI.uploadImage(taskId, file);
+        }
+        throw new Error('Image upload only supported in filesystem mode');
+    }
+    
+    /**
+     * Load an image file and return as blob URL (only supported in filesystem mode)
+     * @param {string} filename - The filename to load
+     * @returns {Promise<string>} A blob URL for the image
+     */
+    async loadImage(filename) {
+        if (storageMode === 'filesystem') {
+            return this.fileSystemAPI.loadImage(filename);
+        }
+        throw new Error('Image loading only supported in filesystem mode');
+    }
 }
 
 export class SettingsAPI {
     constructor() {
         this.localStorageAPI = new LocalStorageSettingsAPI();
         this.fileSystemAPI = new FileSystemSettingsAPI();
+        this.readOnlyAPI = new ReadOnlySettingsAPI();
     }
 
     async getSettings() {
+        if (storageMode === 'readOnly') {
+            return this.readOnlyAPI.getSettings();
+        }
         if (storageMode === 'filesystem') {
             return this.fileSystemAPI.getSettings();
         }
@@ -410,6 +641,9 @@ export class SettingsAPI {
     }
     
     async updateSettings(update) {
+        if (storageMode === 'readOnly') {
+            return this.readOnlyAPI.updateSettings(update);
+        }
         if (storageMode === 'filesystem') {
             return this.fileSystemAPI.updateSettings(update);
         }
@@ -423,7 +657,6 @@ export function clearAllData() {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(SETTINGS_KEY);
         localStorage.removeItem(LAST_ID_KEY);
-        initializeStorage();
         window.location.reload();
     }
 }

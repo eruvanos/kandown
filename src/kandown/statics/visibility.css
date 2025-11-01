@@ -32,6 +32,14 @@ body.mode-demo-file .show-demo {
   display: revert !important;
 }
 
+/* Show only in readOnly mode */
+.show-readOnly {
+  display: none !important;
+}
+body.mode-readOnly .show-readOnly {
+  display: revert !important;
+}
+
 /* Hide in CLI mode */
 .hide-cli {
   display: revert !important;
@@ -62,5 +70,13 @@ body.mode-demo-file .hide-demo-file {
 }
 body.mode-demo-local .hide-demo,
 body.mode-demo-file .hide-demo {
+  display: none !important;
+}
+
+/* Hide in readOnly mode */
+.hide-readOnly {
+  display: revert !important;
+}
+body.mode-readOnly .hide-readOnly {
   display: none !important;
 }

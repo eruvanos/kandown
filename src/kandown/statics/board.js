@@ -1,5 +1,5 @@
 // Import dependencies
-import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode} from './api.js';
+import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode, isReadOnly} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
 import {createButton, createDiv, createElement, createInput, createSpan} from './ui-utils.js';
@@ -16,6 +16,7 @@ let doneCollapsed = {};
 const eventManager = new EventManager();
 let taskAPI = null;
 let settingsAPI = null;
+let readOnlyMode = false;
 
 // --- Kanban Board Setup ---
 if (window.marked) {
@@ -41,6 +42,7 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
     if (onKeyDown) textarea.addEventListener('keydown', onKeyDown);
 
     textarea.addEventListener('paste', async (e) => {
+        console.log('Paste event detected');
         const settings = await settingsAPI.getSettings()
         const storeImagesInSubfolder = settings.store_images_in_subfolder || false;
 
@@ -49,26 +51,42 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
             if (items[i].type.indexOf('image') !== -1) {
                 const file = items[i].getAsFile();
                 if (storeImagesInSubfolder && taskId) {
-                    // Upload image to backend
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    try {
-                        const res = await fetch(`/api/tasks/${taskId}/upload`, {
-                            method: 'POST',
-                            body: formData
-                        });
-                        if (res.ok) {
-                            const data = await res.json();
-                            const url = data.link;
-                            const md = `![](${url})`;
+
+                    // Todo, this should be in api.js
+                    if (getServerMode() === 'cli') {
+                        // Upload image to backend
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        try {
+                            const res = await fetch(`/api/tasks/${taskId}/upload`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                            if (res.ok) {
+                                const data = await res.json();
+                                const url = data.link;
+                                const md = `![](${url})`;
+                                const start = textarea.selectionStart;
+                                const end = textarea.selectionEnd;
+                                textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                            } else {
+                                alert('Image upload failed.');
+                            }
+                        } catch (err) {
+                            alert('Image upload error.');
+                        }
+                    } else if (getServerMode() === 'demo' && getStorageMode() === 'filesystem') {
+                        // Demo mode with filesystem storage: save image to filesystem
+                        try {
+                            const result = await taskAPI.uploadImage(taskId, file);
+                            const md = `![](${result.link})`;
                             const start = textarea.selectionStart;
                             const end = textarea.selectionEnd;
                             textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
-                        } else {
-                            alert('Image upload failed.');
+                        } catch (err) {
+                            console.error('Image upload error:', err);
+                            alert('Image upload failed: ' + err.message);
                         }
-                    } catch (err) {
-                        alert('Image upload error.');
                     }
                 } else {
                     // Embed image as base64
@@ -141,9 +159,15 @@ let placeholderEl = null;
 
 /**
  * Makes all task cards draggable and sets up drag event listeners.
+ * Disabled in read-only mode.
  * @returns {void}
  */
 function makeDraggable() {
+    // Skip making cards draggable in read-only mode
+    if (readOnlyMode) {
+        return;
+    }
+    
     document.querySelectorAll('.task').forEach(function (card, idx) {
         card.setAttribute('draggable', 'true');
         card.addEventListener('dragstart', function (e) {
@@ -437,6 +461,7 @@ function createTypeDropdown(task) {
 
 /**
  * Creates the task header with type button, ID, and delete button
+ * In read-only mode, hides delete button and disables type changes.
  * @param {Object} task - The task object
  * @returns {{headRow: HTMLElement, typeBtn: HTMLElement, idDiv: HTMLElement, buttonGroup: HTMLElement}} Header elements
  */
@@ -444,6 +469,13 @@ function createTaskHeader(task) {
     const headRow = createElement('div', 'task-id-row');
 
     const {typeBtn, dropdown} = createTypeDropdown(task);
+    
+    // Disable type changes in read-only mode
+    if (readOnlyMode) {
+        typeBtn.style.pointerEvents = 'none';
+        typeBtn.style.cursor = 'default';
+    }
+    
     headRow.append(typeBtn);
     headRow.appendChild(dropdown);
 
@@ -453,18 +485,63 @@ function createTaskHeader(task) {
 
     const buttonGroup = createElement('div', 'done-button-group');
 
-    const deleteBtn = createSpan({
-        className: 'delete-task-btn',
-        title: 'Delete task',
-        innerHTML: '&#10060;', // Red cross
-        onClick: function (e) {
-            e.stopPropagation();
-            showDeleteModal(task.id);
-        }
-    });
-    buttonGroup.appendChild(deleteBtn);
+    // Don't show delete button in read-only mode
+    if (!readOnlyMode) {
+        const deleteBtn = createSpan({
+            className: 'delete-task-btn',
+            title: 'Delete task',
+            innerHTML: '&#10060;', // Red cross
+            onClick: function (e) {
+                e.stopPropagation();
+                showDeleteModal(task.id);
+            }
+        });
+        buttonGroup.appendChild(deleteBtn);
+    }
 
     return {headRow, typeBtn, idDiv, buttonGroup};
+}
+
+/**
+ * Process images in rendered markdown to load filesystem images as data URLs
+ * This modifies the HTML after rendering to replace /api/attachment/ URLs with data URLs
+ * @param {HTMLElement} element - The element containing rendered markdown
+ * @returns {Promise<void>}
+ */
+async function processFilesystemImages(element) {
+    if (getServerMode() !== 'demo' || getStorageMode() !== 'filesystem') {
+        return; // Only process in filesystem mode
+    }
+    
+    const images = element.querySelectorAll('img');
+    for (const img of images) {
+        const src = img.getAttribute('src');
+        if (src && src.includes('/api/attachment/')) {
+            try {
+                // Extract filename from URL
+                const match = src.match(/\/api\/attachment\/(.+)$/);
+                if (match) {
+                    const filename = match[1];
+                    // Load image from filesystem and get blob
+                    const blobUrl = await taskAPI.loadImage(filename);
+                    
+                    // Fetch the blob and convert to data URL
+                    const response = await fetch(blobUrl);
+                    const blob = await response.blob();
+                    
+                    // Convert blob to data URL
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        img.setAttribute('src', reader.result);
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            } catch (err) {
+                console.error(`Failed to load image ${src}:`, err);
+                // Leave original src if loading fails
+            }
+        }
+    }
 }
 
 /**
@@ -497,6 +574,12 @@ function createTaskText(task, focusTaskId) {
         } else {
             if (window.marked) {
                 textSpan.innerHTML = window.marked.parse(task.text);
+                
+                // Process filesystem images asynchronously
+                processFilesystemImages(textSpan).catch(err => {
+                    console.error('Error processing filesystem images:', err);
+                });
+                
                 setTimeout(() => {
                     const checkboxes = textSpan.querySelectorAll('input[type="checkbox"]');
                     checkboxes.forEach(cb => {
@@ -580,22 +663,27 @@ function createTagsSection(task, el) {
     (task.tags || []).forEach(tag => {
         const tagLabel = createElement('span', 'tag-label');
         tagLabel.textContent = tag;
-        const removeBtn = createButton({
-            className: 'remove-tag',
-            text: '×',
-            attributes: {type: 'button'},
-            onClick: function (e) {
-                e.stopPropagation();
-                const newTags = (task.tags || []).filter(t => t !== tag);
-                taskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
-            }
-        });
-        tagLabel.appendChild(removeBtn);
+        
+        // Don't show remove button in read-only mode
+        if (!readOnlyMode) {
+            const removeBtn = createButton({
+                className: 'remove-tag',
+                text: '×',
+                attributes: {type: 'button'},
+                onClick: function (e) {
+                    e.stopPropagation();
+                    const newTags = (task.tags || []).filter(t => t !== tag);
+                    taskAPI.updateTaskTags(task.id, newTags).then(() => renderTasks());
+                }
+            });
+            tagLabel.appendChild(removeBtn);
+        }
+        
         tagsDiv.appendChild(tagLabel);
     });
 
-    // Add tag input (only if not editing text)
-    if (!el.querySelector('textarea.edit-input')) {
+    // Add tag input (only if not editing text and not in read-only mode)
+    if (!el.querySelector('textarea.edit-input') && !readOnlyMode) {
         let tagSuggestions = [];
         let tagInputFocused = false;
         let mouseOverCard = false;
@@ -681,11 +769,17 @@ function createTagsSection(task, el) {
 
 /**
  * Attaches the click-to-edit handler to a task element
+ * Disabled in read-only mode.
  * @param {HTMLElement} el - The task element
  * @param {Object} task - The task object
  * @param {HTMLElement} textSpan - The text element to replace with textarea
  */
 function attachTaskEditHandler(el, task, textSpan) {
+    // Skip edit handler in read-only mode
+    if (readOnlyMode) {
+        return;
+    }
+    
     el.addEventListener('click', function (e) {
         if (
             e.target.classList.contains('tags') ||
@@ -836,8 +930,10 @@ function renderTasks(focusCallback, focusTaskId) {
             createTaskTooltip(task, el);
 
             // Create and append plus button
-            const plusBtn = createPlusButton(task);
-            el.appendChild(plusBtn);
+            if (!readOnlyMode) {
+                const plusBtn = createPlusButton(task);
+                el.appendChild(plusBtn);
+            }
 
             columns[task.status].appendChild(el);
         });
@@ -933,7 +1029,13 @@ async function updateDemoModeUI() {
     const indicator = document.getElementById('storage-mode-indicator');
     if (!banner || !indicator) return;
 
-    if (mode === 'filesystem') {
+    if (mode === 'readOnly') {
+        console.log('Setting demo mode UI to Read-Only');
+        banner.innerHTML = '📖 Read-Only Mode - Viewing external backlog file (no modifications allowed) | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
+        banner.classList.remove('fs-active'); // TODO is remove necessary at all?
+        indicator.textContent = '📖 Read-Only';
+        indicator.classList.remove('filesystem');
+    } else if (mode === 'filesystem') {
         console.log('Setting demo mode UI to File System');
         banner.innerHTML = '📂 File System Mode - Connected to local backlog.yaml | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
         banner.classList.add('fs-active');
@@ -967,12 +1069,33 @@ async function initBoardApp() {
     taskAPI = new TaskAPI();
     settingsAPI = new SettingsAPI();
     
+    // Check if we're in read-only mode
+    readOnlyMode = isReadOnly();
+    
+    // Update UI for read-only mode
+    if (readOnlyMode) {
+        console.log('📖 Read-only mode enabled - modifications disabled');
+        // Hide all "Add task" buttons
+        document.querySelectorAll('.add-task').forEach(btn => {
+            btn.style.display = 'none';
+        });
+
+        // Disable pointer events on indicator button
+        const indicator = document.getElementById('storage-mode-indicator');
+        if (indicator) {
+            indicator.style.pointerEvents = 'none';
+            indicator.style.cursor = 'default';
+        }
+    }
+    
     columns = {
         'todo': document.getElementById('todo-col'),
         'in_progress': document.getElementById('inprogress-col'),
         'done': document.getElementById('done-col')
     };
     setupDropZones();
+    
+    // Setup add task buttons
     document.querySelectorAll('.add-task').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -980,6 +1103,7 @@ async function initBoardApp() {
             addTask(status);
         });
     });
+    
     window.renderTasks = renderTasks;
     renderTasks();
 }
