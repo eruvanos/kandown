@@ -503,47 +503,45 @@ function createTaskHeader(task) {
 }
 
 /**
- * Sets up fetch interception for filesystem mode to handle /api/attachment requests
- * This allows images stored in .backlog/ to be loaded from the filesystem
+ * Process images in rendered markdown to load filesystem images as data URLs
+ * This modifies the HTML after rendering to replace /api/attachment/ URLs with data URLs
+ * @param {HTMLElement} element - The element containing rendered markdown
+ * @returns {Promise<void>}
  */
-function setupFilesystemFetchInterceptor() {
+async function processFilesystemImages(element) {
     if (getServerMode() !== 'demo' || getStorageMode() !== 'filesystem') {
-        return; // Only intercept in filesystem mode
+        return; // Only process in filesystem mode
     }
     
-    // Store original fetch
-    const originalFetch = window.fetch;
-    
-    // Override fetch
-    window.fetch = async function(resource, options) {
-        // Check if this is an attachment request
-        const url = typeof resource === 'string' ? resource : resource.url;
-        
-        if (url && url.includes('/api/attachment/')) {
+    const images = element.querySelectorAll('img');
+    for (const img of images) {
+        const src = img.getAttribute('src');
+        if (src && src.includes('/api/attachment/')) {
             try {
                 // Extract filename from URL
-                const match = url.match(/\/api\/attachment\/(.+)$/);
+                const match = src.match(/\/api\/attachment\/(.+)$/);
                 if (match) {
                     const filename = match[1];
-                    console.log(`Intercepting attachment request: ${filename}`);
-                    
-                    // Load image from filesystem
+                    // Load image from filesystem and get blob
                     const blobUrl = await taskAPI.loadImage(filename);
                     
-                    // Fetch the blob URL instead
-                    return originalFetch(blobUrl, options);
+                    // Fetch the blob and convert to data URL
+                    const response = await fetch(blobUrl);
+                    const blob = await response.blob();
+                    
+                    // Convert blob to data URL
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        img.setAttribute('src', reader.result);
+                    };
+                    reader.readAsDataURL(blob);
                 }
             } catch (err) {
-                console.error(`Failed to intercept attachment ${url}:`, err);
-                // Fall through to original fetch if interception fails
+                console.error(`Failed to load image ${src}:`, err);
+                // Leave original src if loading fails
             }
         }
-        
-        // For all other requests, use original fetch
-        return originalFetch(resource, options);
-    };
-    
-    console.log('📂 Filesystem fetch interceptor enabled for /api/attachment requests');
+    }
 }
 
 /**
@@ -576,6 +574,11 @@ function createTaskText(task, focusTaskId) {
         } else {
             if (window.marked) {
                 textSpan.innerHTML = window.marked.parse(task.text);
+                
+                // Process filesystem images asynchronously
+                processFilesystemImages(textSpan).catch(err => {
+                    console.error('Error processing filesystem images:', err);
+                });
                 
                 setTimeout(() => {
                     const checkboxes = textSpan.querySelectorAll('input[type="checkbox"]');
@@ -1065,9 +1068,6 @@ async function initBoardApp() {
     // Create API instances
     taskAPI = new TaskAPI();
     settingsAPI = new SettingsAPI();
-    
-    // Setup filesystem fetch interceptor if in filesystem mode
-    setupFilesystemFetchInterceptor();
     
     // Check if we're in read-only mode
     readOnlyMode = isReadOnly();
