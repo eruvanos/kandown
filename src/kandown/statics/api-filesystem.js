@@ -156,6 +156,86 @@ class FileSystemAPI {
     }
     
     /**
+     * Upload an image file to the .backlog folder
+     * @param {string} taskId - The task ID to associate with the image
+     * @param {File} file - The image file to upload
+     * @returns {Promise<{filename: string, link: string}>} The filename and relative link to the image
+     */
+    static async uploadImage(taskId, file) {
+        if (!this.directoryHandle) {
+            throw new Error('No directory handle available');
+        }
+        
+        await this.verifyPermission();
+        
+        // Get or create .backlog directory
+        let backlogDirHandle;
+        try {
+            backlogDirHandle = await this.directoryHandle.getDirectoryHandle('.backlog', {
+                create: true
+            });
+        } catch (err) {
+            throw new Error(`Failed to create/access .backlog directory: ${err.message}`);
+        }
+        
+        // Generate unique filename
+        const ext = file.name.split('.').pop() || 'png';
+        const randomStr = Math.random().toString(36).substring(2, 10);
+        const filename = `${taskId}_${randomStr}.${ext}`;
+        
+        // Create file handle
+        const fileHandle = await backlogDirHandle.getFileHandle(filename, {
+            create: true
+        });
+        
+        // Write file
+        const writable = await fileHandle.createWritable();
+        await writable.write(file);
+        await writable.close();
+        
+        // Return link in /api/attachment format (will be intercepted by fetch interceptor)
+        const link = `/api/attachment/${filename}`;
+        
+        return { filename, link };
+    }
+    
+    /**
+     * Load an image file from the .backlog folder and return as blob URL
+     * @param {string} filename - The filename to load
+     * @returns {Promise<string>} A blob URL for the image
+     */
+    static async loadImage(filename) {
+        if (!this.directoryHandle) {
+            throw new Error('No directory handle available');
+        }
+        
+        await this.verifyPermission(null, false); // Read-only permission is enough
+        
+        // Get .backlog directory
+        let backlogDirHandle;
+        try {
+            backlogDirHandle = await this.directoryHandle.getDirectoryHandle('.backlog', {
+                create: false
+            });
+        } catch (err) {
+            throw new Error(`Failed to access .backlog directory: ${err.message}`);
+        }
+        
+        // Get file handle
+        const fileHandle = await backlogDirHandle.getFileHandle(filename, {
+            create: false
+        });
+        
+        // Read file
+        const file = await fileHandle.getFile();
+        
+        // Create blob URL
+        const blobUrl = URL.createObjectURL(file);
+        
+        return blobUrl;
+    }
+    
+    /**
      * Verify we still have permission to access the directory
      */
     static async verifyPermission(handle = null, readWrite = true) {
@@ -334,6 +414,20 @@ export class FileSystemTaskAPI {
             }
         });
         return Array.from(tagsSet).sort();
+    }
+    
+    /**
+     * Upload an image file to the .backlog folder
+     * @param {string} taskId - The task ID to associate with the image
+     * @param {File} file - The image file to upload
+     * @returns {Promise<{filename: string, link: string}>} The filename and relative link to the image
+     */
+    async uploadImage(taskId, file) {
+        return FileSystemAPI.uploadImage(taskId, file);
+    }
+    
+    async loadImage(filename) {
+        return FileSystemAPI.loadImage(filename);
     }
     
     async updateTaskText(id, text) {
