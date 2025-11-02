@@ -67,11 +67,12 @@ def test_init_js_switches_to_demo_on_failure():
     init_file = Path(__file__).parent.parent / "src" / "kandown" / "statics" / "init.js"
     content = init_file.read_text()
     
-    # Verify init.js has the switch logic
+    # Verify init.js has the refactored mode detection logic
     assert "serverMode = 'demo'" in content
-    assert "Running in demo mode" in content
+    assert "entering demo mode" in content
     assert "checkHealth" in content
     assert "initializeApp" in content
+    assert "detectMode" in content
 
 
 def test_api_factory_has_dynamic_import():

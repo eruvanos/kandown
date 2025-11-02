@@ -32,7 +32,8 @@ def test_board_js_imports_init(kandown_server):
     """Test that board.js imports the init module."""
     board_response = requests.get(f"{kandown_server}/statics/board.js")
     assert board_response.status_code == 200
-    assert "import {initializeApp} from './init.js'" in board_response.text
+    # Check for updated import format
+    assert "import {initializeApp, getServerMode, isReadOnly} from './init.js'" in board_response.text
     assert "await initializeApp()" in board_response.text
 
 

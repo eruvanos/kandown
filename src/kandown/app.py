@@ -44,7 +44,11 @@ def create_app(repo: TaskRepository, attachment_resolver: AttachmentResolver):
     @app.route("/api/health")
     def health_check():
         """Health check endpoint indicating the CLI server is available."""
-        return jsonify({"available": True})
+        return jsonify({
+            "available": True,
+            "status": "ok",
+            "server": "cli"
+        })
 
     @app.route("/api/tasks")
     def get_tasks():
