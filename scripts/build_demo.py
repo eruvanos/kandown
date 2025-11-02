@@ -35,6 +35,7 @@ def build_demo():
         "settings.js",
         "types.js",
         "ui-utils.js",
+        "visibility.css",
     ]
 
     print("Building Kandown demo...")
