@@ -19,9 +19,32 @@ let settingsAPI = null;
 let readOnlyMode = false;
 
 // --- Kanban Board Setup ---
+// Cache for filesystem image data URLs
+const filesystemImageCache = new Map();
+
 if (window.marked) {
     const renderer = new marked.Renderer();
     renderer.checkbox = ({checked}) => `<input ${checked === true ? 'checked="" ' : ''} type="checkbox"/>`;
+
+    // Custom image renderer for filesystem mode
+    const originalImageRenderer = renderer.image.bind(renderer);
+    renderer.image = ({href, title, text}) => {
+        // In filesystem mode, mark images for async loading
+        if (getServerMode() === 'demo' && getStorageMode() === 'filesystem' && href.includes('/api/attachment/')) {
+            // Extract filename
+            const match = href.match(/\/api\/attachment\/(.+)$/);
+            if (match) {
+                const filename = match[1];
+                // Use a placeholder data attribute to mark for loading
+                const titleAttr = title ? ` title="${title}"` : '';
+                const altAttr = text ? ` alt="${text}"` : '';
+                return `<img src="" data-fs-image="${filename}"${titleAttr}${altAttr} class="fs-loading-image"/>`;
+            }
+        }
+        // For all other cases, use default renderer
+        return originalImageRenderer({href, title, text});
+    };
+
     marked.setOptions({renderer});
 }
 
@@ -504,7 +527,7 @@ function createTaskHeader(task) {
 
 /**
  * Process images in rendered markdown to load filesystem images as data URLs
- * This modifies the HTML after rendering to replace /api/attachment/ URLs with data URLs
+ * This modifies the HTML after rendering to replace placeholder images with data URLs
  * @param {HTMLElement} element - The element containing rendered markdown
  * @returns {Promise<void>}
  */
@@ -513,35 +536,61 @@ async function processFilesystemImages(element) {
         return; // Only process in filesystem mode
     }
     
-    const images = element.querySelectorAll('img');
+    const images = element.querySelectorAll('img[data-fs-image]');
+    const loadPromises = [];
+
     for (const img of images) {
-        const src = img.getAttribute('src');
-        if (src && src.includes('/api/attachment/')) {
+        const filename = img.getAttribute('data-fs-image');
+        if (!filename) continue;
+
+        // Load image and convert to data URL
+        const loadPromise = (async () => {
             try {
-                // Extract filename from URL
-                const match = src.match(/\/api\/attachment\/(.+)$/);
-                if (match) {
-                    const filename = match[1];
-                    // Load image from filesystem and get blob
-                    const blobUrl = await taskAPI.loadImage(filename);
-                    
-                    // Fetch the blob and convert to data URL
-                    const response = await fetch(blobUrl);
-                    const blob = await response.blob();
-                    
-                    // Convert blob to data URL
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        img.setAttribute('src', reader.result);
-                    };
-                    reader.readAsDataURL(blob);
+                // Check cache first
+                if (filesystemImageCache.has(filename)) {
+                    img.setAttribute('src', filesystemImageCache.get(filename));
+                    img.classList.remove('fs-loading-image');
+                    return;
                 }
+
+                // Load image from filesystem and get blob
+                const blobUrl = await taskAPI.loadImage(filename);
+
+                // Fetch the blob and convert to data URL
+                const response = await fetch(blobUrl);
+                const blob = await response.blob();
+
+                // Convert blob to data URL
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+
+                // Cache the data URL
+                filesystemImageCache.set(filename, dataUrl);
+
+                // Set the image src
+                img.setAttribute('src', dataUrl);
+                img.classList.remove('fs-loading-image');
+
+                // Revoke blob URL to free memory
+                URL.revokeObjectURL(blobUrl);
             } catch (err) {
-                console.error(`Failed to load image ${src}:`, err);
-                // Leave original src if loading fails
+                console.error(`Failed to load image ${filename}:`, err);
+                img.classList.add('fs-error-image');
+                img.classList.remove('fs-loading-image');
+                // Optionally set an error placeholder
+                img.setAttribute('alt', `[Image load failed: ${filename}]`);
             }
-        }
+        })();
+
+        loadPromises.push(loadPromise);
     }
+
+    // Wait for all images to load
+    await Promise.all(loadPromises);
 }
 
 /**
@@ -573,19 +622,24 @@ function createTaskText(task, focusTaskId) {
             textSpan.style.display = 'block';
         } else {
             if (window.marked) {
-                textSpan.innerHTML = window.marked.parse(task.text);
-                
-                // Process filesystem images asynchronously
-                processFilesystemImages(textSpan).catch(err => {
-                    console.error('Error processing filesystem images:', err);
+                const tmp = document.createElement('div');
+                tmp.innerHTML = window.marked.parse(task.text);
+
+                // Handle checkbox clicks
+                const checkboxes = tmp.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('click', handleCheckboxClick);
                 });
-                
-                setTimeout(() => {
-                    const checkboxes = textSpan.querySelectorAll('input[type="checkbox"]');
-                    checkboxes.forEach(cb => {
-                        cb.addEventListener('click', handleCheckboxClick);
-                    });
-                }, 0);
+
+                // Process filesystem images asynchronously
+                processFilesystemImages(tmp).catch(err => {
+                    console.error('Error processing filesystem images:', err);
+                }).then(() => {
+                    // After images are loaded, append the content
+                    while (tmp.firstChild) {
+                        textSpan.appendChild(tmp.firstChild);
+                    }
+                });
             } else {
                 textSpan.textContent = task.text;
             }
