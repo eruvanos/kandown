@@ -1,5 +1,5 @@
 // Import dependencies
-import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode, isReadOnlyMode} from './api.js';
+import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
 import {createButton, createDiv, createElement, createInput, createSpan} from './ui-utils.js';
