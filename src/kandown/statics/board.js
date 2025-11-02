@@ -1,9 +1,9 @@
 // Import dependencies
-import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode, isReadOnly} from './api.js';
+import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode, isReadOnlyMode} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
 import {createButton, createDiv, createElement, createInput, createSpan} from './ui-utils.js';
-import {initializeApp, getServerMode} from './init.js';
+import {initializeApp, getServerMode, isReadOnly} from './init.js';
 
 /**
  * @typedef {import('./types.js').Task}
@@ -1071,54 +1071,17 @@ function handleCheckboxClick(ev) {
 }
 
 // --- Update UI based on current storage mode (demo mode only)
-async function updateDemoModeUI() {
-    if (getServerMode() !== 'demo') {
-        console.log('Not in demo mode, skipping demo mode UI update.');
-        return;
-    }
-
-    const mode = getStorageMode()
-
-    const banner = document.getElementById('demo-banner');
-    const indicator = document.getElementById('storage-mode-indicator');
-    if (!banner || !indicator) return;
-
-    if (mode === 'readOnly') {
-        console.log('Setting demo mode UI to Read-Only');
-        banner.innerHTML = '📖 Read-Only Mode - Viewing external backlog file (no modifications allowed) | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
-        banner.classList.remove('fs-active'); // TODO is remove necessary at all?
-        indicator.textContent = '📖 Read-Only';
-        indicator.classList.remove('filesystem');
-    } else if (mode === 'filesystem') {
-        console.log('Setting demo mode UI to File System');
-        banner.innerHTML = '📂 File System Mode - Connected to local backlog.yaml | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
-        banner.classList.add('fs-active');
-        indicator.textContent = '📂 File System';
-        indicator.classList.add('filesystem');
-    } else if (mode === 'localStorage') {
-        console.log('Setting demo mode UI to localStorage');
-        banner.innerHTML = '🎯 Demo Mode - Data stored in browser localStorage | <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>';
-        banner.classList.remove('fs-active');
-        indicator.textContent = '💾 localStorage';
-        indicator.classList.remove('filesystem');
-    } else {
-        console.log('Unknown storage mode:', mode);
-        indicator.textContent = '❓ Unknown Mode';
-    }
-}
-
+// REMOVED: This function has been moved to init.js
 
 // --- Main Entrypoint ---
 async function initBoardApp() {
     // Initialize and check server availability
+    // This also sets up the UI for the detected mode
     await initializeApp();
     
     // Initialize the appropriate API implementations based on server mode
     await initializeAPIs();
 
-    // Init DemoUI
-    await updateDemoModeUI()
-    
     // Create API instances
     taskAPI = new TaskAPI();
     settingsAPI = new SettingsAPI();

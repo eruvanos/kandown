@@ -3,7 +3,7 @@
  * This allows seamless fallback to demo mode when the CLI server is unavailable
  */
 
-import { getServerMode } from './init.js';
+import { getServerMode, getStorageMode, isReadOnly as isReadOnlyMode } from './init.js';
 
 // We'll dynamically import the correct implementations
 let TaskAPIImpl = null;
@@ -12,12 +12,10 @@ let SettingsAPIImpl = null;
 // Import demo-specific functions conditionally
 let demoFunctions = {
     clearAllData: null,
-    getStorageMode: null,
     switchToFileSystem: null,
     switchToLocalStorage: null,
     waitForStorageInit: null,
-    importFromYamlFile: null,
-    isReadOnly: null
+    importFromYamlFile: null
 };
 
 /**
@@ -32,19 +30,28 @@ async function initializeAPIs() {
         TaskAPIImpl = cliModule.TaskAPI;
         SettingsAPIImpl = cliModule.SettingsAPI;
     } else {
-        // Use demo API (localStorage/filesystem hybrid)
+        // Use demo API - import specific implementations
         const demoModule = await import('./api-demo.js');
-        TaskAPIImpl = demoModule.TaskAPI;
-        SettingsAPIImpl = demoModule.SettingsAPI;
+        const storageMode = getStorageMode();
+        
+        // Select the appropriate implementation based on storage mode
+        if (storageMode === 'readOnly') {
+            TaskAPIImpl = demoModule.ReadOnlyTaskAPI;
+            SettingsAPIImpl = demoModule.ReadOnlySettingsAPI;
+        } else if (storageMode === 'filesystem') {
+            TaskAPIImpl = demoModule.FileSystemTaskAPI;
+            SettingsAPIImpl = demoModule.FileSystemSettingsAPI;
+        } else {
+            TaskAPIImpl = demoModule.LocalStorageTaskAPI;
+            SettingsAPIImpl = demoModule.LocalStorageSettingsAPI;
+        }
         
         // Import demo-specific functions
         demoFunctions.clearAllData = demoModule.clearAllData;
-        demoFunctions.getStorageMode = demoModule.getStorageMode;
         demoFunctions.switchToFileSystem = demoModule.switchToFileSystem;
         demoFunctions.switchToLocalStorage = demoModule.switchToLocalStorage;
         demoFunctions.waitForStorageInit = demoModule.waitForStorageInit;
         demoFunctions.importFromYamlFile = demoModule.importFromYamlFile;
-        demoFunctions.isReadOnly = demoModule.isReadOnly;
 
         // Ensure storage is initialized
         await demoModule.waitForStorageInit()
@@ -75,8 +82,9 @@ export { initializeAPIs };
 
 // Export demo functions (will be null in CLI mode)
 export const clearAllData = () => demoFunctions.clearAllData?.();
-export const getStorageMode = () => demoFunctions.getStorageMode?.() || 'cli';
 export const switchToFileSystem = () => demoFunctions.switchToFileSystem?.();
 export const switchToLocalStorage = () => demoFunctions.switchToLocalStorage?.();
 export const importFromYamlFile = () => demoFunctions.importFromYamlFile?.();
-export const isReadOnly = () => demoFunctions.isReadOnly?.() || false;
+
+// Re-export mode checking functions from init.js for convenience
+export { getStorageMode, isReadOnly as isReadOnlyMode } from './init.js';

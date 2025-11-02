@@ -522,6 +522,8 @@ class LocalStorageSettingsAPI {
 }
 
 // Hybrid API that routes to the appropriate backend (localStorage, filesystem, or readonly)
+// DEPRECATED: This class is kept for backward compatibility only
+// Use specific API implementations (LocalStorageTaskAPI, FileSystemTaskAPI, ReadOnlyTaskAPI) instead
 export class TaskAPI {
     constructor() {
         this.localStorageAPI = new LocalStorageTaskAPI();
@@ -623,6 +625,8 @@ export class TaskAPI {
     }
 }
 
+// DEPRECATED: This class is kept for backward compatibility only
+// Use specific API implementations (LocalStorageSettingsAPI, FileSystemSettingsAPI, ReadOnlySettingsAPI) instead
 export class SettingsAPI {
     constructor() {
         this.localStorageAPI = new LocalStorageSettingsAPI();
@@ -650,6 +654,17 @@ export class SettingsAPI {
         return this.localStorageAPI.updateSettings(update);
     }
 }
+
+// Export specific API implementations for direct use
+export {
+    LocalStorageTaskAPI,
+    LocalStorageSettingsAPI,
+    ReadOnlyTaskAPI,
+    ReadOnlySettingsAPI
+};
+
+// Re-export filesystem API classes
+export { FileSystemTaskAPI, FileSystemSettingsAPI } from './api-filesystem.js';
 
 // Clear all data function (for demo mode only)
 export function clearAllData() {
