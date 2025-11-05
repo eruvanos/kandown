@@ -3,14 +3,15 @@
 
 A simple, markdown-inspired Kanban board powered by YAML and Flask.
 
-![screenshot.png](docs/screenshot.png)
+![screenshot.png](https://raw.githubusercontent.com/eruvanos/kandown/refs/heads/main/docs/screenshot.png)
 
-## 🎯 Try the Online Page
+## 🎯 Try Kandown Instantly Online
 
-Try Kandown instantly without installation! 
-Visit our **[GitHub hosted page](https://eruvanos.github.io/kandown/)** - all data is stored locally in your browser.
+Experience Kandown without any installation required!  
+Access the **[GitHub hosted demo](https://eruvanos.github.io/kandown/)** — your data stays private and is stored locally in your browser.
 
-Or have a look on our projects [backlog](https://eruvanos.github.io/kandown/?backlog=https://raw.githubusercontent.com/eruvanos/kandown/refs/heads/main/backlog.yaml).
+Want to preview a real project?  
+Check out our [own backlog](https://eruvanos.github.io/kandown/?backlog=https://raw.githubusercontent.com/eruvanos/kandown/refs/heads/main/backlog.yaml).
 
 ## Overview
 
@@ -33,13 +34,19 @@ The app features a clean, responsive web UI started by the CLI.
 
 ## Usage
 
-You can install it or directly use it via `uvx`
+You can install it or directly or use via `uvx`.
 
 ```bash
+# install via uv
 uv tool install kandown
 
-# even without installing, you can run it directly:
+# or via pipx
+pipx install kandown
 
+# or via pip
+pip install kandown
+
+# even without installing, you can run it directly:
 uvx kandown [OPTIONS] [YAML_FILE]
 ```
 

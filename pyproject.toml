@@ -1,11 +1,13 @@
 [project]
 name = "kandown"
-version = "0.1.0"
+version = "0.1.4"
 description = "Kandown is a lightweight, markdown-inspired Kanban board application that lets you manage tasks using a simple YAML file, featuring a web UI, image and markdown support, and a hybrid demo mode for browser-based or local file storage."
 readme = "README.md"
 authors = [
     { name = "Maic Siemering", email = "maic@siemering.tech" }
 ]
+license = { text = "MIT" }
+keywords = ["kanban", "markdown", "task management", "flask", "yaml"]
 requires-python = ">=3.10"
 dependencies = [
     "flask>=3.1.2",
@@ -29,6 +31,12 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Utilities",
 ]
+
+[project.urls]
+GitHub = "https://github.com/eruvanos/kandown"
+"Live Page" = "https://eruvanos.github.io/kandown"
+"Backlog" = "https://eruvanos.github.io/kandown/?backlog=https://raw.githubusercontent.com/eruvanos/kandown/refs/heads/main/backlog.yaml"
+Issues = "https://github.com/eruvanos/kandown/issues"
 
 [project.scripts]
 kandown = "kandown.cli:main"
