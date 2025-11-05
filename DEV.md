@@ -150,5 +150,19 @@ Existing tools (from https://bye-tracker.net/):
 - [Lite Tracker](https://litetracker.com/)
 - [BARD tracker](https://bardtracker.com/)
 
+## Development
 
+### Build and Run Demo Locally
+
+To build and run the demo mode on your local machine:
+
+```bash
+# Build the demo (copies static assets)
+python scripts/build_demo.py
+
+# Serve the demo locally
+python -m http.server 8080 --directory demo
+
+# Open http://localhost:8080 in your browser
+```
 
