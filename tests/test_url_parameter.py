@@ -29,51 +29,49 @@ tasks:
   order: 0
   type: task
 """
-    
+
     # Get the demo directory
     demo_dir = Path(__file__).parent.parent / "demo"
     test_file = demo_dir / "test-backlog.yaml"
-    
+
     # Write test file
     test_file.write_text(test_yaml_content)
-    
+
     try:
         # Start a simple HTTP server for the demo
         import subprocess
         import time
+
         server_process = subprocess.Popen(
-            ["python", "-m", "http.server", "8765"],
-            cwd=str(demo_dir),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            ["python", "-m", "http.server", "8765"], cwd=str(demo_dir), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
-        
+
         # Wait for server to start
         time.sleep(2)
-        
+
         try:
             # Clear localStorage to ensure fresh start
             page.goto("http://localhost:8765/")
             page.evaluate("localStorage.clear()")
-            
+
             # Navigate to demo with backlog parameter
             page.goto("http://localhost:8765/?backlog=test-backlog.yaml")
-            
+
             # Wait for page to load
             page.wait_for_selector("#todo-col")
-            
+
             # Wait a bit for async initialization
             page.wait_for_timeout(1000)
-            
+
             # Verify test tasks appear
             expect(page.locator("text=Test task from URL parameter")).to_be_visible()
             expect(page.locator("text=Another test task")).to_be_visible()
-            
+
             # Verify the default demo tasks are NOT present
             page_text = page.inner_text("body")
             assert "Welcome to Kandown Demo!" not in page_text
             assert "Try dragging me" not in page_text
-            
+
         finally:
             server_process.terminate()
             server_process.wait()
@@ -88,37 +86,35 @@ def test_demo_mode_falls_back_to_default_on_invalid_url(page):
     """Test that demo mode falls back to default tasks if URL parameter fails."""
     # Get the demo directory
     demo_dir = Path(__file__).parent.parent / "demo"
-    
+
     # Start a simple HTTP server for the demo
     import subprocess
     import time
+
     server_process = subprocess.Popen(
-        ["python", "-m", "http.server", "8766"],
-        cwd=str(demo_dir),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        ["python", "-m", "http.server", "8766"], cwd=str(demo_dir), stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
-    
+
     # Wait for server to start
     time.sleep(2)
-    
+
     try:
         # Clear localStorage to ensure fresh start
         page.goto("http://localhost:8766/")
         page.evaluate("localStorage.clear()")
-        
+
         # Navigate to demo with invalid backlog parameter
         page.goto("http://localhost:8766/?backlog=nonexistent.yaml")
-        
+
         # Wait for page to load
         page.wait_for_selector("#todo-col")
-        
+
         # Wait for async initialization
         page.wait_for_timeout(1000)
-        
+
         # Check that the default demo tasks are loaded (fallback)
         expect(page.locator("text=Welcome to Kandown Demo!")).to_be_visible()
-        
+
     finally:
         server_process.terminate()
         server_process.wait()
@@ -127,11 +123,11 @@ def test_demo_mode_falls_back_to_default_on_invalid_url(page):
 def test_get_backlog_url_parameter():
     """Test the URL parameter parsing function."""
     from pathlib import Path
-    
-    # Read the api-demo.js file
-    api_demo_file = Path(__file__).parent.parent / "src" / "kandown" / "statics" / "api-demo.js"
+
+    # Read the api-page.js file
+    api_demo_file = Path(__file__).parent.parent / "src" / "kandown" / "statics" / "api-page.js"
     content = api_demo_file.read_text()
-    
+
     # Verify the function exists
     assert "getBacklogUrlParameter" in content
     assert "URLSearchParams" in content
@@ -141,11 +137,11 @@ def test_get_backlog_url_parameter():
 def test_load_backlog_from_url_function():
     """Test the load backlog from URL function."""
     from pathlib import Path
-    
-    # Read the api-demo.js file
-    api_demo_file = Path(__file__).parent.parent / "src" / "kandown" / "statics" / "api-demo.js"
+
+    # Read the api-page.js file
+    api_demo_file = Path(__file__).parent.parent / "src" / "kandown" / "statics" / "api-page.js"
     content = api_demo_file.read_text()
-    
+
     # Verify the function exists
     assert "loadBacklogFromUrl" in content
     assert "fetch" in content

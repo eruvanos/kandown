@@ -5,9 +5,12 @@ A simple, markdown-inspired Kanban board powered by YAML and Flask.
 
 ![screenshot.png](docs/screenshot.png)
 
-## 🎯 Try the Demo
+## 🎯 Try the Online Page
 
-Try Kandown instantly without installation! Visit our **[live demo](https://eruvanos.github.io/kandown/)** - all data is stored locally in your browser.
+Try Kandown instantly without installation! 
+Visit our **[GitHub hosted page](https://eruvanos.github.io/kandown/)** - all data is stored locally in your browser.
+
+Or have a look on our projects [backlog](https://eruvanos.github.io/kandown/?backlog=https://raw.githubusercontent.com/eruvanos/kandown/refs/heads/main/backlog.yaml).
 
 ## Overview
 
@@ -28,12 +31,16 @@ The app features a clean, responsive web UI started by the CLI.
 - 🚀 **CLI**: Start the server, choose host/port/debug, auto-create YAML file if missing
 - 🌐 **Hybrid demo mode**: Try it in your browser with localStorage or connect to local files (Chrome/Edge)
 
-## Installation
+## Usage
 
-This project uses [uv](https://docs.astral.sh/uv/) for fast Python dependency management.
+You can install it or directly use it via `uvx`
 
 ```bash
-uv tool install git+https://github.com/eruvanos/kandown.git
+uv tool install kandown
+
+# even without installing, you can run it directly:
+
+uvx kandown [OPTIONS] [YAML_FILE]
 ```
 
 ## Usage
@@ -67,9 +74,9 @@ kandown
 kandown --port 5001 demo.yml
 ```
 
-## Demo Mode
+## Hosted Version
 
-Kandown includes a **hybrid demo mode** that runs entirely in your browser without requiring a server. The demo supports two storage modes:
+A GitHub hosted version of Kandown is hosted at **[https://eruvanos.github.io/kandown/](https://eruvanos.github.io/kandown/)**.
 
 ### Storage Modes
 
@@ -79,6 +86,8 @@ Kandown includes a **hybrid demo mode** that runs entirely in your browser witho
 - ✅ Quick trials without any setup
 - ✅ Privacy: Data stays in your browser
 - ✅ Offline use after initial load
+- ✅ Download data as YAML file
+- ✅ Import data from YAML file
 
 **File System Mode (Chrome/Edge Only - Optional):**
 - ✅ Connect to a local folder on your computer
@@ -86,26 +95,6 @@ Kandown includes a **hybrid demo mode** that runs entirely in your browser witho
 - ✅ Work with existing Kandown projects
 - ✅ True file system integration
 - ✅ Changes persist to actual files
-
-The demo automatically uses localStorage mode by default. Chrome and Edge users can optionally switch to File System mode through the settings panel (⚙️).
-
-### Try the Live Demo
-
-Visit **[https://eruvanos.github.io/kandown/](https://eruvanos.github.io/kandown/)** to try the demo mode immediately.
-
-### Build and Run Demo Locally
-
-To build and run the demo mode on your local machine:
-
-```bash
-# Build the demo (copies static assets)
-python scripts/build_demo.py
-
-# Serve the demo locally
-python -m http.server 8080 --directory demo
-
-# Open http://localhost:8080 in your browser
-```
 
 ### Demo Mode Features
 

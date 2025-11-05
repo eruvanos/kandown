@@ -1,7 +1,7 @@
 [project]
 name = "kandown"
 version = "0.1.0"
-description = "A markdown backed kanban board easy to use"
+description = "Kandown is a lightweight, markdown-inspired Kanban board application that lets you manage tasks using a simple YAML file, featuring a web UI, image and markdown support, and a hybrid demo mode for browser-based or local file storage."
 readme = "README.md"
 authors = [
     { name = "Maic Siemering", email = "maic@siemering.tech" }
@@ -16,6 +16,19 @@ dependencies = [
     "pydantic>=2.11.10",
     "waitress>=3.0.2",
 ]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Framework :: Flask",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Utilities",
+]
 
 [project.scripts]
 kandown = "kandown.cli:main"
@@ -23,6 +36,12 @@ kandown = "kandown.cli:main"
 [build-system]
 requires = ["uv_build>=0.8.22,<0.9.0"]
 build-backend = "uv_build"
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
 
 
 [tool.pytest.ini_options]

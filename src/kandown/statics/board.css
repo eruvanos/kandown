@@ -32,8 +32,8 @@
   --color-secondary: #1976d2;
   --color-success: rgba(17, 153, 142, 0.9);
   --color-success-light: rgba(82, 214, 107, 0.9);
-  --color-danger: #e53935;
-  --color-danger-dark: #b71c1c;
+  --color-danger: #a14946;
+  --color-danger-dark: #6a2222;
   --color-link: #007bff;
   --color-on-primary: #fff;
 
@@ -83,6 +83,10 @@ body {
   display: flex;
   flex-direction: column;
   color: var(--text-primary);
+}
+
+a {
+  color: var(--color-link);
 }
 
 .main-content {
@@ -197,14 +201,27 @@ body {
 .add-task {
   float: right;
   cursor: pointer;
-  font-size: 1.2em;
+  font-size: 1.5em;
   margin-left: 8px;
   color: var(--text-secondary);
   transition: color 0.2s;
 }
 
 .add-task:hover {
-  color: var(--color-link);
+  color: var(--color-link) !important;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 1em;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--btn-bg);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px var(--shadow-medium);
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 /* Floating controls container */
@@ -667,7 +684,7 @@ body {
 }
 
 /* Demo banner */
-.demo-banner {
+.page-banner {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   color: var(--color-on-primary, #fff);
   padding: 12px 20px;
@@ -677,17 +694,17 @@ body {
   display: none; /* Hidden by default, shown in demo mode */
 }
 
-.demo-banner.fs-active {
+.page-banner.fs-active {
   background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-light) 100%);
 }
 
-.demo-banner a {
-  color: var(--color-link, #fff);
+.page-banner a {
+  color: #fff;
   text-decoration: underline;
   font-weight: 600;
 }
 
-.demo-banner a:hover {
+.page-banner a:hover {
   opacity: 0.9;
 }
 

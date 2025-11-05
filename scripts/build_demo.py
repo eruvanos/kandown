@@ -20,22 +20,11 @@ def build_demo():
     # Ensure demo/static directory exists
     demo_statics_dir.mkdir(exist_ok=True)
 
-    # Files to copy from statics
-    files_to_copy = [
-        "api-cli.js",
-        "api-demo.js",
-        "api-filesystem.js",
-        "api.js",
-        "board.css",
-        "board.js",
-        "event-manager.js",
-        "favicon.svg",
-        "init.js",
-        "modal-manager.js",
-        "settings.js",
-        "types.js",
-        "ui-utils.js",
-    ]
+    # Find all .js and .css files in statics
+    js_css_files = list(src_statics.glob("*.js")) + list(src_statics.glob("*.css"))
+    # Also copy favicon.svg if present
+    extra_files = [src_statics / "favicon.svg"]
+    files_to_copy = js_css_files + [f for f in extra_files if f.exists()]
 
     print("Building Kandown demo...")
     print(f"Source: {src_statics}")
@@ -43,15 +32,12 @@ def build_demo():
     print()
 
     # Copy static files
-    for filename in files_to_copy:
-        src_file = src_statics / filename
-        dest_file = demo_statics_dir / filename
-
-        if src_file.exists():
-            shutil.copy2(src_file, dest_file)
-            print(f"✓ Copied {filename}")
-        else:
-            print(f"✗ Warning: {filename} not found in source")
+    if not files_to_copy:
+        print("✗ Warning: No .js or .css files found in source statics directory.")
+    for src_file in files_to_copy:
+        dest_file = demo_statics_dir / src_file.name
+        shutil.copy2(src_file, dest_file)
+        print(f"✓ Copied {src_file.name}")
 
     # copy index.html separately
     index_src = repo_root / "src" / "kandown" / "templates" / "index.html"

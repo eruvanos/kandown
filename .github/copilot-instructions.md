@@ -17,17 +17,7 @@ Kandown is a lightweight Kanban board application for managing tasks using a sim
   - `statics/`: Static files (CSS, JS, images) for the web UI.
     - `board.js`: Main Kanban board UI logic.
     - `board.css`: Kanban board styles.
-    - `api.js`: API factory for CLI/demo mode.
-    - `api-cli.js`: CLI server API implementation.
-    - `api-demo.js`: Demo mode API (localStorage/filesystem hybrid).
-    - `api-filesystem.js`: File System Access API implementation.
-    - `init.js`: Initialization and server detection logic.
-    - `settings.js`: Settings panel implementation.
-    - `modal-manager.js`: Modal dialog utilities.
-    - `event-manager.js`: Event handling and cleanup utilities.
-    - `ui-utils.js`: Reusable UI utility functions.
-    - `types.js`: JSDoc type definitions.
-    - `favicon.svg`: Application icon.
+    - ... (other static assets)
 - `scripts/`: Build and deployment scripts.
   - `build_demo.py`: Copies static assets to the demo directory.
   - `clean_demo.py`: Cleans old files from the demo directory.

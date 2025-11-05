@@ -7,28 +7,19 @@ body.mode-cli .show-cli {
   display: revert !important;
 }
 
-/* Show only in demo localStorage mode */
-.show-demo-local {
+/* Show only in page localStorage mode */
+.show-page-local {
   display: none !important;
 }
-body.mode-demo-local .show-demo-local {
+body.mode-page-local .show-page-local {
   display: revert !important;
 }
 
-/* Show only in demo filesystem mode */
-.show-demo-file {
+/* Show only in page filesystem mode (now 'page-fs') */
+.show-page-fs {
   display: none !important;
 }
-body.mode-demo-file .show-demo-file {
-  display: revert !important;
-}
-
-/* Show in any demo mode (localStorage OR filesystem) */
-.show-demo {
-  display: none !important;
-}
-body.mode-demo-local .show-demo,
-body.mode-demo-file .show-demo {
+body.mode-page-fs .show-page-fs {
   display: revert !important;
 }
 
@@ -48,28 +39,19 @@ body.mode-cli .hide-cli {
   display: none !important;
 }
 
-/* Hide in demo localStorage mode */
-.hide-demo-local {
+/* Hide in page localStorage mode */
+.hide-page-local {
   display: revert !important;
 }
-body.mode-demo-local .hide-demo-local {
+body.mode-page-local .hide-page-local {
   display: none !important;
 }
 
-/* Hide in demo filesystem mode */
-.hide-demo-file {
+/* Hide in page filesystem mode (now 'page-fs') */
+.hide-page-fs {
   display: revert !important;
 }
-body.mode-demo-file .hide-demo-file {
-  display: none !important;
-}
-
-/* Hide in any demo mode */
-.hide-demo {
-  display: revert !important;
-}
-body.mode-demo-local .hide-demo,
-body.mode-demo-file .hide-demo {
+body.mode-page-fs .hide-page-fs {
   display: none !important;
 }
 
