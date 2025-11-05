@@ -13,13 +13,21 @@ class FileSystemAPI {
     static fileHandle = null;
     static directoryHandle = null;
     static backlogData = null;
-    
+
+    /**
+     * Initializes the API (no-op for CLI mode).
+     * @returns {Promise<void>}
+     */
+    async init(){
+        // No initialization implemented here
+    }
+
     /**
      * Try to restore a previous directory connection from IndexedDB
      */
     static async restoreConnection() {
         try {
-            const handle = await idbGet('directory-handle');
+            const handle = await idbGet('kandown-directory-handle');
             if (!handle) return false;
             
             // Verify we still have permission
@@ -50,7 +58,7 @@ class FileSystemAPI {
             });
             
             // Save handle to IndexedDB for later restoration
-            await idbSet('directory-handle', this.directoryHandle);
+            await idbSet('kandown-directory-handle', this.directoryHandle);
             
             // Try to find backlog.yaml in the directory
             await this._findBacklogFile();
@@ -108,7 +116,7 @@ class FileSystemAPI {
         this.fileHandle = null;
         this.directoryHandle = null;
         this.backlogData = null;
-        await idbDel('directory-handle');
+        await idbDel('kandown-directory-handle');
     }
     
     /**
@@ -116,7 +124,7 @@ class FileSystemAPI {
      */
     static async loadBacklogData() {
         if (!this.fileHandle) {
-            throw new Error('No file handle available');
+            await this.restoreConnection()
         }
         
         const file = await this.fileHandle.getFile();
@@ -132,7 +140,7 @@ class FileSystemAPI {
      */
     static async writeBacklogData(data) {
         if (!this.fileHandle) {
-            throw new Error('No file handle available');
+            await this.restoreConnection()
         }
         
         // Create a writable stream
@@ -149,13 +157,6 @@ class FileSystemAPI {
     }
     
     /**
-     * Check if we have file system access
-     */
-    static hasAccess() {
-        return this.fileHandle !== null;
-    }
-    
-    /**
      * Upload an image file to the .backlog folder
      * @param {string} taskId - The task ID to associate with the image
      * @param {File} file - The image file to upload
@@ -163,7 +164,7 @@ class FileSystemAPI {
      */
     static async uploadImage(taskId, file) {
         if (!this.directoryHandle) {
-            throw new Error('No directory handle available');
+            await this.restoreConnection()
         }
         
         await this.verifyPermission();
@@ -206,7 +207,7 @@ class FileSystemAPI {
      */
     static async loadImage(filename) {
         if (!this.directoryHandle) {
-            throw new Error('No directory handle available');
+            await this.restoreConnection()
         }
         
         await this.verifyPermission(null, false); // Read-only permission is enough
@@ -267,6 +268,15 @@ class FileSystemAPI {
  * TaskAPI implementation using File System Access API
  */
 export class FileSystemTaskAPI {
+
+    /**
+     * Initializes the API (no-op for CLI mode).
+     * @returns {Promise<void>}
+     */
+    async init(){
+        // No initialization implemented here
+    }
+
     async getTasks() {
         await FileSystemAPI.verifyPermission();
         const data = await FileSystemAPI.loadBacklogData();

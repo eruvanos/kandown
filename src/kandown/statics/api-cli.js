@@ -10,10 +10,19 @@
  */
 
 /**
- * @class TaskAPI
+ * @class CliTaskAPI
  * @classdesc Handles all task-related backend interactions.
  */
-class TaskAPI {
+class CliTaskAPI {
+
+    /**
+     * Initializes the API (no-op for CLI mode).
+     * @returns {Promise<void>}
+     */
+    async init(){
+        // No initialization needed for CLI mode
+    }
+
     /**
      * Creates a new task with the given status.
      * @param {string} status
@@ -152,4 +161,4 @@ class SettingsAPI {
 }
 
 // Create default instances for backward compatibility
-export { TaskAPI, SettingsAPI };
+export { CliTaskAPI, SettingsAPI };

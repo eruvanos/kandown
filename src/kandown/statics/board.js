@@ -1,13 +1,16 @@
 // Import dependencies
-import {SettingsAPI, TaskAPI, initializeAPIs, getStorageMode} from './api.js';
+import {initializeAPIFactories, SettingsAPI, TaskAPI} from './api.js';
 import {ModalManager} from './modal-manager.js';
 import {EventManager} from './event-manager.js';
 import {createButton, createDiv, createElement, createInput, createSpan} from './ui-utils.js';
-import {initializeApp, getServerMode, isReadOnly} from './init.js';
+import {detectMode} from "./mode.js";
+import {initSettingsUI} from "./settings.js";
+import {initUIForMode} from "./ui.js";
 
 /**
  * @typedef {import('./types.js').Task}
  * @typedef {import('./types.js').Columns}
+ * @typedef {import('./types.js').ServerMode}
  */
 
 // --- State ---
@@ -16,36 +19,46 @@ let doneCollapsed = {};
 const eventManager = new EventManager();
 let taskAPI = null;
 let settingsAPI = null;
+
+/**
+ * @type {ServerMode}
+ */
+let serverMode = 'unknown';
 let readOnlyMode = false;
 
-// --- Kanban Board Setup ---
-// Cache for filesystem image data URLs
+/**
+ * Cached filesystem image data URLs
+ *
+ * @type {Map<any, any>}
+ */
 const filesystemImageCache = new Map();
 
-if (window.marked) {
-    const renderer = new marked.Renderer();
-    renderer.checkbox = ({checked}) => `<input ${checked === true ? 'checked="" ' : ''} type="checkbox"/>`;
+async function initRenderers() {
+    if (window.marked) {
+        const renderer = new marked.Renderer();
+        renderer.checkbox = ({checked}) => `<input ${checked === true ? 'checked="" ' : ''}${readOnlyMode ? ' disabled ' : ''} type="checkbox"/>`;
 
-    // Custom image renderer for filesystem mode
-    const originalImageRenderer = renderer.image.bind(renderer);
-    renderer.image = ({href, title, text}) => {
-        // In filesystem mode, mark images for async loading
-        if (getServerMode() === 'demo' && getStorageMode() === 'filesystem' && href.includes('/api/attachment/')) {
-            // Extract filename
-            const match = href.match(/\/api\/attachment\/(.+)$/);
-            if (match) {
-                const filename = match[1];
-                // Use a placeholder data attribute to mark for loading
-                const titleAttr = title ? ` title="${title}"` : '';
-                const altAttr = text ? ` alt="${text}"` : '';
-                return `<img src="" data-fs-image="${filename}"${titleAttr}${altAttr} class="fs-loading-image"/>`;
+        // Custom image renderer for filesystem mode
+        const originalImageRenderer = renderer.image.bind(renderer);
+        renderer.image = ({href, title, text}) => {
+            // In filesystem mode, mark images for async loading
+            if (serverMode === 'page-fs' && href.includes('/api/attachment/')) {
+                // Extract filename
+                const match = href.match(/\/api\/attachment\/(.+)$/);
+                if (match) {
+                    const filename = match[1];
+                    // Use a placeholder data attribute to mark for loading
+                    const titleAttr = title ? ` title="${title}"` : '';
+                    const altAttr = text ? ` alt="${text}"` : '';
+                    return `<img src="" data-fs-image="${filename}"${titleAttr}${altAttr} class="fs-loading-image"/>`;
+                }
             }
-        }
-        // For all other cases, use default renderer
-        return originalImageRenderer({href, title, text});
-    };
+            // For all other cases, use default renderer
+            return originalImageRenderer({href, title, text});
+        };
 
-    marked.setOptions({renderer});
+        marked.setOptions({renderer});
+    }
 }
 
 // --- Helpers ---
@@ -76,7 +89,7 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
                 if (storeImagesInSubfolder && taskId) {
 
                     // Todo, this should be in api.js
-                    if (getServerMode() === 'cli') {
+                    if (serverMode === 'cli') {
                         // Upload image to backend
                         const formData = new FormData();
                         formData.append('file', file);
@@ -98,7 +111,7 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
                         } catch (err) {
                             alert('Image upload error.');
                         }
-                    } else if (getServerMode() === 'demo' && getStorageMode() === 'filesystem') {
+                    } else if (serverMode === 'demo' && getStorageMode() === 'filesystem') {
                         // Demo mode with filesystem storage: save image to filesystem
                         try {
                             const result = await taskAPI.uploadImage(taskId, file);
@@ -186,11 +199,6 @@ let placeholderEl = null;
  * @returns {void}
  */
 function makeDraggable() {
-    // Skip making cards draggable in read-only mode
-    if (readOnlyMode) {
-        return;
-    }
-    
     document.querySelectorAll('.task').forEach(function (card, idx) {
         card.setAttribute('draggable', 'true');
         card.addEventListener('dragstart', function (e) {
@@ -492,13 +500,13 @@ function createTaskHeader(task) {
     const headRow = createElement('div', 'task-id-row');
 
     const {typeBtn, dropdown} = createTypeDropdown(task);
-    
+
     // Disable type changes in read-only mode
     if (readOnlyMode) {
         typeBtn.style.pointerEvents = 'none';
         typeBtn.style.cursor = 'default';
     }
-    
+
     headRow.append(typeBtn);
     headRow.appendChild(dropdown);
 
@@ -532,10 +540,6 @@ function createTaskHeader(task) {
  * @returns {Promise<void>}
  */
 async function processFilesystemImages(element) {
-    if (getServerMode() !== 'demo' || getStorageMode() !== 'filesystem') {
-        return; // Only process in filesystem mode
-    }
-    
     const images = element.querySelectorAll('img[data-fs-image]');
     const loadPromises = [];
 
@@ -632,14 +636,22 @@ function createTaskText(task, focusTaskId) {
                 });
 
                 // Process filesystem images asynchronously
-                processFilesystemImages(tmp).catch(err => {
-                    console.error('Error processing filesystem images:', err);
-                }).then(() => {
-                    // After images are loaded, append the content
+                if (serverMode === 'page-fs') {
+                    processFilesystemImages(tmp).catch(err => {
+                        console.error('Error processing filesystem images:', err);
+                    }).then(() => {
+                        // After images are loaded, append the content
+                        while (tmp.firstChild) {
+                            textSpan.appendChild(tmp.firstChild);
+                        }
+                    });
+                } else {
+                    // Directly append content if no filesystem images
                     while (tmp.firstChild) {
                         textSpan.appendChild(tmp.firstChild);
                     }
-                });
+                }
+
             } else {
                 textSpan.textContent = task.text;
             }
@@ -717,7 +729,7 @@ function createTagsSection(task, el) {
     (task.tags || []).forEach(tag => {
         const tagLabel = createElement('span', 'tag-label');
         tagLabel.textContent = tag;
-        
+
         // Don't show remove button in read-only mode
         if (!readOnlyMode) {
             const removeBtn = createButton({
@@ -732,7 +744,7 @@ function createTagsSection(task, el) {
             });
             tagLabel.appendChild(removeBtn);
         }
-        
+
         tagsDiv.appendChild(tagLabel);
     });
 
@@ -829,11 +841,6 @@ function createTagsSection(task, el) {
  * @param {HTMLElement} textSpan - The text element to replace with textarea
  */
 function attachTaskEditHandler(el, task, textSpan) {
-    // Skip edit handler in read-only mode
-    if (readOnlyMode) {
-        return;
-    }
-    
     el.addEventListener('click', function (e) {
         if (
             e.target.classList.contains('tags') ||
@@ -978,21 +985,26 @@ function renderTasks(focusCallback, focusTaskId) {
             el.appendChild(tagsDiv);
 
             // Attach edit handler
-            attachTaskEditHandler(el, task, textSpan);
+            if (!readOnlyMode) {
+                attachTaskEditHandler(el, task, textSpan);
+            }
 
             // Create and append tooltip
             createTaskTooltip(task, el);
 
             // Create and append plus button
             if (!readOnlyMode) {
-                const plusBtn = createPlusButton(task);
-                el.appendChild(plusBtn);
+                // todo fix plus button placement and functionality
+                // const plusBtn = createPlusButton(task);
+                // el.appendChild(plusBtn);
             }
 
             columns[task.status].appendChild(el);
         });
 
-        makeDraggable();
+        if (!readOnlyMode) {
+            makeDraggable();
+        }
         if (focusCallback) focusCallback();
     });
 }
@@ -1070,26 +1082,33 @@ function handleCheckboxClick(ev) {
     });
 }
 
-// --- Update UI based on current storage mode (demo mode only)
-// REMOVED: This function has been moved to init.js
-
 // --- Main Entrypoint ---
 async function initBoardApp() {
     // Initialize and check server availability
     // This also sets up the UI for the detected mode
-    await initializeApp();
-    
-    // Initialize the appropriate API implementations based on server mode
-    await initializeAPIs();
+    serverMode = await detectMode();
+    readOnlyMode = (serverMode === 'readOnly');
 
-    // Create API instances
+    // Initialize UI for the detected server mode
+    await initUIForMode(serverMode)
+
+    // Initialize the appropriate API implementations based on server mode
+    await initializeAPIFactories(serverMode);
+
+    // init renderer
+    await initRenderers()
+
+    // Create API instances after factories are initialized
     taskAPI = new TaskAPI();
+    await taskAPI.init()
+    window.taskApi = taskAPI; // Expose for debugging
+
     settingsAPI = new SettingsAPI();
-    
+    await initSettingsUI(taskAPI, settingsAPI, serverMode);
+
     // Check if we're in read-only mode
-    readOnlyMode = isReadOnly();
-    
     // Update UI for read-only mode
+    // TODO move this to a separate function
     if (readOnlyMode) {
         console.log('📖 Read-only mode enabled - modifications disabled');
         // Hide all "Add task" buttons
@@ -1104,14 +1123,15 @@ async function initBoardApp() {
             indicator.style.cursor = 'default';
         }
     }
-    
+
+    // Setup columns and drag-and-drop
     columns = {
         'todo': document.getElementById('todo-col'),
         'in_progress': document.getElementById('inprogress-col'),
         'done': document.getElementById('done-col')
     };
     setupDropZones();
-    
+
     // Setup add task buttons
     document.querySelectorAll('.add-task').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1120,9 +1140,15 @@ async function initBoardApp() {
             addTask(status);
         });
     });
-    
-    window.renderTasks = renderTasks;
+
     renderTasks();
 }
 
-window.addEventListener('DOMContentLoaded', initBoardApp);
+window.renderTasks = renderTasks; // Expose for debugging
+
+// Initialize the board app once the DOM is fully loaded
+if (document.readyState !== "loading") {
+    setTimeout(initBoardApp, 0);
+} else {
+    document.addEventListener("DOMContentLoaded", initBoardApp);
+}

@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6.2.1/dist/umd.js"></script>
   <script type="module" src="./statics/board.js"></script>
-  <script type="module" src="./statics/settings.js"></script>
   <link rel="icon" type="image/svg+xml" href="./statics/favicon.svg">
   <link rel="stylesheet" href="./statics/board.css">
   <link rel="stylesheet" href="./statics/visibility.css">
@@ -16,11 +15,11 @@
 <body>
 
 <!-- Demo Mode Banner and Storage Mode Indicator -->
-<div id="demo-banner" class="demo-banner show-demo show-readOnly">
+<div id="page-banner" class="page-banner show-page-fs show-page-local show-readOnly">
   🎯 Demo Mode - Data stored in browser localStorage |
   <a href="https://github.com/eruvanos/kandown" target="_blank">View on GitHub</a>
 </div>
-<div id="storage-mode-indicator" class="storage-mode-indicator show-demo">
+<div id="storage-mode-indicator" class="storage-mode-indicator hide-cli hide-readOnly">
   💾 localStorage
 </div>
 
@@ -28,19 +27,19 @@
   <h1 style="text-align:center;">Kanban Board</h1>
   <div id="board" class="board">
     <div class="column" id="todo-col">
-      <h2>📝 To Do <span class="add-task" data-status="todo" title="Add task">&#x2795;</span></h2>
+      <h2>📝 To Do <span class="add-task" data-status="todo" title="Add task">+</span></h2>
     </div>
     <div class="column" id="inprogress-col">
-      <h2>⏳ In Progress <span class="add-task" data-status="in_progress" title="Add task">&#x2795;</span></h2>
+      <h2>⏳ In Progress <span class="add-task" data-status="in_progress" title="Add task">+</span></h2>
     </div>
     <div class="column" id="done-col">
-      <h2>✅ Done <span class="add-task" data-status="done" title="Add task">&#x2795;</span></h2>
+      <h2>✅ Done <span class="add-task" data-status="done" title="Add task">+</span></h2>
     </div>
   </div>
 </div>
 <div class="floating-controls">
-  <button id="import-toggle" class="floating-control-secondary show-demo-local" title="Import from backlog.yaml" style="display: none;">📥</button>
-  <button id="download-toggle" class="floating-control-secondary show-demo-local" title="Download backlog.yaml">💾</button>
+  <button id="import-toggle" class="floating-control-secondary show-page-local" title="Import from backlog.yaml" style="display: none;">📥</button>
+  <button id="download-toggle" class="floating-control-secondary show-page-local" title="Download backlog.yaml">💾</button>
   <button id="settings-toggle" class="floating-control-secondary hide-readOnly" title="Settings">⚙️</button>
   <button id="darkmode-toggle" class="floating-control-primary" title="Toggle dark mode">🌙</button>
 </div>
@@ -74,7 +73,7 @@
       </div>
     </div>
     <!-- New setting for image storage mode (only in CLI or demo-file modes) -->
-    <div class="setting-item hide-demo-local">
+    <div class="setting-item hide-page-local">
       <div style="display:flex; align-items:center; margin-bottom:8px;">
         <div class="checkbox-toggle" style="margin-left:8px;">
           <input type="checkbox" id="store-images-in-subfolder"/>
@@ -103,21 +102,10 @@
         </span>
       </div>
     </div>
-    <!-- Demo mode specific settings (demo-local only) -->
-    <div class="setting-item show-demo-local">
-      <button id="clear-data-btn"
-              style="background: #e53935; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: 600; margin-top: 12px;">
-        🗑️ Clear All Data
-      </button>
-      <div class="setting-desc"
-           style="margin-left:0; margin-top: 8px; background:rgba(247,247,250,0.27); border-radius:7px; padding:12px 16px; margin-bottom:12px;">
-        <strong>Warning:</strong> This will delete all tasks and settings stored in your browser's local storage. This
-        action cannot be undone.
-      </div>
-    </div>
+
     <!-- Storage Mode Section (demo mode only) -->
-    <div class="setting-item show-demo"
-         style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
+    <div class="setting-item show-page-local show-page-fs"
+         style="margin-top: 24px; padding-top: 24px; ">
       <h3 style="margin-top: 0; margin-bottom: 16px;">💾 Storage Mode</h3>
       <div style="margin-bottom: 16px;">
         <p style="margin: 8px 0; font-size: 0.95em;">
@@ -143,6 +131,24 @@
         in this browser.
       </div>
     </div>
+
+    <!-- Demo mode specific settings (demo-local only) -->
+    <div class="setting-item show-page-local" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; margin-bottom: 16px;">🚨 Danger Zone</h3>
+      <button id="reset-data-btn"
+              style="background: #ff2924; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: 600; margin-top: 12px;">
+        🔄  Restore tutorial content
+      </button>
+      <button id="clear-data-btn"
+              style="background: #ff2924; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: 600; margin-top: 12px;">
+        🗑️ Clear All Data
+      </button>
+      <div class="setting-desc"
+           style="margin-left:0; margin-top: 8px; background:rgba(247,247,250,0.27); border-radius:7px; padding:12px 16px; margin-bottom:12px;">
+        <strong>Warning:</strong> These will delete all tasks and settings stored in your browser's local storage. This
+        actions cannot be undone.
+      </div>
+    </div>
   </div>
 </div>
 <footer style="text-align:center; margin-top:48px; color:#888; font-size:1em;">
@@ -152,7 +158,7 @@
                      style="color:#2c3e50; text-decoration:underline;">github.com/eruvanos/kandown</a>
   </div>
   <div style="margin-top:8px; margin-bottom:16px; font-size:0.95em;">
-    Developed together with the <span style="font-weight:bold; color:#24292f;">GitHub Copilot</span> agent
+    Developed together with <span style="font-weight:bold; color:#72818f;">GitHub Copilot</span>
   </div>
 </footer>
 </body>
