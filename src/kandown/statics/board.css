@@ -272,6 +272,31 @@ a {
   transition: background 0.2s, color 0.2s;
 }
 
+/* Floating control tooltips */
+.floating-controls button {
+  position: relative;
+}
+
+.floating-controls button:hover::after,
+.floating-controls button:focus::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 12px;
+  background: var(--bg-secondary);
+  color: var(--modal-text);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85em;
+  box-shadow: 0 2px 8px var(--shadow-medium);
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+}
+
 /* Hourglass icon and tooltip */
 .task-hourglass {
   position: absolute;
