@@ -276,7 +276,7 @@ wheels = [
 
 [[package]]
 name = "kandown"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "." }
 dependencies = [
     { name = "atomicwrites" },
