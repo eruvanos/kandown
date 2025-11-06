@@ -53,7 +53,7 @@ jobs:
 
       - name: Set up deploy key
         env:
-          DEPLOY_KEY: ${{ secrets.GITHUB_DEPLOY_KEY }} # <-- Add your deploy key secret
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }} # <-- Add your deploy key secret
         run: |
           echo "$DEPLOY_KEY" > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
