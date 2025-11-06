@@ -56,7 +56,7 @@ class LocalStorageTaskAPI {
                     status: "todo",
                     tags: ["demo"],
                     order: 0,
-                    type: "task"
+                    type: "feature"
                 },
                 {
                     id: generateId(),
@@ -64,7 +64,7 @@ class LocalStorageTaskAPI {
                     status: "todo",
                     tags: ["tutorial"],
                     order: 1,
-                    type: "task"
+                    type: "feature"
                 },
                 {
                     id: generateId(),
@@ -72,7 +72,7 @@ class LocalStorageTaskAPI {
                     status: "in_progress",
                     tags: ["tutorial"],
                     order: 0,
-                    type: "task"
+                    type: "feature"
                 },
                 {
                     id: generateId(),
@@ -80,7 +80,7 @@ class LocalStorageTaskAPI {
                     status: "in_progress",
                     tags: ["tutorial"],
                     order: 1,
-                    type: "task"
+                    type: "feature"
                 },
                 {
                     id: generateId(),
@@ -88,7 +88,7 @@ class LocalStorageTaskAPI {
                     status: "in_progress",
                     tags: ["tutorial"],
                     order: 1,
-                    type: "task"
+                    type: "feature"
                 },
                 {
                     id: generateId(),
@@ -96,7 +96,7 @@ class LocalStorageTaskAPI {
                     status: "done",
                     tags: ["demo"],
                     order: 0,
-                    type: "task"
+                    type: "feature"
                 }
             ];
             localStorage.setItem(STORAGE_KEY, JSON.stringify(demoTasks));

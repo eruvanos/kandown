@@ -432,7 +432,7 @@ const TASK_TYPE_MAP = {
  * @returns {{typeBtn: HTMLElement, dropdown: HTMLElement}} Type button and dropdown elements
  */
 function createTypeDropdown(task) {
-    const typeInfo = TASK_TYPE_MAP[task.type] || {icon: '', label: task.type || ''};
+    const typeInfo = TASK_TYPE_MAP[task.type] || {icon: '⭐️', label: 'feature'};
     const typeBtn = createButton({
         className: 'task-type-btn',
         title: typeInfo.label,
