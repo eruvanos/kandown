@@ -54,7 +54,7 @@ jobs:
 
       - name: Push commit to master
         run: |
-          git push origin HEAD:master
+          git push
 
       - name: Create tag
         run: |
