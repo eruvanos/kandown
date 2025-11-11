@@ -139,6 +139,12 @@ kandown/
 - **JavaScript**: Use modern ES6+, JSDoc comments for types, no transpilation needed
 - **Tests**: Use pytest, maintain high coverage, test both backend and frontend scenarios
 
+### Frontend Styling
+
+- Use CSS variables for theming
+- Keep styles within `statics/board.css`
+- Use `visibility.css` for utility classes if needed
+
 ### Adding Features
 1. **Backend**: Add API endpoint in `app.py`, update models if needed, add tests
 2. **Frontend**: Update relevant `statics/*.js` file, ensure all API modes work
@@ -148,6 +154,7 @@ kandown/
 - Run tests: `pytest` or `uv run pytest`
 - Tests use `conftest.py` fixtures for Flask app and temporary YAML files
 - E2E tests verify full user workflows (create, update, move, delete tasks)
+- When starting the server always use port `5002` for tests to avoid conflictsuv run kandown test-dividers.yaml
 
 ### Image Handling
 - Images can be base64-encoded in YAML (bloats file but simple)

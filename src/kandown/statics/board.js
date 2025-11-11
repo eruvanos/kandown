@@ -424,6 +424,7 @@ const TASK_TYPE_MAP = {
     bug: {icon: '🐞', label: 'bug'},
     request: {icon: '🗣️', label: 'request'},
     experiment: {icon: '🧪', label: 'experiment'},
+    divider: {icon: '➖', label: 'divider'},
 };
 
 /**
@@ -938,6 +939,70 @@ function createPlusButton(task) {
     });
 }
 
+function create_divider(el, task) {
+    el.classList.add('task-divider');
+
+    // Create single row container
+    const dividerRow = createElement('div', 'divider-row');
+
+    // Left: Type button and dropdown
+    const {typeBtn, dropdown} = createTypeDropdown(task);
+    if (readOnlyMode) {
+        typeBtn.style.pointerEvents = 'none';
+        typeBtn.style.cursor = 'default';
+    }
+    dividerRow.appendChild(typeBtn);
+    dividerRow.appendChild(dropdown);
+
+    // Center: Title text
+    const textSpan = document.createElement('span');
+    textSpan.className = 'divider-text';
+    if (!task.text || task.text.trim() === '') {
+        textSpan.textContent = '━━━━━━━━━━━━';
+        textSpan.style.opacity = '0.7';
+    } else {
+        textSpan.textContent = task.text.split('\n')[0].trim();
+    }
+
+    // Make divider text editable on click (if not read-only)
+    if (!readOnlyMode) {
+        textSpan.style.cursor = 'pointer';
+        textSpan.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const textarea = createTextarea(task.text || '', function () {
+                if (textarea.value.trim() !== task.text) {
+                    taskAPI.updateTaskText(task.id, textarea.value).then(() => renderTasks());
+                } else {
+                    renderTasks();
+                }
+            }, function (e) {
+                if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textarea.blur();
+                else if (e.key === 'Escape') renderTasks();
+            }, task.id);
+            textSpan.replaceWith(textarea);
+            setTimeout(() => textarea.focus(), 10);
+        });
+    }
+    dividerRow.appendChild(textSpan);
+
+    // Right: Delete button
+    if (!readOnlyMode) {
+        const deleteBtn = createSpan({
+            className: 'delete-task-btn',
+            title: 'Delete divider',
+            innerHTML: '&#10060;',
+            onClick: function (e) {
+                e.stopPropagation();
+                showDeleteModal(task.id);
+            }
+        });
+        dividerRow.appendChild(deleteBtn);
+    }
+
+    el.appendChild(dividerRow);
+    columns[task.status].appendChild(el);
+}
+
 /**
  * Renders all tasks to the board.
  * @param {Function} [focusCallback]
@@ -962,6 +1027,12 @@ function renderTasks(focusCallback, focusTaskId) {
                     order: task.order.toString() || '0'
                 }
             });
+
+            // Special handling for divider tasks
+            if (task.type === 'divider') {
+                create_divider(el, task);
+                return;
+            }
 
             // Create header with type, ID, and delete button
             const {headRow, typeBtn, idDiv, buttonGroup} = createTaskHeader(task);

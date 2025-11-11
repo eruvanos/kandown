@@ -140,6 +140,51 @@ a {
   opacity: 0.5;
 }
 
+/* Divider task styling - compact and highlighted */
+.task.task-divider {
+  padding: 10px 10px 10px 6px; /* space for left border */
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  border-left: 4px solid var(--color-secondary);
+  box-shadow: 0 2px 4px var(--shadow-medium);
+}
+
+.task.task-divider .divider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.task.task-divider .task-type-btn {
+  flex-shrink: 0;
+  color: var(--color-on-primary);
+  border-radius: 4px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.task.task-divider .divider-text {
+  flex: 1;
+  text-align: center;
+  font-size: 0.95em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task.task-divider .delete-task-btn {
+  flex-shrink: 0;
+  color: var(--color-on-primary);
+}
+
+.task.task-divider .delete-task-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
 .task-placeholder {
   border-top: 3px solid var(--color-primary);
   margin: 2px 0;
@@ -333,17 +378,20 @@ a {
 }
 
 .delete-task-btn {
-  display: none;
+  visibility: hidden;
   cursor: pointer;
   line-height: 19px;
+  opacity: 0.7;
+  transition: opacity 0.2s, transform 0.2s;
 }
 
 .task:hover .delete-task-btn {
-  display: inline;
+  visibility: visible;
 }
 
 .delete-task-btn:hover {
   color: var(--color-danger-dark);
+  opacity: 1;
   transform: scale(1.1);
 }
 
@@ -354,6 +402,12 @@ a {
 }
 
 .type-dropdown {
+  position: relative;
+  left: 40px;
+  margin-top: 4px;
+  z-index: 100;
+
+
   font-family: inherit;
   border-radius: 6px;
   overflow: hidden;
@@ -362,11 +416,11 @@ a {
 
 
 .type-option:hover {
-  background: #f3f4f6;
+  background: var(--btn-hover);
 }
 
 .type-option-selected {
-  background: #e3e7fa;
+  background: var(--color-primary);
   font-weight: bold;
 }
 
@@ -539,6 +593,7 @@ a {
 }
 
 .task-type-btn {
+  position: relative;
   margin-right: 8px;
   border: none;
   background: transparent;
@@ -583,6 +638,8 @@ a {
 }
 
 .type-option {
+  color: var(--text-primary);
+  font-weight: 600;
   padding: 8px 12px;
   cursor: pointer;
   transition: background-color 0.2s;

@@ -12,6 +12,7 @@ class TaskType(str, Enum):
     epic = "epic"
     request = "request"
     experiment = "experiment"
+    divider = "divider"
 
 
 class Task(BaseModel):
