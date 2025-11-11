@@ -45,16 +45,16 @@ class LocalStorageTaskAPI {
     async init() {
         const existing = localStorage.getItem(STORAGE_KEY);
         if (!existing) {
-            // No tasks exist, reset the counter to 0 before generating demo tasks
+            // No tasks exist, reset the counter to 0 before generating page tasks
             localStorage.setItem(LAST_ID_KEY, '0');
 
-            // Initialize with demo tasks
+            // Initialize with page tasks
             const demoTasks = [
                 {
                     id: generateId(),
-                    text: "Welcome to Kandown Demo! 🎉\n\nThis is a demo mode running entirely in your browser. All your data is stored locally using localStorage.",
+                    text: "Welcome to Kandown Demo! 🎉\n\nThis is a page mode running entirely in your browser. All your data is stored locally using localStorage.",
                     status: "todo",
-                    tags: ["demo"],
+                    tags: ["page"],
                     order: 0,
                     type: "feature"
                 },
@@ -94,7 +94,7 @@ class LocalStorageTaskAPI {
                     id: generateId(),
                     text: "All done! ✅\n\nYour changes are automatically saved to localStorage.\n\nTo clear all data, use the settings menu (⚙️ button).",
                     status: "done",
-                    tags: ["demo"],
+                    tags: ["page"],
                     order: 0,
                     type: "feature"
                 }
@@ -287,7 +287,7 @@ class LocalStorageSettingsAPI {
     }
 }
 
-// Clear all data function (for demo mode only)
+// Clear all data function (for page mode only)
 export function clearAllData() {
     if (confirm('Are you sure you want to delete all tasks and settings? This cannot be undone!')) {
         localStorage.removeItem(STORAGE_KEY);

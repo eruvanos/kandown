@@ -25,7 +25,7 @@ def index():
 
 @app.route("/statics/<path:path>")
 def serve_demo(path):
-    # Serve demo static files first
+    # Serve page static files first
     statics_path = STATICS_DIR / path
     if statics_path.is_file():
         return send_from_directory(STATICS_DIR, path)
@@ -34,6 +34,7 @@ def serve_demo(path):
 
 @app.route("/api/health")
 def health():
+    # Simulate static health response
     return jsonify({"available": False})
 
 

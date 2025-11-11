@@ -111,7 +111,7 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
                         } catch (err) {
                             alert('Image upload error.');
                         }
-                    } else if (serverMode === 'demo' && getStorageMode() === 'filesystem') {
+                    } else if (serverMode === 'page' && getStorageMode() === 'filesystem') {
                         // Demo mode with filesystem storage: save image to filesystem
                         try {
                             const result = await taskAPI.uploadImage(taskId, file);

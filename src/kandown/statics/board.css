@@ -716,7 +716,7 @@ a {
   text-align: center;
   font-weight: 500;
   box-shadow: 0 2px 8px var(--shadow-color, rgba(0, 0, 0, 0.15));
-  display: none; /* Hidden by default, shown in demo mode */
+  display: none; /* Hidden by default, shown in page mode */
 }
 
 .page-banner.fs-active {
@@ -743,7 +743,7 @@ a {
   border-radius: 6px;
   font-size: 0.9em;
   z-index: 1000;
-  display: none; /* Hidden by default, shown in demo mode */
+  display: none; /* Hidden by default, shown in page mode */
   cursor: pointer;
 }
 

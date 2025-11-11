@@ -157,11 +157,11 @@ Existing tools (from https://bye-tracker.net/):
 To build and run the demo mode on your local machine:
 
 ```bash
-# Build the demo (copies static assets)
-python scripts/build_demo.py
+# Build the page (copies static assets)
+python scripts/build_page.py
 
-# Serve the demo locally
-python -m http.server 8080 --directory demo
+# Serve the page locally
+python -m http.server 8080 --directory page
 
 # Open http://localhost:8080 in your browser
 ```

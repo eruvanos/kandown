@@ -171,9 +171,7 @@ class YamlTaskRepository(TaskRepository):
         """
         with atomic_write(self.yaml_path, mode="w", encoding="utf-8", overwrite=True) as f:
             f.write("# Project page: https://github.com/eruvanos/kandown\n")
-            f.write(
-                "# To open this file with uv, run: uv run --with git+https://github.com/eruvanos/kandown kandown demo.yml\n"
-            )
+            f.write(f"# To open this file with uv, run: uv run kandown {self.yaml_path.name}\n")
             yaml.safe_dump(self.backlog_data.to_dict(), f, allow_unicode=True)
         # Trigger change event after saving
         # self.change_event.set()

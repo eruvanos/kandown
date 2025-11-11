@@ -1,4 +1,4 @@
-"""Test URL parameter backlog loading in demo mode."""
+"""Test URL parameter backlog loading in page mode."""
 
 import pytest
 from pathlib import Path
@@ -7,7 +7,7 @@ from playwright.sync_api import expect
 
 @pytest.mark.e2e
 def test_demo_mode_loads_backlog_from_url_parameter(page, context):
-    """Test that demo mode can load a backlog file from URL parameter."""
+    """Test that page mode can load a backlog file from URL parameter."""
     # Create a test YAML file
     test_yaml_content = """settings:
   darkmode: false
@@ -30,15 +30,15 @@ tasks:
   type: task
 """
 
-    # Get the demo directory
-    demo_dir = Path(__file__).parent.parent / "demo"
+    # Get the page directory
+    demo_dir = Path(__file__).parent.parent / "page"
     test_file = demo_dir / "test-backlog.yaml"
 
     # Write test file
     test_file.write_text(test_yaml_content)
 
     try:
-        # Start a simple HTTP server for the demo
+        # Start a simple HTTP server for the page
         import subprocess
         import time
 
@@ -54,7 +54,7 @@ tasks:
             page.goto("http://localhost:8765/")
             page.evaluate("localStorage.clear()")
 
-            # Navigate to demo with backlog parameter
+            # Navigate to page with backlog parameter
             page.goto("http://localhost:8765/?backlog=test-backlog.yaml")
 
             # Wait for page to load
@@ -67,7 +67,7 @@ tasks:
             expect(page.locator("text=Test task from URL parameter")).to_be_visible()
             expect(page.locator("text=Another test task")).to_be_visible()
 
-            # Verify the default demo tasks are NOT present
+            # Verify the default page tasks are NOT present
             page_text = page.inner_text("body")
             assert "Welcome to Kandown Demo!" not in page_text
             assert "Try dragging me" not in page_text
@@ -83,11 +83,11 @@ tasks:
 
 @pytest.mark.e2e
 def test_demo_mode_falls_back_to_default_on_invalid_url(page):
-    """Test that demo mode falls back to default tasks if URL parameter fails."""
-    # Get the demo directory
-    demo_dir = Path(__file__).parent.parent / "demo"
+    """Test that page mode falls back to default tasks if URL parameter fails."""
+    # Get the page directory
+    demo_dir = Path(__file__).parent.parent / "page"
 
-    # Start a simple HTTP server for the demo
+    # Start a simple HTTP server for the page
     import subprocess
     import time
 
@@ -103,7 +103,7 @@ def test_demo_mode_falls_back_to_default_on_invalid_url(page):
         page.goto("http://localhost:8766/")
         page.evaluate("localStorage.clear()")
 
-        # Navigate to demo with invalid backlog parameter
+        # Navigate to page with invalid backlog parameter
         page.goto("http://localhost:8766/?backlog=nonexistent.yaml")
 
         # Wait for page to load
@@ -112,7 +112,7 @@ def test_demo_mode_falls_back_to_default_on_invalid_url(page):
         # Wait for async initialization
         page.wait_for_timeout(1000)
 
-        # Check that the default demo tasks are loaded (fallback)
+        # Check that the default page tasks are loaded (fallback)
         expect(page.locator("text=Welcome to Kandown Demo!")).to_be_visible()
 
     finally:

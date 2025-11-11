@@ -1,4 +1,4 @@
-"""Test demo mode activation and API factory."""
+"""Test page mode activation and API factory."""
 
 import requests
 
@@ -28,7 +28,7 @@ def test_cli_server_uses_cli_api(kandown_server):
     assert cli_api_response.status_code == 200
     assert "fetch('/api/tasks')" in cli_api_response.text
 
-    # Verify demo API implementation is served
+    # Verify page API implementation is served
     demo_api_response = requests.get(f"{kandown_server}/statics/api-page.js")
     assert demo_api_response.status_code == 200
     assert "localStorage" in demo_api_response.text
@@ -36,7 +36,7 @@ def test_cli_server_uses_cli_api(kandown_server):
 
 
 def test_demo_mode_files_exist():
-    """Test that demo mode static files exist."""
+    """Test that page mode static files exist."""
     from pathlib import Path
 
     statics_dir = Path(__file__).parent.parent / "src" / "kandown" / "statics"
@@ -59,15 +59,15 @@ def test_demo_mode_files_exist():
 
 
 def test_init_js_switches_to_demo_on_failure():
-    """Test that mode.js code contains logic to switch to demo mode."""
+    """Test that mode.js code contains logic to switch to page mode."""
     from pathlib import Path
 
     init_file = Path(__file__).parent.parent / "src" / "kandown" / "statics" / "mode.js"
     content = init_file.read_text()
 
     # Verify mode.js has the refactored mode detection logic
-    assert "serverMode = 'demo'" in content
-    assert "entering demo mode" in content
+    assert "serverMode = 'page'" in content
+    assert "entering page mode" in content
     assert "checkHealth" in content
     assert "initializeApp" in content
     assert "detectMode" in content

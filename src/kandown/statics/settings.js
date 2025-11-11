@@ -120,7 +120,7 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         };
     }
 
-    // Reset demo data
+    // Reset page data
     const resetDemoDataBtn = document.getElementById('reset-data-btn');
     if (resetDemoDataBtn) {
         resetDemoDataBtn.onclick = function () {

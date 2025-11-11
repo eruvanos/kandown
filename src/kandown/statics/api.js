@@ -1,6 +1,6 @@
 /**
  * API Factory - chooses the correct API implementation based on server mode
- * This allows seamless fallback to demo mode when the CLI server is unavailable
+ * This allows seamless fallback to page mode when the CLI server is unavailable
  */
 let TaskAPIImpl = null;
 let SettingsAPIImpl = null;
@@ -33,7 +33,7 @@ async function initializeAPIFactories(mode) {
         throw new Error(`Unknown mode for API initialization: ${mode}`);
     }
 
-    // Import demo-specific functions
+    // Import page-specific functions
     // todo move these to settings init
     // demoFunctions.clearAllData = pageModule.clearAllData;
     // demoFunctions.switchToFileSystem = pageModule.switchToFileSystem;

@@ -78,7 +78,7 @@ Options:
 kandown
 
 # Start server with a custom YAML file on a custom port
-kandown --port 5001 demo.yml
+kandown --port 5001 page.yml
 ```
 
 ## Hosted Version

@@ -30,14 +30,14 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Build demo
+      - name: Build page
         run: |
-          python scripts/build_demo.py
+          python scripts/build_page.py
 
       - name: Create artifact directory
         run: |
           mkdir -p _site
-          cp -r demo/* _site/
+          cp -r page/* _site/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

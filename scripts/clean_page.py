@@ -2,7 +2,7 @@
 import os
 import shutil
 
-demo_dir = os.path.join(os.path.dirname(__file__), "..", "demo")
+demo_dir = os.path.join(os.path.dirname(__file__), "..", "page")
 gitignore_path = os.path.join(demo_dir, ".gitignore")
 
 

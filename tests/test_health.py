@@ -17,8 +17,8 @@ def test_health_endpoint_returns_ok(kandown_server):
 
 
 def test_demo_health_file_content():
-    """Test that the demo health file has the correct content."""
-    demo_health_file = Path(__file__).parent.parent / "demo" / "api" / "health"
+    """Test that the page health file has the correct content."""
+    demo_health_file = Path(__file__).parent.parent / "page" / "api" / "health"
 
     assert demo_health_file.exists(), "Demo health file should exist"
 
