@@ -82,63 +82,91 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
         const settings = await settingsAPI.getSettings()
         const storeImagesInSubfolder = settings.store_images_in_subfolder || false;
 
-        const items = e.clipboardData.items;
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].type.indexOf('image') !== -1) {
-                const file = items[i].getAsFile();
-                if (storeImagesInSubfolder && taskId) {
+        // Determine if an image file is in the clipboard
+        let file;
+        if (e.clipboardData.items.length === 0) {
+            // Within some browsers clipboardData.items may be empty when using filesystem API
+            try {
+                const nItems = await navigator.clipboard.read();
+                if (nItems.length === 0) {
+                    console.log('No items in navigator.clipboard.read()');
+                }
 
-                    // Todo, this should be in api.js
-                    if (serverMode === 'cli') {
-                        // Upload image to backend
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        try {
-                            const res = await fetch(`/api/tasks/${taskId}/upload`, {
-                                method: 'POST',
-                                body: formData
-                            });
-                            if (res.ok) {
-                                const data = await res.json();
-                                const url = data.link;
-                                const md = `![](${url})`;
-                                const start = textarea.selectionStart;
-                                const end = textarea.selectionEnd;
-                                textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
-                            } else {
-                                alert('Image upload failed.');
-                            }
-                        } catch (err) {
-                            alert('Image upload error.');
+                itemLoop: for (let nItem of nItems) {
+                    for (let typeItem of nItem.types) {
+                        if (typeItem.indexOf('image') !== -1) {
+                            file = await nItem.getType(typeItem);
+                            break itemLoop;
                         }
-                    } else if (serverMode === 'page' && getStorageMode() === 'filesystem') {
-                        // Demo mode with filesystem storage: save image to filesystem
-                        try {
-                            const result = await taskAPI.uploadImage(taskId, file);
-                            const md = `![](${result.link})`;
+                    }
+                }
+            } catch (err) {
+                console.error('navigator.clipboard.read() failed:', err);
+                return;
+            }
+        } else { // Standard clipboardData processing
+            for (let i = 0; i < e.clipboardData.items.length; i++) {
+                if (e.clipboardData.items[i].type.indexOf('image') !== -1) {
+                    file = e.clipboardData.items[i].getAsFile();
+                    break;
+
+                }
+            }
+        }
+
+        // If an image file is found, process it
+        if (file) {
+            if (storeImagesInSubfolder && taskId) {
+
+                // Todo, this should be in api.js
+                if (serverMode === 'cli') {
+                    // Upload image to backend
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    try {
+                        const res = await fetch(`/api/tasks/${taskId}/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            const url = data.link;
+                            const md = `![](${url})`;
                             const start = textarea.selectionStart;
                             const end = textarea.selectionEnd;
                             textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
-                        } catch (err) {
-                            console.error('Image upload error:', err);
-                            alert('Image upload failed: ' + err.message);
+                        } else {
+                            alert('Image upload failed.');
                         }
+                    } catch (err) {
+                        alert('Image upload error.');
                     }
-                } else {
-                    // Embed image as base64
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const base64 = event.target.result;
-                        const md = `![](${base64})`;
+                } else if (serverMode === 'page-fs') {
+                    // Demo mode with filesystem storage: save image to filesystem
+                    try {
+                        const result = await taskAPI.uploadImage(taskId, file);
+                        const md = `![](${result.link})`;
                         const start = textarea.selectionStart;
                         const end = textarea.selectionEnd;
                         textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
-                    };
-                    reader.readAsDataURL(file);
+                    } catch (err) {
+                        console.error('Image upload error:', err);
+                        alert('Image upload failed: ' + err.message);
+                    }
                 }
-                e.preventDefault();
-                break;
+            } else {
+                // Embed image as base64
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const base64 = event.target.result;
+                    const md = `![](${base64})`;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    textarea.value = textarea.value.slice(0, start) + md + textarea.value.slice(end);
+                };
+                reader.readAsDataURL(file);
             }
+            e.preventDefault();
         }
     });
     return textarea;

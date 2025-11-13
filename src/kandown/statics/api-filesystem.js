@@ -180,7 +180,7 @@ class FileSystemAPI {
         }
         
         // Generate unique filename
-        const ext = file.name.split('.').pop() || 'png';
+        const ext = file.type.split('/').pop() || 'png';
         const randomStr = Math.random().toString(36).substring(2, 10);
         const filename = `${taskId}_${randomStr}.${ext}`;
         
