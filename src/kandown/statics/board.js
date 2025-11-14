@@ -1181,6 +1181,47 @@ function handleCheckboxClick(ev) {
     });
 }
 
+// --- Advanced Mode ---
+/**
+ * Initializes advanced mode toggling via keyboard shortcut.
+ * On Mac: Hold Cmd/Meta key
+ * On Windows/Linux: Hold Ctrl key
+ */
+function initAdvancedMode() {
+    let advancedModeActive = false;
+
+    const setAdvancedMode = (active) => {
+        if (advancedModeActive !== active) {
+            advancedModeActive = active;
+            if (active) {
+                document.body.classList.add('advanced');
+            } else {
+                document.body.classList.remove('advanced');
+            }
+        }
+    };
+
+    // Detect Mac vs Windows/Linux for appropriate key
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+
+    window.addEventListener('keydown', (e) => {
+        // Use Meta (Cmd) on Mac, Ctrl on Windows/Linux
+        if ((isMac && e.metaKey) || (!isMac && e.ctrlKey)) {
+            setAdvancedMode(true);
+        }
+    });
+    window.addEventListener('keyup', (e) => {
+        // Deactivate when the key is released
+        if ((isMac && !e.metaKey) || (!isMac && !e.ctrlKey)) {
+            setAdvancedMode(false);
+        }
+    });
+// Also handle window blur to ensure we don't get stuck in advanced mode
+    window.addEventListener('blur', () => {
+        setAdvancedMode(false);
+    });
+}
+
 // --- Main Entrypoint ---
 async function initBoardApp() {
     // Initialize and check server availability
@@ -1230,6 +1271,9 @@ async function initBoardApp() {
         'done': document.getElementById('done-col')
     };
     setupDropZones();
+
+    // Initialize advanced mode keyboard handler
+    initAdvancedMode();
 
     // Setup add task buttons
     document.querySelectorAll('.add-task').forEach(btn => {

@@ -62,3 +62,20 @@ body.mode-page-fs .hide-page-fs {
 body.mode-readOnly .hide-readOnly {
   display: none !important;
 }
+
+/* Advanced mode utilities */
+/* Show only in advanced mode */
+.show-advanced {
+  display: none !important;
+}
+body.advanced .show-advanced {
+  display: revert !important;
+}
+
+/* Hide in advanced mode */
+.hide-advanced {
+  display: revert !important;
+}
+body.advanced .hide-advanced {
+  display: none !important;
+}
