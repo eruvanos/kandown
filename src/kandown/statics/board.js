@@ -956,15 +956,17 @@ function createTaskTooltip(task, el) {
  * @returns {HTMLElement} Plus button element
  */
 function createPlusButton(task) {
-    return createButton({
+    const btn = createButton({
         className: 'add-beneath-btn',
         title: 'Add task beneath',
-        innerHTML: '<span>+</span>',
+        text: '+',
         onClick: function (e) {
             e.stopPropagation();
             addTask(task.status, (task.order || 0) + 1);
         }
     });
+    btn.classList.add("show-advanced");
+    return btn;
 }
 
 function create_divider(el, task) {
@@ -1028,7 +1030,8 @@ function create_divider(el, task) {
     }
 
     el.appendChild(dividerRow);
-    columns[task.status].appendChild(el);
+
+    return el;
 }
 
 /**
@@ -1059,46 +1062,44 @@ function renderTasks(focusCallback, focusTaskId) {
             // Special handling for divider tasks
             if (task.type === 'divider') {
                 create_divider(el, task);
-                return;
-            }
+            } else { // Regular task handling
+                // Create header with type, ID, and delete button
+                const {headRow, typeBtn, idDiv, buttonGroup} = createTaskHeader(task);
+                el.appendChild(buttonGroup);
 
-            // Create header with type, ID, and delete button
-            const {headRow, typeBtn, idDiv, buttonGroup} = createTaskHeader(task);
-            el.appendChild(buttonGroup);
+                // Handle collapsed view for done tasks
+                if (createCollapsedView(task, el, typeBtn, idDiv, buttonGroup)) {
+                    columns[task.status].appendChild(el);
+                    return;
+                }
 
-            // Handle collapsed view for done tasks
-            if (createCollapsedView(task, el, typeBtn, idDiv, buttonGroup)) {
-                columns[task.status].appendChild(el);
-                return;
-            }
+                // For non-collapsed tasks, show full content
+                el.appendChild(headRow);
 
-            // For non-collapsed tasks, show full content
-            el.appendChild(headRow);
+                // Create and append task text
+                const textSpan = createTaskText(task, focusTaskId);
+                el.appendChild(textSpan);
 
-            // Create and append task text
-            const textSpan = createTaskText(task, focusTaskId);
-            el.appendChild(textSpan);
+                // Create and append tags section
+                const tagsDiv = createTagsSection(task, el);
+                el.appendChild(tagsDiv);
 
-            // Create and append tags section
-            const tagsDiv = createTagsSection(task, el);
-            el.appendChild(tagsDiv);
+                // Attach edit handler
+                if (!readOnlyMode) {
+                    attachTaskEditHandler(el, task, textSpan);
+                }
 
-            // Attach edit handler
-            if (!readOnlyMode) {
-                attachTaskEditHandler(el, task, textSpan);
-            }
-
-            // Create and append tooltip
-            createTaskTooltip(task, el);
-
-            // Create and append plus button
-            if (!readOnlyMode) {
-                // todo fix plus button placement and functionality
-                // const plusBtn = createPlusButton(task);
-                // el.appendChild(plusBtn);
+                // Create and append tooltip
+                createTaskTooltip(task, el);
             }
 
             columns[task.status].appendChild(el);
+
+            // Create and append plus button
+            if (!readOnlyMode) {
+                const plusBtn = createPlusButton(task);
+                columns[task.status].appendChild(plusBtn);
+            }
         });
 
         if (!readOnlyMode) {
