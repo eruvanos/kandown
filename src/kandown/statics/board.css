@@ -805,3 +805,74 @@ a {
 .storage-mode-indicator.filesystem {
   background: var(--color-success, rgba(17, 153, 142, 0.9));
 }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 10px 0;
+  }
+
+  .board {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0;
+    width: 100vw;
+    max-width: 100vw;
+    margin: 20px 0 0 0;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .column {
+    flex: 0 0 100vw;
+    min-width: 100vw;
+    max-width: 100vw;
+    width: 100vw;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+
+  /* Adjust title for mobile */
+  h1 {
+    font-size: 1.5em;
+    margin: 10px 0;
+  }
+
+  /* Make floating controls more compact on mobile */
+  .floating-controls {
+    bottom: 16px;
+    right: 16px;
+    gap: 12px;
+  }
+
+  .floating-control-primary {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5em;
+  }
+
+  .floating-control-secondary {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85em;
+  }
+
+  /* Modal adjustments for mobile */
+  .modal-content {
+    margin: 5% auto;
+    padding: 24px 16px;
+    width: 95%;
+    max-width: 95%;
+  }
+
+  /* Settings adjustments */
+  .setting-desc {
+    font-size: 0.9em;
+  }
+}
