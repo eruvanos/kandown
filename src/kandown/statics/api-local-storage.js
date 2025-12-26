@@ -63,7 +63,7 @@ class LocalStorageTaskAPI {
                     text: "**Try dragging me** to the 'In Progress' column!\n\nYou can drag and drop tasks between columns.",
                     status: "todo",
                     tags: ["tutorial"],
-                    order: 1,
+                    order: 2,
                     type: "feature"
                 },
                 {
@@ -79,7 +79,7 @@ class LocalStorageTaskAPI {
                     text: "Click this text to edit or the ❌ to delete it.",
                     status: "in_progress",
                     tags: ["tutorial"],
-                    order: 1,
+                    order: 2,
                     type: "feature"
                 },
                 {
@@ -87,7 +87,7 @@ class LocalStorageTaskAPI {
                     text: "## Remove tutorial tasks\nWhen done with the tutorial use the delete option within the settings menu (⚙️ button) to remove all tutorial tasks.",
                     status: "in_progress",
                     tags: ["tutorial"],
-                    order: 1,
+                    order: 4,
                     type: "feature"
                 },
                 {
