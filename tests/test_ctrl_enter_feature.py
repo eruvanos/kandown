@@ -63,8 +63,8 @@ def test_keyboard_hint_appears_on_edit(page: Page, kandown_server):
     
     # Add a task
     page.get_by_role("heading", name="📝 To Do +").locator("span").click()
-    expect(page.get_by_role("textbox")).to_be_visible()
-    page.get_by_role("textbox").fill("Test task")
+    expect(page.locator("textarea.edit-input")).to_be_visible()
+    page.locator("textarea.edit-input").fill("Test task")
     page.get_by_text("Kanban Board").click()
     
     # Wait for task to be created
@@ -74,13 +74,13 @@ def test_keyboard_hint_appears_on_edit(page: Page, kandown_server):
     page.get_by_text("Test task").click()
     
     # Verify textarea appears
-    expect(page.get_by_role("textbox")).to_be_visible()
+    expect(page.locator("textarea.edit-input")).to_be_visible()
     
     # Verify keyboard hint is visible when editing
     expect(page.get_by_text("Ctrl/Cmd+Enter to save and create another task")).to_be_visible()
     
     # Press Escape to cancel
-    page.get_by_role("textbox").press("Escape")
+    page.locator("textarea.edit-input").press("Escape")
     
     # Verify hint is no longer visible
     expect(page.get_by_text("Ctrl/Cmd+Enter to save and create another task")).not_to_be_visible()

@@ -21,13 +21,13 @@ def test_add_task(page: Page, kandown_server):
     page.goto(kandown_server)
 
     # click the add task button
-    page.get_by_role("heading", name="📝 To Do ➕").locator("span").click()
+    page.get_by_role("heading", name="📝 To Do +").locator("span").click()
     expect(page.get_by_text("K-001")).to_be_visible()
-    expect(page.get_by_role("textbox")).to_be_visible()
+    expect(page.locator("textarea.edit-input")).to_be_visible()
 
     # fill in the task description
-    page.get_by_role("textbox").click()
-    page.get_by_role("textbox").fill("- [ ] task 1\n- [ ] task 2\n")
+    page.locator("textarea.edit-input").click()
+    page.locator("textarea.edit-input").fill("- [ ] task 1\n- [ ] task 2\n")
     page.get_by_text("Kanban Board").click()
     expect(page.get_by_role("listitem").filter(has_text="task 1").get_by_role("checkbox")).to_be_visible()
     expect(page.get_by_role("listitem").filter(has_text="task 2").get_by_role("checkbox")).to_be_visible()
