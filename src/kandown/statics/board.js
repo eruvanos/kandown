@@ -883,23 +883,51 @@ function attachTaskEditHandler(el, task, textSpan) {
         el.removeAttribute('draggable');
         el.ondragstart = ev => ev.preventDefault();
         const oldText = task.text;
+        let createAnother = false; // Track if user wants to create another task
+        
         const textarea = createTextarea(oldText, function () {
             el.setAttribute('draggable', 'true');
             el.ondragstart = null;
+            const shouldCreateAnother = createAnother;
             if (textarea.value.trim() !== '') {
-                taskAPI.updateTaskText(task.id, textarea.value).then(() => renderTasks());
+                taskAPI.updateTaskText(task.id, textarea.value).then(() => {
+                    renderTasks();
+                    // Create another task in the same column if requested
+                    if (shouldCreateAnother) {
+                        addTask(task.status);
+                    }
+                });
             } else {
                 renderTasks();
+                if (shouldCreateAnother) {
+                    addTask(task.status);
+                }
             }
         }, function (e) {
-            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textarea.blur();
+            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+                createAnother = true;
+                textarea.blur();
+            }
             else if (e.key === 'Escape') {
                 el.setAttribute('draggable', 'true');
                 el.ondragstart = null;
                 renderTasks();
             }
         }, task.id);
-        textSpan.replaceWith(textarea);
+        
+        // Create a container for textarea and hint
+        const container = document.createElement('div');
+        container.className = 'edit-container';
+        
+        // Add keyboard hint
+        const hint = document.createElement('div');
+        hint.className = 'keyboard-hint';
+        hint.textContent = 'Ctrl/Cmd+Enter to save and create another task';
+        
+        container.appendChild(textarea);
+        container.appendChild(hint);
+        
+        textSpan.replaceWith(container);
         textarea.focus();
     });
 }
