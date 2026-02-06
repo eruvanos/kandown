@@ -635,17 +635,46 @@ async function processFilesystemImages(element) {
 function createTaskText(task, focusTaskId) {
     let textSpan;
     if (focusTaskId && task.id === focusTaskId && !task.text) {
-        textSpan = createTextarea('', function () {
-            if (textSpan.value.trim() !== '') {
-                taskAPI.updateTaskText(task.id, textSpan.value).then(() => renderTasks());
+        let createAnother = false; // Track if user wants to create another task
+        
+        const textarea = createTextarea('', function () {
+            const shouldCreateAnother = createAnother;
+            if (textarea.value.trim() !== '') {
+                taskAPI.updateTaskText(task.id, textarea.value).then(() => {
+                    renderTasks();
+                    // Create another task in the same column if requested
+                    if (shouldCreateAnother) {
+                        addTask(task.status);
+                    }
+                });
             } else {
                 renderTasks();
+                if (shouldCreateAnother) {
+                    addTask(task.status);
+                }
             }
         }, function (e) {
-            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textSpan.blur();
+            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
+                createAnother = true;
+                textarea.blur();
+            }
             else if (e.key === 'Escape') renderTasks();
         }, task.id);
-        setTimeout(() => textSpan.focus(), 100);
+        
+        // Create a container for textarea and hint
+        const container = document.createElement('div');
+        container.className = 'edit-container';
+        
+        // Add keyboard hint
+        const hint = document.createElement('div');
+        hint.className = 'keyboard-hint';
+        hint.textContent = 'Ctrl/Cmd+Enter to save and create another task';
+        
+        container.appendChild(textarea);
+        container.appendChild(hint);
+        
+        textSpan = container;
+        setTimeout(() => textarea.focus(), 100);
     } else {
         textSpan = document.createElement('p');
         textSpan.className = 'task-text';
