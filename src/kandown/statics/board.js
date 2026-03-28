@@ -597,7 +597,7 @@ function createStatusAdvanceButton(task) {
     if (!statusInfo || readOnlyMode) {
         return null;
     }
-    const advanceBtn = createButton({
+    return createButton({
         className: 'status-advance-btn',
         text: statusInfo.icon,
         title: statusInfo.label,
@@ -612,7 +612,6 @@ function createStatusAdvanceButton(task) {
             });
         }
     });
-    return advanceBtn;
 }
 
 /**
