@@ -1119,6 +1119,7 @@ function create_divider(el, task) {
  */
 function renderTasks(focusCallback, focusTaskId) {
     taskAPI.getTasks().then(tasks => {
+        hideLoadError();
         // Clean up all tracked event listeners before re-rendering
         eventManager.cleanup();
 
@@ -1183,6 +1184,9 @@ function renderTasks(focusCallback, focusTaskId) {
             makeDraggable();
         }
         if (focusCallback) focusCallback();
+    }).catch(err => {
+        console.error('Failed to load tasks:', err);
+        showLoadError(`Could not load tasks: ${err.message}`);
     });
 }
 
@@ -1300,6 +1304,43 @@ function initAdvancedMode() {
     });
 }
 
+/**
+ * Shows a load error modal with a message, a retry button, and a link to
+ * navigate to the board without URL parameters.
+ * @param {string} message - Error message to display
+ */
+function showLoadError(message) {
+
+    const modal = ModalManager.createModal('load-error-modal', '⚠️ Unable to load tasks', message, {
+        closeOnBackdrop: false,
+        actions: [
+            {
+                text: '🏠 Try Kandown yourself',
+                className: 'modal-btn modal-btn-confirm load-error-home-btn',
+                onClick: () => {
+                    window.location.href = ".";
+                }
+            },
+            {
+                text: '🔄 Retry',
+                className: 'modal-btn modal-btn-cancel',
+                onClick: () => {
+                    window.location.reload();
+                }
+            }
+        ]
+    });
+
+    ModalManager.showModal(modal);
+}
+
+/**
+ * Hides the load error modal if it is currently shown.
+ */
+function hideLoadError() {
+    ModalManager.closeActiveModal();
+}
+
 // --- Main Entrypoint ---
 async function initBoardApp() {
     // Initialize and check server availability
@@ -1318,7 +1359,13 @@ async function initBoardApp() {
 
     // Create API instances after factories are initialized
     taskAPI = new TaskAPI();
-    await taskAPI.init()
+    try {
+        await taskAPI.init();
+    } catch (err) {
+        console.error('Failed to initialize task API:', err);
+        showLoadError(`Could not load tasks: ${err.message}`);
+        return;
+    }
     window.taskApi = taskAPI; // Expose for debugging
 
     settingsAPI = new SettingsAPI();

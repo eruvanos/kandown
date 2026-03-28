@@ -22,7 +22,7 @@ def kandown_server():
     temp_file.close()
 
     # Start the CLI subprocess
-    proc = subprocess.Popen(["python", "-m", "src.kandown.cli", temp_file.name, "--port", str(port)])
+    proc = subprocess.Popen(["uv", "run", "kandown", temp_file.name, "--port", str(port)])
 
     # Wait for the server to start by polling the port
     start_time = time.time()

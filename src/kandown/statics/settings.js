@@ -1,5 +1,6 @@
 import {switchToFileSystem, switchToLocalStorage} from './api-page.js';
 import {clearAllData, importFromYamlFile} from './api-local-storage.js';
+import {ModalManager} from './modal-manager.js';
 
 let dark = false;
 let randomPort = false;
@@ -10,10 +11,12 @@ let storeImagesInSubfolder = false;
  * @typedef {import('./types.js').TaskAPI} TaskAPI
  */
 
+const SETTINGS_MODAL_ID = 'settings-modal';
+
 /**
  * Initialize settings UI and bind event handlers
  *
- * @param {TaskAPI} taskApi
+ * @param {TaskAPI} taskAPI
  * @param {SettingsAPI} settingsAPI
  * @param {import('./types.js').ServerMode} serverMode
  * @returns {Promise<void>}
@@ -21,7 +24,26 @@ let storeImagesInSubfolder = false;
 export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
     // DOM element queries
     const darkModeToggleBtn = document.getElementById('darkmode-toggle');
+    const settingsBtn = document.getElementById('settings-toggle');
+    const modal = document.getElementById(SETTINGS_MODAL_ID);
+    const randomPortCheckbox = document.getElementById('random-port');
+    const storeImagesInSubfolderCheckbox = document.getElementById('store-images-in-subfolder');
+    const clearDataBtn = document.getElementById('clear-data-btn');
+    const resetDemoDataBtn = document.getElementById('reset-data-btn');
+    const switchToFilesystemBtn = document.getElementById('switch-to-filesystem');
+    const switchToLocalStorageBtn = document.getElementById('switch-to-localstorage');
+    const downloadBtn = document.getElementById('download-toggle');
+    const importBtn = document.getElementById('import-toggle');
+    const storageModeIndicator = document.getElementById('storage-mode-indicator');
 
+    // --- Register the settings modal with ModalManager ---
+    if (modal) {
+        ModalManager.registerStatic(SETTINGS_MODAL_ID, modal, {
+            onOpen: () => updateStorageModeUI(),
+        });
+    }
+
+    // --- Dark mode ---
     function setDarkMode(on) {
         document.body.classList.toggle('darkmode', on);
         if (darkModeToggleBtn) {
@@ -38,6 +60,7 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         };
     }
 
+    // --- Storage mode UI ---
     function updateStorageModeUI() {
         const currentStorageModeSpan = document.getElementById('current-storage-mode');
         if (currentStorageModeSpan) {
@@ -58,40 +81,16 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         }
     }
 
-    // Open modal from settings button
-    const settingsBtn = document.getElementById('settings-toggle');
-    const modal = document.getElementById('settings-modal');
+    // --- Open modal triggers ---
     if (settingsBtn) {
-        settingsBtn.onclick = function () {
-            modal.style.display = 'block';
-            updateStorageModeUI();
-        };
+        settingsBtn.onclick = () => ModalManager.openStatic(SETTINGS_MODAL_ID);
     }
 
-    // Open modal from storage mode indicator
-    const storageModeIndicator = document.getElementById('storage-mode-indicator');
     if (storageModeIndicator) {
-        storageModeIndicator.onclick = function () {
-            modal.style.display = 'block';
-            updateStorageModeUI();
-        };
+        storageModeIndicator.onclick = () => ModalManager.openStatic(SETTINGS_MODAL_ID);
     }
 
-    // Close modal
-    const closeBtn = document.querySelector('.close-btn');
-    if (closeBtn) {
-        closeBtn.onclick = function () {
-            modal.style.display = 'none';
-        };
-    }
-    window.onclick = function (event) {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    };
-
-    // Random port
-    const randomPortCheckbox = document.getElementById('random-port');
+    // --- Setting: random port ---
     if (randomPortCheckbox) {
         randomPortCheckbox.onchange = async function () {
             randomPort = randomPortCheckbox.checked;
@@ -99,8 +98,7 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         };
     }
 
-    // Store images in subfolder
-    const storeImagesInSubfolderCheckbox = document.getElementById('store-images-in-subfolder');
+    // --- Setting: store images in subfolder ---
     if (storeImagesInSubfolderCheckbox) {
         storeImagesInSubfolderCheckbox.onchange = async function () {
             storeImagesInSubfolder = storeImagesInSubfolderCheckbox.checked;
@@ -108,8 +106,7 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         };
     }
 
-    // Clear all data
-    const clearDataBtn = document.getElementById('clear-data-btn');
+    // --- Danger zone: clear all data ---
     if (clearDataBtn) {
         clearDataBtn.onclick = function () {
             if (!confirm('Are you sure you want to clear ALL data? This action cannot be undone.')) {
@@ -120,8 +117,7 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         };
     }
 
-    // Reset page data
-    const resetDemoDataBtn = document.getElementById('reset-data-btn');
+    // --- Danger zone: reset page data ---
     if (resetDemoDataBtn) {
         resetDemoDataBtn.onclick = function () {
             clearAllData()
@@ -129,9 +125,7 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         }
     }
 
-
-    // Switch to File System
-    const switchToFilesystemBtn = document.getElementById('switch-to-filesystem');
+    // --- Switch to File System ---
     if (switchToFilesystemBtn) {
         switchToFilesystemBtn.onclick = async function () {
             try {
@@ -149,8 +143,7 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         };
     }
 
-    // Switch to localStorage
-    const switchToLocalStorageBtn = document.getElementById('switch-to-localstorage');
+    // --- Switch to localStorage ---
     if (switchToLocalStorageBtn) {
         switchToLocalStorageBtn.onclick = function () {
             if (confirm('Switch to localStorage mode? Your file system data will remain unchanged, but you will see the localStorage data instead.')) {
@@ -161,8 +154,7 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         };
     }
 
-    // Download backlog.yaml
-    const downloadBtn = document.getElementById('download-toggle');
+    // --- Download backlog.yaml ---
     if (downloadBtn) {
         downloadBtn.onclick = async function () {
             try {
@@ -206,15 +198,14 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         };
     }
 
-    // Import from YAML file
-    const importBtn = document.getElementById('import-toggle');
+    // --- Import from YAML file ---
     if (importBtn) {
         importBtn.onclick = async function () {
             await importFromYamlFile();
         };
     }
 
-    // Apply current settings to UI
+    // --- Apply current settings to UI ---
     async function applySettings(settings) {
         dark = !!settings.darkmode;
         setDarkMode(dark);

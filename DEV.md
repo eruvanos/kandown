@@ -102,8 +102,20 @@ kandown/
 
 ## Development
 
+- Setup development environment with `uv sync`
+- Prepare playwrite tests with `playwright install`
 - Run tests with `uv run pytest`
 - Lint code with `uv format`
+
+### Debug e2e tests with Playwright
+
+After a e2e test failed a folder `test-results` provides the recording of the failed test.
+To debug the test, you can open the recording with the following command:
+
+```bash
+playwright show-trace test-results/<test-name>/trace.zip
+``` 
+
 
 ## Dependencies
 

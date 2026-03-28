@@ -843,3 +843,12 @@ body.darkmode .tag-suggestion-item.selected {
 .storage-mode-indicator.filesystem {
   background: var(--color-success, rgba(17, 153, 142, 0.9));
 }
+
+/* Load error home button - use primary color instead of danger */
+.load-error-home-btn {
+  background: var(--color-primary, #2196f3);
+}
+
+.load-error-home-btn:hover {
+  background: var(--color-secondary, #1976d2);
+}

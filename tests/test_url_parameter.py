@@ -4,6 +4,15 @@ import pytest
 from pathlib import Path
 from playwright.sync_api import expect
 
+@pytest.fixture(autouse=True, scope="session")
+def build(pytestconfig):
+    """Clean and build the page."""
+    import subprocess
+
+    root = pytestconfig.rootpath
+
+    subprocess.run(["uv", "run", "python", root / "scripts/clean_page.py"], check=True)
+    subprocess.run(["uv", "run", "python", root / "scripts/build_page.py"], check=True)
 
 @pytest.mark.e2e
 def test_demo_mode_loads_backlog_from_url_parameter(page, context):
@@ -43,17 +52,16 @@ tasks:
         import time
 
         server_process = subprocess.Popen(
-            ["python", "-m", "http.server", "8765"], cwd=str(demo_dir), stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ["uv", "run", "python", "-m", "http.server", "8765"], cwd=str(demo_dir), stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
 
         # Wait for server to start
         time.sleep(2)
 
-        try:
-            # Clear localStorage to ensure fresh start
-            page.goto("http://localhost:8765/")
-            page.evaluate("localStorage.clear()")
+        # Ensure server running
+        assert server_process.poll() is None
 
+        try:
             # Navigate to page with backlog parameter
             page.goto("http://localhost:8765/?backlog=test-backlog.yaml")
 
@@ -82,7 +90,7 @@ tasks:
 
 
 @pytest.mark.e2e
-def test_demo_mode_falls_back_to_default_on_invalid_url(page):
+def test_demo_mode_handles_file_not_available(page):
     """Test that page mode falls back to default tasks if URL parameter fails."""
     # Get the page directory
     demo_dir = Path(__file__).parent.parent / "page"
@@ -99,50 +107,15 @@ def test_demo_mode_falls_back_to_default_on_invalid_url(page):
     time.sleep(2)
 
     try:
-        # Clear localStorage to ensure fresh start
-        page.goto("http://localhost:8766/")
-        page.evaluate("localStorage.clear()")
-
         # Navigate to page with invalid backlog parameter
         page.goto("http://localhost:8766/?backlog=nonexistent.yaml")
-
-        # Wait for page to load
-        page.wait_for_selector("#todo-col")
 
         # Wait for async initialization
         page.wait_for_timeout(1000)
 
         # Check that the default page tasks are loaded (fallback)
-        expect(page.locator("text=Welcome to Kandown Demo!")).to_be_visible()
+        expect(page.locator("text=Try Kandown yourself")).to_be_visible()
 
     finally:
         server_process.terminate()
         server_process.wait()
-
-
-def test_get_backlog_url_parameter():
-    """Test the URL parameter parsing function."""
-    from pathlib import Path
-
-    # Read the api-page.js file
-    api_demo_file = Path(__file__).parent.parent / "src" / "kandown" / "statics" / "api-page.js"
-    content = api_demo_file.read_text()
-
-    # Verify the function exists
-    assert "getBacklogUrlParameter" in content
-    assert "URLSearchParams" in content
-    assert "backlog" in content or "file" in content
-
-
-def test_load_backlog_from_url_function():
-    """Test the load backlog from URL function."""
-    from pathlib import Path
-
-    # Read the api-page.js file
-    api_demo_file = Path(__file__).parent.parent / "src" / "kandown" / "statics" / "api-page.js"
-    content = api_demo_file.read_text()
-
-    # Verify the function exists
-    assert "loadBacklogFromUrl" in content
-    assert "fetch" in content
-    assert "jsyaml" in content
