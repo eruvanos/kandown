@@ -11,6 +11,7 @@
 
 /**
  * @typedef {Object} Columns
+ * @property {HTMLElement} icebox
  * @property {HTMLElement} todo
  * @property {HTMLElement} in_progress
  * @property {HTMLElement} done

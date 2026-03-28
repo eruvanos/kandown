@@ -26,14 +26,33 @@
 <div class="main-content">
   <h1 style="text-align:center;">Kanban Board</h1>
   <div id="board" class="board">
+    <div class="column icebox-column is-collapsed" id="icebox-col">
+      <h2>
+        <button id="icebox-toggle" class="icebox-toggle" type="button" title="Expand Icebox" aria-label="Expand Icebox">▶</button>
+        <span class="icebox-title">🧊 Icebox</span>
+        <span class="add-task" data-status="icebox" title="Add task">+</span>
+      </h2>
+    </div>
     <div class="column" id="todo-col">
-      <h2>📝 To Do <span class="add-task" data-status="todo" title="Add task">+</span></h2>
+      <h2>
+        <span></span>
+        <span class="column-title">📝 To Do</span>
+        <span class="add-task" data-status="todo" title="Add task">+</span>
+      </h2>
     </div>
     <div class="column" id="inprogress-col">
-      <h2>⏳ In Progress <span class="add-task" data-status="in_progress" title="Add task">+</span></h2>
+      <h2>
+        <span></span>
+        <span class="column-title">⏳ In Progress</span>
+        <span class="add-task" data-status="in_progress" title="Add task">+</span>
+      </h2>
     </div>
     <div class="column" id="done-col">
-      <h2>✅ Done <span class="add-task" data-status="done" title="Add task">+</span></h2>
+      <h2>
+        <span></span>
+        <span class="column-title">✅ Done</span>
+        <span class="add-task" data-status="done" title="Add task">+</span>
+      </h2>
     </div>
   </div>
 </div>

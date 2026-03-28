@@ -16,9 +16,11 @@ import {initUIForMode} from "./ui.js";
 // --- State ---
 let columns = {};
 let doneCollapsed = {};
-const eventManager = new EventManager();
 let taskAPI = null;
 let settingsAPI = null;
+
+const eventManager = new EventManager();
+const ICEBOX_COLLAPSED_KEY = 'kandown_icebox_collapsed';
 
 /**
  * @type {ServerMode}
@@ -265,6 +267,48 @@ function createTagSuggestionBox(input, task, getTagSuggestions) {
         }, 100);
     };
     return box;
+}
+
+/**
+ * Updates visual state of the Icebox column.
+ * @param {boolean} collapsed
+ * @param {boolean} [persist=true]
+ */
+function setIceboxCollapsed(collapsed, persist = true) {
+    const iceboxCol = document.getElementById('icebox-col');
+    const toggleBtn = document.getElementById('icebox-toggle');
+    if (!iceboxCol || !toggleBtn) {
+        return;
+    }
+
+    iceboxCol.classList.toggle('is-collapsed', collapsed);
+    toggleBtn.textContent = collapsed ? '\u25B6' : '\u25C0';
+    toggleBtn.title = collapsed ? 'Expand Icebox' : 'Collapse Icebox';
+    toggleBtn.setAttribute('aria-label', toggleBtn.title);
+
+    if (persist) {
+        localStorage.setItem(ICEBOX_COLLAPSED_KEY, collapsed ? '1' : '0');
+    }
+}
+
+/**
+ * Initializes Icebox collapse/expand controls.
+ */
+function initIceboxToggle() {
+    const toggleBtn = document.getElementById('icebox-toggle');
+    if (!toggleBtn) {
+        return;
+    }
+
+    const savedValue = localStorage.getItem(ICEBOX_COLLAPSED_KEY);
+    const startsCollapsed = savedValue === null ? true : savedValue !== '0';
+    setIceboxCollapsed(startsCollapsed, false);
+
+    toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const currentlyCollapsed = document.getElementById('icebox-col')?.classList.contains('is-collapsed');
+        setIceboxCollapsed(!currentlyCollapsed);
+    });
 }
 
 // --- Drag & Drop ---
@@ -578,6 +622,9 @@ function createTypeDropdown(task) {
  * @returns {{nextStatus: string, icon: string, label: string} | null}
  */
 function getNextStatusInfo(status) {
+    if (status === 'icebox') {
+        return {nextStatus: 'todo', icon: '\u25B6\uFE0F', label: 'Move to To Do'};
+    }
     if (status === 'todo') {
         return {nextStatus: 'in_progress', icon: '▶️', label: 'Move to In Progress'};
     }
@@ -1403,7 +1450,7 @@ function showHelpModal() {
             <section class="help-section">
                 <h4>📋 Board Overview</h4>
                 <p><a href="https://github.com/eruvanos/kandown" target="_blank" rel="noopener noreferrer">Kandown</a> is a Kanban board that stores all tasks in a single YAML file.
-                   Tasks move through three columns: <strong>To Do</strong>, <strong>In Progress</strong>, and <strong>Done</strong>.</p>
+                   Tasks move through four columns: <strong>Icebox</strong> (optional), <strong>To Do</strong>, <strong>In Progress</strong>, and <strong>Done</strong>.</p>
             </section>
             <section class="help-section">
                 <h4>✏️ Working with Tasks</h4>
@@ -1460,10 +1507,12 @@ function showHelpModal() {
 
     // Setup columns and drag-and-drop
     columns = {
+        'icebox': document.getElementById('icebox-col'),
         'todo': document.getElementById('todo-col'),
         'in_progress': document.getElementById('inprogress-col'),
         'done': document.getElementById('done-col')
     };
+    initIceboxToggle();
     setupDropZones();
 
     // Initialize advanced mode keyboard handler

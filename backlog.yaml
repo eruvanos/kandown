@@ -94,7 +94,7 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723088'
 - created_at: '2025-10-05T00:41:57.059204'
   id: K-007
-  order: 43
+  order: 49
   status: todo
   tags:
   - nice to have
@@ -102,7 +102,7 @@ tasks:
     .
   type: experiment
   updated: '2025-10-05T22:59:37.200686'
-  updated_at: '2026-03-28T23:45:54.381763'
+  updated_at: '2026-03-29T00:51:21.708330'
 - closed_at: '2025-11-06T01:15:28.756214'
   created_at: '2025-10-05T00:42:26.424016'
   id: K-008
@@ -121,15 +121,15 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723103'
 - created_at: '2025-10-05T00:42:55.951795'
   id: K-009
-  order: 1
+  order: 39
   status: todo
   tags:
-  - v0.2
+  - nice to have
   text: '- [ ] re-add keyboard shortcuts
 
     - [x] somewhere document the keyboard shortcuts'
   type: feature
-  updated_at: '2026-03-28T23:46:01.953482'
+  updated_at: '2026-03-29T00:51:21.708422'
 - closed_at: '2025-10-07T01:22:12.597958'
   created_at: '2025-10-05T00:43:39.477296'
   id: K-010
@@ -152,13 +152,13 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723137'
 - created_at: '2025-10-05T00:46:58.411356'
   id: K-012
-  order: 27
+  order: 9
   status: todo
   tags:
   - v0.3
   text: Allow connections between tasks
   type: epic
-  updated_at: '2026-03-28T23:45:54.381927'
+  updated_at: '2026-03-29T00:51:21.708443'
 - closed_at: '2025-10-07T01:22:46.629149'
   created_at: '2025-10-07T01:22:28.535004'
   id: K-014
@@ -198,7 +198,7 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723191'
 - created_at: '2025-10-07T01:33:34.938879'
   id: K-020
-  order: 41
+  order: 47
   status: todo
   tags:
   - nice to have
@@ -206,7 +206,7 @@ tasks:
 
     Auto archive done tasks after x days'
   type: experiment
-  updated_at: '2026-03-28T23:45:54.382035'
+  updated_at: '2026-03-29T00:51:21.708462'
 - closed_at: '2025-11-11T23:58:46.586272'
   created_at: '2025-10-07T01:34:14.026741'
   id: K-021
@@ -219,13 +219,12 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723212'
 - created_at: '2025-10-07T01:35:11.463963'
   id: K-022
-  order: 31
+  order: 29
   status: todo
-  tags:
-  - v0.3
+  tags: []
   text: Settings to keep deleted tasks in an archived file
   type: feature
-  updated_at: '2026-03-28T23:45:54.382061'
+  updated_at: '2026-03-29T00:51:21.708476'
 - closed_at: '2025-10-09T23:53:26.371251'
   created_at: '2025-10-07T01:37:42.767201'
   id: K-023
@@ -287,32 +286,30 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723291'
 - created_at: '2025-10-12T21:01:52.344775'
   id: K-030
-  order: 13
+  order: 25
   status: todo
-  tags:
-  - v0.2
+  tags: []
   text: Add an action to clean up unreferenced files
   type: feature
-  updated_at: '2026-03-28T23:45:54.382084'
+  updated_at: '2026-03-29T00:51:21.708493'
 - created_at: '2025-10-12T21:03:03.019950'
   id: K-031
-  order: 39
+  order: 45
   status: todo
   tags:
   - nice to have
   text: add button to extract embedded images from tasks and move them into attachment
     folder
   type: feature
-  updated_at: '2026-03-28T23:45:54.382154'
+  updated_at: '2026-03-29T00:51:21.708506'
 - created_at: '2025-10-12T21:48:23.603078'
   id: K-032
-  order: 9
+  order: 33
   status: todo
-  tags:
-  - v0.2
+  tags: []
   text: Support CMD+z for undo (especially for moving tasks around!
   type: feature
-  updated_at: '2026-03-28T23:45:54.382175'
+  updated_at: '2026-03-29T00:51:21.708520'
 - closed_at: '2025-10-12T22:32:38.472151'
   created_at: '2025-10-12T22:29:22.350779'
   id: K-035
@@ -324,14 +321,13 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723304'
 - created_at: '2025-10-12T22:36:20.087437'
   id: K-036
-  order: 29
+  order: 31
   status: todo
-  tags:
-  - v0.3
+  tags: []
   text: "# Multiselect\n\n- [ ] hold CMD to show multiselect checkboxes\n- [ ] show\
     \ header with actions\n  - [ ] apply tag action\n  - [ ] delete action"
   type: feature
-  updated_at: '2026-03-28T23:45:54.382192'
+  updated_at: '2026-03-29T00:51:21.708533'
 - closed_at: '2026-03-28T11:14:04.882243'
   created_at: '2025-10-12T22:38:49.960568'
   id: K-037
@@ -344,13 +340,13 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723316'
 - created_at: '2025-10-12T22:39:58.674657'
   id: K-038
-  order: 25
+  order: 5
   status: todo
   tags:
-  - v0.3
+  - v0.2
   text: Filter for types
   type: feature
-  updated_at: '2026-03-28T23:45:54.382205'
+  updated_at: '2026-03-29T00:51:21.708546'
 - closed_at: '2025-10-12T23:41:36.424603'
   created_at: '2025-10-12T22:40:40.386821'
   id: K-039
@@ -363,7 +359,7 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723328'
 - created_at: '2025-10-12T22:43:04.653724'
   id: K-040
-  order: 11
+  order: 23
   status: todo
   tags:
   - v0.2
@@ -376,10 +372,10 @@ tasks:
 
     start with [K-030]'
   type: epic
-  updated_at: '2026-03-28T23:45:54.382217'
+  updated_at: '2026-03-29T00:51:21.708560'
 - created_at: '2025-10-12T23:08:17.797033'
   id: K-042
-  order: 37
+  order: 43
   status: todo
   tags:
   - nice to have
@@ -390,7 +386,7 @@ tasks:
 
     Add some simple autocompletion for checklists and lists in general.'
   type: feature
-  updated_at: '2026-03-28T23:45:54.382232'
+  updated_at: '2026-03-29T00:51:21.708573'
 - closed_at: '2025-10-25T15:46:02.124980'
   created_at: '2025-10-24T21:43:05.263143'
   id: K-041
@@ -549,7 +545,7 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723778'
 - created_at: '2025-11-06T00:49:34.686195'
   id: K-055
-  order: 23
+  order: 19
   status: todo
   tags:
   - v0.3
@@ -560,7 +556,7 @@ tasks:
     backlog, so it would make sense to improve the setup, especially handle inline
     images differently!'
   type: feature
-  updated_at: '2026-03-28T23:45:54.382259'
+  updated_at: '2026-03-29T00:51:21.708590'
 - closed_at: '2026-03-28T17:32:04.506722'
   created_at: '2025-11-11T23:52:32.299811'
   id: K-056
@@ -572,32 +568,32 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723817'
 - created_at: '2025-11-11T23:55:30.059525'
   id: K-057
-  order: 33
+  order: 35
   status: todo
   tags: []
   text: ⬇️ ⬇️ ⬇️  Nice to have ⬇️ ⬇️ ⬇️
   type: divider
-  updated_at: '2026-03-28T23:45:54.382272'
+  updated_at: '2026-03-29T00:51:21.708602'
 - created_at: '2025-11-11T23:57:32.022897'
   id: K-058
-  order: 7
+  order: 1
   status: todo
   tags:
   - v0.2
   text: Add "duplicate card" button
   type: feature
-  updated_at: '2026-03-28T23:45:54.382287'
+  updated_at: '2026-03-29T00:51:21.708615'
 - created_at: '2025-11-11T23:57:57.129915'
   id: K-059
-  order: 15
+  order: 13
   status: todo
   tags: []
-  text: 🏁 🏁 🏁 Finish v0.2  🏁 🏁 🏁
+  text: 🏁 🏁 🏁 Finish v0.3  🏁 🏁 🏁
   type: divider
-  updated_at: '2026-03-28T23:45:54.382298'
+  updated_at: '2026-03-29T00:51:21.708626'
 - created_at: '2025-11-11T23:59:53.036424'
   id: K-060
-  order: 21
+  order: 17
   status: todo
   tags:
   - v0.3
@@ -611,13 +607,13 @@ tasks:
 
     Text are based on existing tasks'
   type: feature
-  updated_at: '2026-03-28T23:45:54.382309'
+  updated_at: '2026-03-29T00:51:21.708639'
 - created_at: '2025-11-14T23:02:23.334691'
   id: K-061
-  order: 5
+  order: 11
   status: todo
   tags:
-  - v0.2
+  - v0.3
   text: '# Improve file structure
 
 
@@ -625,10 +621,10 @@ tasks:
 
     - [ ] embedded images stored under images section'
   type: feature
-  updated_at: '2026-03-28T23:45:54.382320'
+  updated_at: '2026-03-29T00:51:21.708651'
 - created_at: '2025-11-14T23:04:57.987216'
   id: K-062
-  order: 19
+  order: 15
   status: todo
   tags:
   - v0.3
@@ -641,16 +637,16 @@ tasks:
 
     - [ ] support drag and drop'
   type: feature
-  updated_at: '2026-03-28T23:45:54.382331'
+  updated_at: '2026-03-29T00:51:21.708662'
 - created_at: '2025-11-14T23:07:17.610869'
   id: K-063
-  order: 3
+  order: 37
   status: todo
   tags:
-  - v0.2
-  text: detect file changes and update
+  - nice to have
+  text: detect file changes and notify frontend to enforce reload
   type: feature
-  updated_at: '2026-03-28T23:45:54.382341'
+  updated_at: '2026-03-29T00:51:52.921356'
 - closed_at: '2026-03-28T15:25:07.289407'
   created_at: '2025-11-14T23:08:09.271186'
   id: K-064
@@ -669,14 +665,13 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723836'
 - created_at: '2026-03-28T19:15:27.430615'
   id: K-065
-  order: 35
+  order: 41
   status: todo
   tags:
-  - v0.3
   - nice to have
   text: Create cli command to generate static html for self hosting.
   type: feature
-  updated_at: '2026-03-28T23:45:54.382352'
+  updated_at: '2026-03-29T00:51:21.708689'
 - closed_at: '2026-03-28T23:38:02.723852'
   created_at: '2026-03-28T23:37:42.827472'
   id: K-066
@@ -688,10 +683,46 @@ tasks:
   updated_at: '2026-03-28T23:38:02.723852'
 - created_at: '2026-03-28T23:38:03.829776'
   id: K-067
-  order: 17
+  order: 3
   status: todo
   tags:
-  - v0.3
+  - v0.2
   text: Allow batch creation of tasks.
   type: feature
-  updated_at: '2026-03-28T23:45:54.382364'
+  updated_at: '2026-03-29T00:51:21.708702'
+- created_at: '2026-03-29T00:07:19.869197'
+  id: K-068
+  order: 3
+  status: in_progress
+  tags: []
+  text: "# \U0001F9CA Icebox\n\nAdd an optional fourth column on the left side, which\
+    \ can be expanded. \nthe column is called icebox and ment for tasks, which are\
+    \ saved for later but not relevant right now. \n\nWhen collapsed a thin column\
+    \ should be visible, which provides an arrow button to expand. when expanded a\
+    \ button offers to collapsed it again."
+  type: feature
+  updated_at: '2026-03-29T00:53:28.470127'
+- created_at: '2026-03-29T00:47:01.476221'
+  id: K-070
+  order: 7
+  status: todo
+  tags: []
+  text: 🏁 🏁 🏁 Finish v0.2  🏁 🏁 🏁
+  type: divider
+  updated_at: '2026-03-29T00:51:21.708715'
+- created_at: '2026-03-29T00:48:29.698562'
+  id: K-071
+  order: 21
+  status: todo
+  tags: []
+  text: 🏁 🏁 🏁 Finish v0.4  🏁 🏁 🏁
+  type: divider
+  updated_at: '2026-03-29T00:51:21.708727'
+- created_at: '2026-03-29T00:50:11.458461'
+  id: K-072
+  order: 27
+  status: todo
+  tags: []
+  text: 🏁 🏁 🏁 Finish v0.5  🏁 🏁 🏁
+  type: divider
+  updated_at: '2026-03-29T00:51:21.708739'
