@@ -1184,6 +1184,8 @@ function renderTasks(focusCallback, focusTaskId) {
             makeDraggable();
         }
         if (focusCallback) focusCallback();
+
+
     }).catch(err => {
         console.error('Failed to load tasks:', err);
         showLoadError(`Could not load tasks: ${err.message}`);
@@ -1389,6 +1391,73 @@ async function initBoardApp() {
         }
     }
 
+/**
+ * Shows the help modal with a brief UI overview and keyboard shortcut reference.
+ */
+function showHelpModal() {
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const modKey = isMac ? '⌘ Cmd' : 'Ctrl';
+
+    const content = `
+        <div class="help-modal-body">
+            <section class="help-section">
+                <h4>📋 Board Overview</h4>
+                <p><a href="https://github.com/eruvanos/kandown" target="_blank" rel="noopener noreferrer">Kandown</a> is a Kanban board that stores all tasks in a single YAML file.
+                   Tasks move through three columns: <strong>To Do</strong>, <strong>In Progress</strong>, and <strong>Done</strong>.</p>
+            </section>
+            <section class="help-section">
+                <h4>✏️ Working with Tasks</h4>
+                <ul>
+                    <li>Click <strong>+</strong> in a column header to add a new task.</li>
+                    <li>Click a task's text to edit it inline (supports Markdown).</li>
+                    <li>Drag &amp; drop tasks to reorder or move between columns.</li>
+                    <li>Click a task's type badge (🐛 / ✨ / …) to change its type.</li>
+                    <li>Add tags to tasks for better organization; click a tag's × to remove it.</li>
+                </ul>
+            </section>
+            <section class="help-section">
+                <h4>⌨️ Keyboard Shortcuts</h4>
+                <table class="help-shortcuts">
+                    <tr>
+                        <td><kbd>${modKey}</kbd> <em>(hold)</em></td>
+                        <td>Show advanced controls:
+                        <ul>
+                            <li>Add a <strong>➕</strong> under each task for quick adding at the right place.</li>
+                        </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Esc</kbd></td>
+                        <td>Close any open modal or dialog.</td>
+                    </tr>
+                </table>
+            </section>
+            <section class="help-section">
+                <h4>💾 Storage Modes</h4>
+                <ul>
+                    <li><strong>CLI mode</strong> — launched via <code>kandown backlog.yaml</code>; data saved to your YAML file.</li>
+                    <li><strong>File System mode</strong> — Chrome/Edge only; connects directly to a local folder.</li>
+                    <li><strong>Local Storage mode</strong> — browser-only demo; data lives in your browser but can be dowloaded.</li>
+                    <li><strong>Read-Only mode</strong> — view any public YAML via <code>?backlog=URL</code>.</li>
+                </ul>
+            </section>
+        </div>
+    `;
+
+    const modal = ModalManager.createModal('help-modal', '❓ Help', content, {
+        closeOnBackdrop: true,
+        actions: [
+            {
+                text: 'Got it',
+                className: 'modal-btn modal-btn-cancel',
+                onClick: () => ModalManager.closeActiveModal()
+            }
+        ]
+    });
+
+    ModalManager.showModal(modal);
+}
+
     // Setup columns and drag-and-drop
     columns = {
         'todo': document.getElementById('todo-col'),
@@ -1399,6 +1468,12 @@ async function initBoardApp() {
 
     // Initialize advanced mode keyboard handler
     initAdvancedMode();
+
+    // Setup help button
+    const helpBtn = document.getElementById('help-toggle');
+    if (helpBtn) {
+        helpBtn.addEventListener('click', () => showHelpModal());
+    }
 
     // Setup add task buttons
     document.querySelectorAll('.add-task').forEach(btn => {

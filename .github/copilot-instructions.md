@@ -49,7 +49,7 @@ Kandown is a lightweight, markdown-inspired Kanban board application designed fo
 - `statics/board.js` - Main Kanban board UI logic
 - `statics/ui.js` - UI rendering and DOM manipulation
 - `statics/api*.js` - Multiple API adapters for different storage modes
-- `statics/modal-manager.js` - Task detail modal management
+- `statics/modal-manager.js` - Modal management
 - `statics/event-manager.js` - Event bus for component communication
 - `statics/settings.js` - Settings management
 

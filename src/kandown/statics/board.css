@@ -398,7 +398,6 @@ a {
   font-size: 1.05em;
   opacity: 0.7;
   padding: 2px 4px;
-  transition: opacity 0.2s, transform 0.2s;
 }
 
 .task:hover .status-advance-btn,
@@ -408,7 +407,6 @@ a {
 
 .status-advance-btn:hover {
   opacity: 1;
-  transform: scale(1.1);
 }
 
 .status-advance-btn:focus-visible {
@@ -420,11 +418,6 @@ a {
   visibility: visible;
 }
 
-
-#delete-modal .delete-modal-box {
-  background: var(--modal-bg);
-  color: var(--modal-text);
-}
 
 .type-dropdown {
   position: relative;
@@ -731,7 +724,7 @@ body.darkmode .tag-suggestion-item.selected {
   border-radius: 12px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
   text-align: center;
-  max-width: 500px;
+  max-width: 700px;
   width: 90%;
 }
 
@@ -852,3 +845,77 @@ body.darkmode .tag-suggestion-item.selected {
 .load-error-home-btn:hover {
   background: var(--color-secondary, #1976d2);
 }
+
+/* Help modal */
+.help-modal-body {
+  text-align: left;
+  font-size: 0.93em;
+  line-height: 1.6;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.help-section {
+  margin-bottom: 20px;
+}
+
+.help-section:last-child {
+  margin-bottom: 0;
+}
+
+.help-section h4 {
+  margin: 0 0 8px;
+  font-size: 1em;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 4px;
+}
+
+.help-section p,
+.help-section ul {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.help-section ul {
+  padding-left: 20px;
+}
+
+.help-section li {
+  margin-bottom: 4px;
+}
+
+.help-shortcuts {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text-muted);
+}
+
+.help-shortcuts td {
+  padding: 6px 8px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.help-shortcuts td:first-child {
+  white-space: nowrap;
+  padding-right: 16px;
+}
+
+.help-shortcuts tr:last-child td {
+  border-bottom: none;
+}
+
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.85em;
+  font-family: monospace;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 var(--border-color);
+  color: var(--text-primary);
+}
+
