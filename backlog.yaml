@@ -8,7 +8,7 @@ settings:
 tasks:
 - created_at: '2025-10-02T20:59:24.686508'
   id: K-001
-  order: 52
+  order: 55
   status: done
   tags:
   - v0.1
@@ -24,41 +24,41 @@ tasks:
     \ placeholder\n- [x] cards move with animation"
   type: feature
   updated: '2025-10-06T20:54:55.907287'
-  updated_at: '2026-03-28T14:39:59.995504'
+  updated_at: '2026-03-28T15:25:07.288608'
 - closed_at: '2025-10-02T22:17:07.483486'
   created_at: '2025-10-02T21:01:52.619211'
   id: K-002
-  order: 48
+  order: 51
   status: done
   tags: []
   text: Validate pure online page with mounted file setup
   type: feature
   updated: '2025-10-06T20:54:55.907287'
-  updated_at: '2026-03-28T14:39:59.996257'
+  updated_at: '2026-03-28T15:25:07.288875'
 - closed_at: '2025-10-02T21:03:27.886752'
   created_at: '2025-10-02T21:03:11.335218'
   id: K-003
-  order: 50
+  order: 53
   status: done
   tags: []
   text: Setup basic kanban board
   type: feature
   updated: '2025-10-06T20:54:55.907287'
-  updated_at: '2026-03-28T14:39:59.996325'
+  updated_at: '2026-03-28T15:25:07.288924'
 - created_at: '2025-10-02T21:03:30.685985'
   id: K-004
-  order: 54
+  order: 57
   status: done
   tags:
   - v0.1
   text: Support pasting images
   type: feature
   updated: '2025-10-06T20:54:55.907287'
-  updated_at: '2026-03-28T14:39:59.996347'
+  updated_at: '2026-03-28T15:25:07.288946'
 - closed_at: '2025-10-06T23:35:40.759718'
   created_at: '2025-10-02T21:03:58.056622'
   id: K-005
-  order: 58
+  order: 61
   status: done
   tags: []
   text: "# Sample Kanban Board\n\nThis is a sample markdown file to demonstrate the\
@@ -76,10 +76,10 @@ tasks:
     \ rendering capabilities."
   type: feature
   updated: '2025-10-06T20:54:55.907287'
-  updated_at: '2026-03-28T14:39:59.996360'
+  updated_at: '2026-03-28T15:25:07.288966'
 - created_at: '2025-10-02T22:17:35.582263'
   id: K-006
-  order: 56
+  order: 59
   status: done
   tags:
   - v0.1
@@ -91,21 +91,21 @@ tasks:
   text: ''
   type: feature
   updated: '2025-10-06T20:54:55.907287'
-  updated_at: '2026-03-28T14:39:59.996391'
+  updated_at: '2026-03-28T15:25:07.289004'
 - created_at: '2025-10-05T00:41:57.059204'
   id: K-007
-  order: 46
+  order: 42
   status: todo
   tags: []
   text: Validate if we can have kandown in a pure puepy version accessing the filesystem.
     .
   type: experiment
   updated: '2025-10-05T22:59:37.200686'
-  updated_at: '2026-03-28T11:45:19.230852'
+  updated_at: '2026-03-28T15:07:38.824030'
 - closed_at: '2025-11-06T01:15:28.756214'
   created_at: '2025-10-05T00:42:26.424016'
   id: K-008
-  order: 12
+  order: 15
   status: done
   tags:
   - v0.1
@@ -117,10 +117,10 @@ tasks:
     - [x] publish'
   type: feature
   updated: '2025-10-06T20:55:15.406069'
-  updated_at: '2026-03-28T14:39:59.996409'
+  updated_at: '2026-03-28T15:25:07.289043'
 - created_at: '2025-10-05T00:42:55.951795'
   id: K-009
-  order: 8
+  order: 4
   status: todo
   tags:
   - v0.2
@@ -128,152 +128,152 @@ tasks:
 
     - [ ] somewhere document the keyboard shortcuts'
   type: feature
-  updated_at: '2026-03-28T11:45:19.231019'
+  updated_at: '2026-03-28T15:07:38.824087'
 - closed_at: '2025-10-07T01:22:12.597958'
   created_at: '2025-10-05T00:43:39.477296'
   id: K-010
-  order: 62
+  order: 65
   status: done
   tags: []
   text: ''
   type: feature
   updated: '2025-10-06T20:54:50.147444'
-  updated_at: '2026-03-28T14:39:59.996421'
+  updated_at: '2026-03-28T15:25:07.289063'
 - closed_at: '2025-10-10T00:50:50.872797'
   created_at: '2025-10-05T00:45:56.197048'
   id: K-011
-  order: 42
+  order: 45
   status: done
   tags: []
   text: "Somehow support task types: chore, story, epic\n\n\n⚙️ chore  \n⭐️ feature\
     \  \n\U0001F680 epic  \n\U0001F5E3️ request  \n\U0001F9EA experiment"
   type: feature
-  updated_at: '2026-03-28T14:39:59.996434'
+  updated_at: '2026-03-28T15:25:07.289081'
 - created_at: '2025-10-05T00:46:58.411356'
   id: K-012
-  order: 32
+  order: 28
   status: todo
   tags:
   - v0.3
   text: Allow connections between tasks
   type: epic
-  updated_at: '2026-03-28T11:45:19.231054'
+  updated_at: '2026-03-28T15:07:38.824106'
 - closed_at: '2025-10-07T01:22:46.629149'
   created_at: '2025-10-07T01:22:28.535004'
   id: K-014
-  order: 46
+  order: 49
   status: done
   tags: []
   text: refactoring
   type: feature
-  updated_at: '2026-03-28T14:39:59.996455'
+  updated_at: '2026-03-28T15:25:07.289102'
 - closed_at: '2025-10-12T21:29:30.190609'
   created_at: '2025-10-07T01:23:24.085040'
   id: K-015
-  order: 32
+  order: 35
   status: done
   tags: []
   text: Add setting to store pasted images in an attachment folder
   type: epic
-  updated_at: '2026-03-28T14:39:59.996466'
+  updated_at: '2026-03-28T15:25:07.289117'
 - closed_at: '2025-10-12T21:46:33.450943'
   created_at: '2025-10-07T01:24:23.424553'
   id: K-016
-  order: 30
+  order: 33
   status: done
   tags: []
   text: fix flickering bug while drag and drop
   type: bug
-  updated_at: '2026-03-28T14:39:59.996476'
+  updated_at: '2026-03-28T15:25:07.289129'
 - closed_at: '2026-03-28T14:39:59.996488'
   created_at: '2025-10-07T01:24:47.768793'
   id: K-017
-  order: 0
+  order: 3
   status: done
   tags:
   - v0.1
   text: fix tag input field does not disappear after usage
   type: bug
-  updated_at: '2026-03-28T14:39:59.996488'
+  updated_at: '2026-03-28T15:25:07.289141'
 - created_at: '2025-10-07T01:33:34.938879'
   id: K-020
-  order: 44
+  order: 40
   status: todo
   tags: []
   text: 'Setting to:
 
     Auto archive done tasks after x days'
   type: experiment
-  updated_at: '2026-03-28T11:45:19.231135'
+  updated_at: '2026-03-28T15:07:38.824119'
 - closed_at: '2025-11-11T23:58:46.586272'
   created_at: '2025-10-07T01:34:14.026741'
   id: K-021
-  order: 8
+  order: 11
   status: done
   tags:
   - v0.1
   text: Add special divider cards, which can be used in the backlog
   type: feature
-  updated_at: '2026-03-28T14:39:59.996503'
+  updated_at: '2026-03-28T15:25:07.289154'
 - created_at: '2025-10-07T01:35:11.463963'
   id: K-022
-  order: 36
+  order: 32
   status: todo
   tags:
   - v0.3
   text: Settings to keep deleted tasks in an archived file
   type: feature
-  updated_at: '2026-03-28T11:45:19.231153'
+  updated_at: '2026-03-28T15:07:38.824133'
 - closed_at: '2025-10-09T23:53:26.371251'
   created_at: '2025-10-07T01:37:42.767201'
   id: K-023
-  order: 44
+  order: 47
   status: done
   tags: []
   text: make cards stay the same size on hover
   type: feature
-  updated_at: '2026-03-28T14:39:59.996514'
+  updated_at: '2026-03-28T15:25:07.289167'
 - closed_at: '2025-10-12T17:43:19.721594'
   created_at: '2025-10-10T00:54:14.786466'
   id: K-024
-  order: 36
+  order: 39
   status: done
   tags: []
   text: use random port instead of fixed one
   type: feature
-  updated_at: '2026-03-28T14:39:59.996523'
+  updated_at: '2026-03-28T15:25:07.289179'
 - closed_at: '2025-10-11T22:19:26.783048'
   created_at: '2025-10-10T01:01:42.223508'
   id: K-025
-  order: 38
+  order: 41
   status: done
   tags: []
   text: bring back collapsed tasks in done and do not show delete button when collapsed
   type: bug
-  updated_at: '2026-03-28T14:39:59.996593'
+  updated_at: '2026-03-28T15:25:07.289195'
 - closed_at: '2025-10-11T22:14:44.271816'
   created_at: '2025-10-11T22:14:10.601890'
   id: K-026
-  order: 40
+  order: 43
   status: done
   tags:
   - v3
   text: ''
   type: epic
-  updated_at: '2026-03-28T14:39:59.996619'
+  updated_at: '2026-03-28T15:25:07.289210'
 - closed_at: '2025-10-12T18:13:14.722211'
   created_at: '2025-10-12T18:12:53.978461'
   id: K-027
-  order: 34
+  order: 37
   status: done
   tags: []
   text: Add settings popup with basic random port setting
   type: feature
-  updated_at: '2026-03-28T14:39:59.996647'
+  updated_at: '2026-03-28T15:25:07.289223'
 - closed_at: '2025-11-11T23:57:01.759287'
   created_at: '2025-10-12T19:34:16.986235'
   id: K-028
-  order: 10
+  order: 13
   status: done
   tags: []
   text: "Iterate on cli api, to maybe allow additional actions.\n\nThe solution should:\n\
@@ -282,86 +282,86 @@ tasks:
     \ still support basic serve options\n\n\n---\n\nWe skip this, and implement features\
     \ via UI actions section"
   type: experiment
-  updated_at: '2026-03-28T14:39:59.996658'
+  updated_at: '2026-03-28T15:25:07.289238'
 - created_at: '2025-10-12T21:01:52.344775'
   id: K-030
-  order: 20
+  order: 16
   status: todo
   tags:
   - v0.2
   text: Add an action to clean up unreferenced files
   type: feature
-  updated_at: '2026-03-28T11:45:19.231169'
+  updated_at: '2026-03-28T15:07:38.824147'
 - created_at: '2025-10-12T21:03:03.019950'
   id: K-031
-  order: 42
+  order: 38
   status: todo
   tags:
   - nice to have
   text: add button to extract embedded images from tasks and move them into attachment
     folder
   type: feature
-  updated_at: '2026-03-28T11:45:19.231181'
+  updated_at: '2026-03-28T15:07:38.824160'
 - created_at: '2025-10-12T21:48:23.603078'
   id: K-032
-  order: 16
+  order: 12
   status: todo
   tags:
   - v0.2
   text: Support CMD+z for undo (especially for moving tasks around!
   type: feature
-  updated_at: '2026-03-28T11:45:19.231191'
+  updated_at: '2026-03-28T15:07:38.824169'
 - closed_at: '2025-10-12T22:32:38.472151'
   created_at: '2025-10-12T22:29:22.350779'
   id: K-035
-  order: 28
+  order: 31
   status: done
   tags: []
   text: Fix images are still inline when new task added
   type: bug
-  updated_at: '2026-03-28T14:39:59.996684'
+  updated_at: '2026-03-28T15:25:07.289252'
 - created_at: '2025-10-12T22:36:20.087437'
   id: K-036
-  order: 34
+  order: 30
   status: todo
   tags:
   - v0.3
   text: "# Multiselect\n\n- [ ] hold CMD to show multiselect checkboxes\n- [ ] show\
     \ header with actions\n  - [ ] apply tag action\n  - [ ] delete action"
   type: feature
-  updated_at: '2026-03-28T11:45:19.231202'
+  updated_at: '2026-03-28T15:07:38.824177'
 - closed_at: '2026-03-28T11:14:04.882243'
   created_at: '2025-10-12T22:38:49.960568'
   id: K-037
-  order: 2
+  order: 5
   status: done
   tags:
   - v0.1
   text: make tag suggestions acceptable via keyboard
   type: feature
-  updated_at: '2026-03-28T14:39:59.996707'
+  updated_at: '2026-03-28T15:25:07.289268'
 - created_at: '2025-10-12T22:39:58.674657'
   id: K-038
-  order: 30
+  order: 26
   status: todo
   tags:
   - v0.3
   text: Filter for types
   type: feature
-  updated_at: '2026-03-28T11:45:19.231218'
+  updated_at: '2026-03-28T15:07:38.824185'
 - closed_at: '2025-10-12T23:41:36.424603'
   created_at: '2025-10-12T22:40:40.386821'
   id: K-039
-  order: 26
+  order: 29
   status: done
   tags:
   - v0.2
   text: show a + under tasks, so that a new task can be added there
   type: feature
-  updated_at: '2026-03-28T14:39:59.996721'
+  updated_at: '2026-03-28T15:25:07.289283'
 - created_at: '2025-10-12T22:43:04.653724'
   id: K-040
-  order: 18
+  order: 14
   status: todo
   tags:
   - v0.2
@@ -374,10 +374,10 @@ tasks:
 
     start with [K-030]'
   type: epic
-  updated_at: '2026-03-28T11:45:19.231233'
+  updated_at: '2026-03-28T15:07:38.824197'
 - created_at: '2025-10-12T23:08:17.797033'
   id: K-042
-  order: 40
+  order: 36
   status: todo
   tags:
   - nice to have
@@ -388,11 +388,11 @@ tasks:
 
     Add some simple autocompletion for checklists and lists in general.'
   type: feature
-  updated_at: '2026-03-28T11:45:19.231245'
+  updated_at: '2026-03-28T15:07:38.824207'
 - closed_at: '2025-10-25T15:46:02.124980'
   created_at: '2025-10-24T21:43:05.263143'
   id: K-041
-  order: 60
+  order: 63
   status: done
   tags:
   - frontend
@@ -409,11 +409,11 @@ tasks:
 
     See FRONTEND_IMPROVEMENTS.md for detailed analysis and recommendations.'
   type: feature
-  updated_at: '2026-03-28T14:39:59.996732'
+  updated_at: '2026-03-28T15:25:07.289296'
 - closed_at: '2025-10-25T00:32:01.335124'
   created_at: '2025-10-24T21:43:05.263143'
   id: K-043
-  order: 24
+  order: 27
   status: done
   tags:
   - frontend
@@ -431,11 +431,11 @@ tasks:
 
     See FRONTEND_IMPROVEMENTS.md for detailed analysis and recommendations.'
   type: feature
-  updated_at: '2026-03-28T14:39:59.996742'
+  updated_at: '2026-03-28T15:25:07.289309'
 - closed_at: '2025-10-25T00:46:09.223658'
   created_at: '2025-10-24T21:43:05.263143'
   id: K-044
-  order: 20
+  order: 23
   status: done
   tags:
   - frontend
@@ -452,11 +452,11 @@ tasks:
 
     See FRONTEND_IMPROVEMENTS.md for detailed analysis and recommendations.'
   type: feature
-  updated_at: '2026-03-28T14:39:59.996759'
+  updated_at: '2026-03-28T15:25:07.289321'
 - closed_at: '2025-10-24T22:59:21.650272'
   created_at: '2025-10-24T21:43:05.263143'
   id: K-045
-  order: 22
+  order: 25
   status: done
   tags:
   - frontend
@@ -473,11 +473,11 @@ tasks:
 
     See FRONTEND_IMPROVEMENTS.md for detailed analysis and recommendations.'
   type: feature
-  updated_at: '2026-03-28T14:39:59.996768'
+  updated_at: '2026-03-28T15:25:07.289334'
 - closed_at: '2025-10-29T16:49:31.815690'
   created_at: '2025-10-26T23:02:53.547Z'
   id: K-046
-  order: 16
+  order: 19
   status: done
   tags:
   - v0.1
@@ -490,19 +490,19 @@ tasks:
     the page should determine if cli server is available and in case it is not available,
     only provide page mode and optional file system mode.'
   type: epic
-  updated_at: '2026-03-28T14:39:59.996777'
+  updated_at: '2026-03-28T15:25:07.289346'
 - closed_at: '2025-10-28T13:16:28.494002'
   created_at: '2025-10-26T23:05:41.513Z'
   id: K-048
-  order: 18
+  order: 21
   status: done
   tags: []
   text: new task has no type, always start with feature
   type: bug
-  updated_at: '2026-03-28T14:39:59.996788'
+  updated_at: '2026-03-28T15:25:07.289358'
 - created_at: '2025-10-29T16:48:26.448636'
   id: K-049
-  order: 2
+  order: 0
   status: todo
   tags:
   - v0.1
@@ -510,10 +510,10 @@ tasks:
   text: refactor settings modal handling (currently we have a modal-mananger and a
     raw js setup)
   type: chore
-  updated_at: '2026-03-28T11:45:19.231260'
+  updated_at: '2026-03-28T15:07:38.824218'
 - created_at: '2025-10-29T16:49:37.031639'
   id: K-050
-  order: 14
+  order: 17
   status: done
   tags: []
   text: 'Demo Mode:
@@ -521,21 +521,21 @@ tasks:
 
     Within local storage provide upload/download feature'
   type: feature
-  updated_at: '2026-03-28T14:39:59.996797'
+  updated_at: '2026-03-28T15:25:07.289369'
 - closed_at: '2025-11-13T23:05:34.774592'
   created_at: '2025-11-02T22:22:19.489Z'
   id: K-053
-  order: 6
+  order: 9
   status: done
   tags:
   - v0.1
   text: Paste does not work in filesystem mode
   type: bug
-  updated_at: '2026-03-28T14:39:59.996806'
+  updated_at: '2026-03-28T15:25:07.289380'
 - closed_at: '2025-11-15T00:00:17.790468'
   created_at: '2025-11-06T00:47:40.917378'
   id: K-054
-  order: 4
+  order: 7
   status: done
   tags: []
   text: 're-add button to "add task between" tasks.
@@ -543,10 +543,10 @@ tasks:
 
     > right now this is commented out because it stoped working during the revamp'
   type: bug
-  updated_at: '2026-03-28T14:39:59.996814'
+  updated_at: '2026-03-28T15:25:07.289391'
 - created_at: '2025-11-06T00:49:34.686195'
   id: K-055
-  order: 28
+  order: 24
   status: todo
   tags:
   - v0.3
@@ -557,43 +557,43 @@ tasks:
     backlog, so it would make sense to improve the setup, especially handle inline
     images differently!'
   type: feature
-  updated_at: '2026-03-28T11:45:19.231274'
+  updated_at: '2026-03-28T15:07:38.824227'
 - created_at: '2025-11-11T23:52:32.299811'
   id: K-056
-  order: 6
+  order: 2
   status: todo
   tags: []
   text: 🏁 🏁 🏁 Finish v0.1  🏁 🏁 🏁
   type: divider
-  updated_at: '2026-03-28T11:45:19.231285'
+  updated_at: '2026-03-28T15:07:38.824237'
 - created_at: '2025-11-11T23:55:30.059525'
   id: K-057
-  order: 38
+  order: 34
   status: todo
   tags: []
   text: ⬇️ ⬇️ ⬇️  Nice to have ⬇️ ⬇️ ⬇️
   type: divider
-  updated_at: '2026-03-28T11:45:19.231297'
+  updated_at: '2026-03-28T15:07:38.824245'
 - created_at: '2025-11-11T23:57:32.022897'
   id: K-058
-  order: 14
+  order: 10
   status: todo
   tags:
   - v0.2
   text: Add "dupplicate card" button
   type: feature
-  updated_at: '2026-03-28T11:45:19.231309'
+  updated_at: '2026-03-28T15:07:38.824253'
 - created_at: '2025-11-11T23:57:57.129915'
   id: K-059
-  order: 22
+  order: 18
   status: todo
   tags: []
   text: 🏁 🏁 🏁 Finish v0.2  🏁 🏁 🏁
   type: divider
-  updated_at: '2026-03-28T11:45:19.231318'
+  updated_at: '2026-03-28T15:07:38.824261'
 - created_at: '2025-11-11T23:59:53.036424'
   id: K-060
-  order: 26
+  order: 22
   status: todo
   tags:
   - v0.3
@@ -607,10 +607,10 @@ tasks:
 
     Text are based on existing tasks'
   type: feature
-  updated_at: '2026-03-28T11:45:19.231328'
+  updated_at: '2026-03-28T15:07:38.824269'
 - created_at: '2025-11-14T23:02:23.334691'
   id: K-061
-  order: 12
+  order: 8
   status: todo
   tags:
   - v0.2
@@ -621,10 +621,10 @@ tasks:
 
     - [ ] embedded images stored under images section'
   type: feature
-  updated_at: '2026-03-28T11:45:19.231337'
+  updated_at: '2026-03-28T15:07:38.824277'
 - created_at: '2025-11-14T23:04:57.987216'
   id: K-062
-  order: 24
+  order: 20
   status: todo
   tags:
   - v0.3
@@ -637,20 +637,21 @@ tasks:
 
     - [ ] support drag and drop'
   type: feature
-  updated_at: '2026-03-28T11:45:19.231347'
+  updated_at: '2026-03-28T15:07:38.824284'
 - created_at: '2025-11-14T23:07:17.610869'
   id: K-063
-  order: 10
+  order: 6
   status: todo
   tags:
   - v0.2
   text: detect file changes and update
   type: feature
-  updated_at: '2026-03-28T11:45:19.231357'
-- created_at: '2025-11-14T23:08:09.271186'
+  updated_at: '2026-03-28T15:07:38.824292'
+- closed_at: '2026-03-28T15:25:07.289407'
+  created_at: '2025-11-14T23:08:09.271186'
   id: K-064
-  order: 4
-  status: todo
+  order: 1
+  status: done
   tags:
   - v0.1
   text: 'Add status change buttons to move cards between columns
@@ -661,4 +662,4 @@ tasks:
 
     In Progress -> Done: ✅'
   type: feature
-  updated_at: '2026-03-28T11:45:19.231368'
+  updated_at: '2026-03-28T15:25:07.289407'

@@ -390,7 +390,8 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
     // Build batch update payload
     const payload = {};
     newOrder.forEach((id, idx) => {
-        payload[id] = {order: idx * 2}; // Use gaps of 2 to allow easy insertion
+        // Use gaps of 2 to allow easy insertion, start with 1 for easy insert at beginning
+        payload[id] = {order: 1 + idx * 2};
     });
     // If the moved task changed columns, update its status too
     if (movedId && originalStatus && originalStatus !== status) {
@@ -572,6 +573,49 @@ function createTypeDropdown(task) {
 }
 
 /**
+ * Returns the next status for a task, if any.
+ * @param {string} status
+ * @returns {{nextStatus: string, icon: string, label: string} | null}
+ */
+function getNextStatusInfo(status) {
+    if (status === 'todo') {
+        return {nextStatus: 'in_progress', icon: '▶️', label: 'Move to In Progress'};
+    }
+    if (status === 'in_progress') {
+        return {nextStatus: 'done', icon: '✅', label: 'Move to Done'};
+    }
+    return null;
+}
+
+/**
+ * Creates the status advance button for a task.
+ * @param {Object} task
+ * @returns {HTMLElement | null}
+ */
+function createStatusAdvanceButton(task) {
+    const statusInfo = getNextStatusInfo(task.status);
+    if (!statusInfo || readOnlyMode) {
+        return null;
+    }
+    const advanceBtn = createButton({
+        className: 'status-advance-btn',
+        text: statusInfo.icon,
+        title: statusInfo.label,
+        attributes: {type: 'button', 'aria-label': statusInfo.label},
+        onClick: function (e) {
+            e.stopPropagation();
+            taskAPI.getTasks().then(tasks => {
+                const targetTasks = tasks.filter(t => t.status === statusInfo.nextStatus && t.id !== task.id);
+                targetTasks.sort((a, b) => (a.order || 0) - (b.order || 0));
+                const newOrder = [task.id, ...targetTasks.map(t => t.id)];
+                updateColumnOrder(statusInfo.nextStatus, newOrder, task.id, task.status);
+            });
+        }
+    });
+    return advanceBtn;
+}
+
+/**
  * Creates the task header with type button, ID, and delete button
  * In read-only mode, hides delete button and disables type changes.
  * @param {Object} task - The task object
@@ -596,6 +640,11 @@ function createTaskHeader(task) {
     headRow.append(idDiv);
 
     const buttonGroup = createElement('div', 'done-button-group');
+
+    const advanceBtn = createStatusAdvanceButton(task);
+    if (advanceBtn) {
+        buttonGroup.appendChild(advanceBtn);
+    }
 
     // Don't show delete button in read-only mode
     if (!readOnlyMode) {
