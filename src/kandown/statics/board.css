@@ -668,8 +668,14 @@ a {
   transition: background-color 0.2s;
 }
 
-.tag-suggestion-item:hover {
+.tag-suggestion-item:hover,
+.tag-suggestion-item.selected {
   background: #f3f4f6;
+}
+
+body.darkmode .tag-suggestion-item:hover,
+body.darkmode .tag-suggestion-item.selected {
+  background: var(--btn-hover);
 }
 
 /* Modal overlay and box */

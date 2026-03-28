@@ -181,9 +181,31 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
  */
 function createTagSuggestionBox(input, task, getTagSuggestions) {
     const box = createElement('div', 'tag-suggestion-box');
+    let selectedIndex = -1;
+
+    const selectTag = (tag) => {
+        input.value = tag;
+        input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
+        box.style.display = 'none';
+        selectedIndex = -1;
+    };
+
+    const updateSelection = () => {
+        const items = box.querySelectorAll('.tag-suggestion-item');
+        items.forEach((item, index) => {
+            if (index === selectedIndex) {
+                item.classList.add('selected');
+                item.scrollIntoView({block: 'nearest'});
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    };
+
     box.updateSuggestions = () => {
         const val = input.value.trim().toLowerCase();
         box.innerHTML = '';
+        selectedIndex = -1;
         const tagSuggestions = getTagSuggestions();
         if (!val) {
             box.style.display = 'none';
@@ -194,22 +216,52 @@ function createTagSuggestionBox(input, task, getTagSuggestions) {
             box.style.display = 'none';
             return;
         }
-        matches.forEach(tag => {
+        matches.forEach((tag, index) => {
             const item = createElement('div', 'tag-suggestion-item');
             item.textContent = tag;
+            item.dataset.index = index;
             item.onmousedown = (e) => {
                 e.preventDefault();
-                input.value = tag;
-                input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
-                box.style.display = 'none';
+                selectTag(tag);
             };
             box.appendChild(item);
         });
         box.style.display = 'block';
     };
+
+    // Add keyboard navigation
+    input.addEventListener('keydown', (e) => {
+        const items = box.querySelectorAll('.tag-suggestion-item');
+        if (box.style.display !== 'block' || items.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % items.length;
+                updateSelection();
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
+                updateSelection();
+                break;
+            case 'Enter':
+                if (selectedIndex >= 0 && selectedIndex < items.length) {
+                    e.preventDefault();
+                    selectTag(items[selectedIndex].textContent);
+                }
+                break;
+            case 'Escape':
+                box.style.display = 'none';
+                selectedIndex = -1;
+                break;
+        }
+    });
+
     input.onblur = () => {
         setTimeout(() => {
             box.style.display = 'none';
+            selectedIndex = -1;
         }, 100);
     };
     return box;
