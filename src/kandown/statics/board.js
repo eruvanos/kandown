@@ -832,31 +832,20 @@ function createTagsSection(task, el) {
     // Add tag input (only if not editing text and not in read-only mode)
     if (!el.querySelector('textarea.edit-input') && !readOnlyMode) {
         let tagSuggestions = [];
-        let tagInputFocused = false;
-        let mouseOverCard = false;
 
         const addTagInput = createInput({
             type: 'text',
             className: 'add-tag-input',
             placeholder: 'Add tag...',
-            onFocus: function (e) {
-                tagInputFocused = true;
-                el.classList.add('show-tag-input');
+            onFocus: function () {
                 taskAPI.getTagSuggestions().then(tags => {
                     tagSuggestions = tags;
                 });
-            },
-            onBlur: function (e) {
-                tagInputFocused = false;
-                setTimeout(() => {
-                    if (!mouseOverCard) {
-                        el.classList.remove('show-tag-input');
-                    }
-                }, 0);
             }
         });
 
         const suggestionBox = createTagSuggestionBox(addTagInput, task, () => tagSuggestions);
+
         addTagInput.oninput = function () {
             suggestionBox.updateSuggestions();
         };
@@ -891,24 +880,12 @@ function createTagsSection(task, el) {
 
         addTagInput.addEventListener('click', e => e.stopPropagation());
         tagsDiv.style.position = 'relative';
-        tagsDiv.appendChild(addTagInput);
-        tagsDiv.appendChild(suggestionBox);
 
-        // Show addTagInput only on hover for non-collapsed tasks
-        if (!el.classList.contains('collapsed')) {
-            el.addEventListener('mouseenter', function () {
-                mouseOverCard = true;
-                el.classList.add('show-tag-input');
-            });
-            el.addEventListener('mouseleave', function () {
-                mouseOverCard = false;
-                setTimeout(() => {
-                    if (!tagInputFocused) {
-                        el.classList.remove('show-tag-input');
-                    }
-                }, 0);
-            });
-        }
+        const tagInputWrapper = createElement('div', 'tag-input-wrapper');
+        tagInputWrapper.appendChild(addTagInput);
+        tagInputWrapper.appendChild(suggestionBox);
+
+        tagsDiv.appendChild(tagInputWrapper);
     }
 
     return tagsDiv;

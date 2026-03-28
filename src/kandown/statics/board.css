@@ -239,7 +239,11 @@ a {
   visibility: hidden;
 }
 
-.task.show-tag-input .add-tag-input {
+.task:hover .add-tag-input {
+  visibility: visible;
+}
+
+.add-tag-input:focus {
   visibility: visible;
 }
 
@@ -649,8 +653,15 @@ a {
 }
 
 /* Tag suggestion box */
+.tag-input-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .tag-suggestion-box {
   position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: 0 2px 8px var(--shadow-medium);
