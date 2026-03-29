@@ -20,7 +20,7 @@ let taskAPI = null;
 let settingsAPI = null;
 
 const eventManager = new EventManager();
-const ICEBOX_COLLAPSED_KEY = 'kandown_icebox_collapsed';
+
 
 /**
  * @type {ServerMode}
@@ -270,45 +270,29 @@ function createTagSuggestionBox(input, task, getTagSuggestions) {
 }
 
 /**
- * Updates visual state of the Icebox column.
- * @param {boolean} collapsed
- * @param {boolean} [persist=true]
+ * Sets up Icebox drag-hover expansion: expands when a task is dragged over it,
+ * collapses when the drag leaves or ends.
  */
-function setIceboxCollapsed(collapsed, persist = true) {
+function syncIceboxDragState() {
     const iceboxCol = document.getElementById('icebox-col');
-    const toggleBtn = document.getElementById('icebox-toggle');
-    if (!iceboxCol || !toggleBtn) {
-        return;
-    }
+    if (!iceboxCol) return;
 
-    iceboxCol.classList.toggle('is-collapsed', collapsed);
-    toggleBtn.textContent = collapsed ? '\u25B6' : '\u25C0';
-    toggleBtn.title = collapsed ? 'Expand Icebox' : 'Collapse Icebox';
-    toggleBtn.setAttribute('aria-label', toggleBtn.title);
-
-    if (persist) {
-        localStorage.setItem(ICEBOX_COLLAPSED_KEY, collapsed ? '1' : '0');
-    }
+    iceboxCol.classList.toggle('expand', dragOverCol === iceboxCol);
 }
 
-/**
- * Initializes Icebox collapse/expand controls.
- */
-function initIceboxToggle() {
-    const toggleBtn = document.getElementById('icebox-toggle');
-    if (!toggleBtn) {
-        return;
-    }
+function setupIceboxDragHover() {
+    const iceboxCol = document.getElementById('icebox-col');
+    if (!iceboxCol) return;
 
-    const savedValue = localStorage.getItem(ICEBOX_COLLAPSED_KEY);
-    const startsCollapsed = savedValue === null ? true : savedValue !== '0';
-    setIceboxCollapsed(startsCollapsed, false);
-
-    toggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const currentlyCollapsed = document.getElementById('icebox-col')?.classList.contains('is-collapsed');
-        setIceboxCollapsed(!currentlyCollapsed);
+    iceboxCol.addEventListener('mouseenter', function () {
+        iceboxCol.classList.add('expand');
     });
+
+    iceboxCol.addEventListener('mouseleave', function () {
+        iceboxCol.classList.remove('expand');
+    });
+
+    syncIceboxDragState();
 }
 
 // --- Drag & Drop ---
@@ -323,22 +307,22 @@ let placeholderEl = null;
  * @returns {void}
  */
 function makeDraggable() {
-    document.querySelectorAll('.task').forEach(function (card, idx) {
+    document.querySelectorAll('.task').forEach(function (card) {
         card.setAttribute('draggable', 'true');
         card.addEventListener('dragstart', function (e) {
             dragSrcId = card.dataset.id;
             dragOverIndex = null;
-            dragOverCol = null;
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', card.dataset.id);
             card.classList.add('dragging');
         });
-        card.addEventListener('dragend', function (e) {
+        card.addEventListener('dragend', function () {
             dragSrcId = null;
             dragOverIndex = null;
             dragOverCol = null;
             card.classList.remove('dragging');
             removePlaceholder();
+            syncIceboxDragState();
         });
     });
 }
@@ -362,7 +346,9 @@ function setupDropZones() {
 
     document.getElementById('board').addEventListener('dragover', function (e) {
         e.preventDefault();
-        removePlaceholder()
+        dragOverCol = null;
+        removePlaceholder();
+        syncIceboxDragState();
     });
 
     Object.entries(columns).forEach(([status, col]) => {
@@ -382,11 +368,14 @@ function setupDropZones() {
             dragOverIndex = insertIdx;
             dragOverCol = col;
             showPlaceholder(col, insertIdx);
+            syncIceboxDragState();
         });
         col.addEventListener('drop', function (e) {
             e.preventDefault();
             removePlaceholder();
             const id = dragSrcId || e.dataTransfer.getData('text/plain');
+            dragOverCol = null;
+            syncIceboxDragState();
             if (!id) return;
             const tasks = Array.from(col.querySelectorAll('.task'));
             let newOrder = [];
@@ -412,8 +401,24 @@ function setupDropZones() {
  * @returns {void}
  */
 function showPlaceholder(col, idx) {
-    removePlaceholder();
     const tasks = Array.from(col.querySelectorAll('.task'));
+    let targetTask = null;
+    if (idx < tasks.length) {
+        targetTask = tasks[idx];
+    }
+
+    // If placeholder exists and is in the right place, don't touch it
+    if (placeholderEl) {
+        const currentParent = placeholderEl.parentNode;
+        if (currentParent === col) {
+            const nextSibling = placeholderEl.nextElementSibling;
+            if (nextSibling === targetTask || (!nextSibling && idx >= tasks.length)) {
+                return;
+            }
+        }
+        removePlaceholder();
+    }
+
     placeholderEl = createElement('div', 'task-placeholder');
     if (idx >= tasks.length) {
         col.appendChild(placeholderEl);
@@ -1446,14 +1451,14 @@ async function initBoardApp() {
         }
     }
 
-/**
- * Shows the help modal with a brief UI overview and keyboard shortcut reference.
- */
-function showHelpModal() {
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    const modKey = isMac ? '⌘ Cmd' : 'Ctrl';
+    /**
+     * Shows the help modal with a brief UI overview and keyboard shortcut reference.
+     */
+    function showHelpModal() {
+        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        const modKey = isMac ? '⌘ Cmd' : 'Ctrl';
 
-    const content = `
+        const content = `
         <div class="help-modal-body">
             <section class="help-section">
                 <h4>📋 Board Overview</h4>
@@ -1499,19 +1504,19 @@ function showHelpModal() {
         </div>
     `;
 
-    const modal = ModalManager.createModal('help-modal', '❓ Help', content, {
-        closeOnBackdrop: true,
-        actions: [
-            {
-                text: 'Got it',
-                className: 'modal-btn modal-btn-cancel',
-                onClick: () => ModalManager.closeActiveModal()
-            }
-        ]
-    });
+        const modal = ModalManager.createModal('help-modal', '❓ Help', content, {
+            closeOnBackdrop: true,
+            actions: [
+                {
+                    text: 'Got it',
+                    className: 'modal-btn modal-btn-cancel',
+                    onClick: () => ModalManager.closeActiveModal()
+                }
+            ]
+        });
 
-    ModalManager.showModal(modal);
-}
+        ModalManager.showModal(modal);
+    }
 
     // Setup columns and drag-and-drop
     columns = {
@@ -1520,7 +1525,7 @@ function showHelpModal() {
         'in_progress': document.getElementById('inprogress-col'),
         'done': document.getElementById('done-col')
     };
-    initIceboxToggle();
+    setupIceboxDragHover();
     setupDropZones();
 
     // Initialize advanced mode keyboard handler

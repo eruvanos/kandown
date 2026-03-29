@@ -185,7 +185,7 @@ export class ModalManager {
    * @returns {HTMLElement}
    */
   static createConfirmModal(title, message, onConfirm, onCancel = null) {
-    return this.createModal('confirm-modal', title, message, {
+    const modal = this.createModal('confirm-modal', title, message, {
       actions: [
         {
           text: 'Delete',
@@ -206,6 +206,24 @@ export class ModalManager {
       ],
       onCancel: onCancel
     });
+
+    // Monkey-patch a special handler onto this specific modal instance
+    // so we can add/remove the Enter key listener when it's shown/closed.
+    modal._postShowHook = () => {
+      document.addEventListener('keydown', modal._keydownHandler);
+    };
+    modal._preCloseHook = () => {
+      document.removeEventListener('keydown', modal._keydownHandler);
+    };
+    modal._keydownHandler = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onConfirm();
+        this.closeActiveModal();
+      }
+    };
+
+    return modal;
   }
 
   /**
@@ -232,6 +250,11 @@ export class ModalManager {
     
     document.body.appendChild(modal);
     this.activeModal = modal;
+
+    // If the modal has a post-show hook, run it.
+    if (modal._postShowHook) {
+      modal._postShowHook();
+    }
   }
 
   /**
@@ -239,6 +262,11 @@ export class ModalManager {
    * @param {HTMLElement} modal
    */
   static closeModal(modal) {
+    // If the modal has a pre-close hook, run it.
+    if (modal._preCloseHook) {
+      modal._preCloseHook();
+    }
+
     if (modal && modal.parentNode) {
       modal.parentNode.removeChild(modal);
     }

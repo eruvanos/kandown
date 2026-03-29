@@ -1,5 +1,9 @@
 # Kandown - GitHub Copilot Instructions
 
+
+> General advice, make use of build-in IDE tools as much as possible instead of using cli commands. 
+> IMPORTANT: Piping a script into python via `python <<EOF` is not supported, instead create a script in an untracked folder `./copilot_scripts`.
+
 ## Project Vision
 
 Kandown is a lightweight, markdown-inspired Kanban board application designed for managing small project backlogs. The core philosophy is:
