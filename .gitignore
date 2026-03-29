@@ -165,5 +165,7 @@ cython_debug/
 .python-version
 uv.lock
 
+# Copilot tmp folder
+copilot_scripts/
 # Screenshots for testing
 screenshots/
