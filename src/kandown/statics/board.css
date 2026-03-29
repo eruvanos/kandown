@@ -129,26 +129,25 @@ a {
   min-height: 43px;
 }
 
-
 .icebox-column {
   position: fixed;
   left: 0;
-  top: 0;
+  top: 10vh;
   z-index: 100;
   width: 320px;
   min-width: unset;
-  height: 100vh;
+  height: 80vh;
   overflow: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--bg-column);
   border-radius: 0 8px 8px 0;
   box-shadow: 2px 0 12px var(--shadow-medium);
-  transform: translateX(-272px);
+  transform: translateX(-285px);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.icebox-column.expand{
+.icebox-column.expand {
   transform: translateX(0);
   box-shadow: 6px 0 32px var(--shadow-strong);
 }
