@@ -34,6 +34,18 @@ let readOnlyMode = false;
  * @type {Map<any, any>}
  */
 const filesystemImageCache = new Map();
+const textareasBeingSaved = new WeakSet();
+
+/**
+ * Detect whether current platform is macOS.
+ * @returns {boolean}
+ */
+function isMacPlatform() {
+    if (navigator.userAgentData && typeof navigator.userAgentData.platform === 'string') {
+        return navigator.userAgentData.platform.toLowerCase().startsWith('mac');
+    }
+    return /\bMac(?:intosh|Intel| OS X)?\b/i.test(navigator.userAgent);
+}
 
 async function initRenderers() {
     if (window.marked) {
@@ -189,9 +201,11 @@ function isBatchAddShortcut(e) {
  * @returns {HTMLDivElement}
  */
 function createEditorWrapper(textarea) {
+    const isMac = isMacPlatform();
+    const shortcut = isMac ? '⌘ Enter' : 'Ctrl + Enter';
     const wrapper = createElement('div', 'edit-input-wrapper');
     const indicator = createElement('div', 'batch-add-indicator');
-    indicator.textContent = 'Optional: Ctrl/Cmd + Enter saves and opens next task';
+    indicator.textContent = `Optional: ${shortcut} saves current task and adds another in this column`;
     wrapper.appendChild(textarea);
     wrapper.appendChild(indicator);
     return wrapper;
@@ -204,21 +218,31 @@ function createEditorWrapper(textarea) {
  * @returns {void}
  */
 function saveAndOpenNextTask(task, textarea) {
-    if (textarea.dataset.batchAddInProgress === 'true') return;
+    if (textareasBeingSaved.has(textarea)) return;
     if (!textarea.value.trim()) {
-        textarea.blur();
+        renderTasks();
         return;
     }
-    textarea.dataset.batchAddInProgress = 'true';
+    textareasBeingSaved.add(textarea);
     taskAPI.updateTaskText(task.id, textarea.value)
-        .then(() => addTask(task.status))
+        .then(() => createAndFocusTask(task.status))
         .catch((err) => {
             console.error('Failed to save task for batch add:', err);
             renderTasks();
         })
         .finally(() => {
-            textarea.dataset.batchAddInProgress = 'false';
+            textareasBeingSaved.delete(textarea);
         });
+}
+
+/**
+ * Restores drag behavior for a task element after inline editing.
+ * @param {HTMLElement} taskEl
+ * @returns {void}
+ */
+function restoreTaskDragState(taskEl) {
+    taskEl.setAttribute('draggable', 'true');
+    taskEl.ondragstart = null;
 }
 
 /**
@@ -507,9 +531,9 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
  * Adds a new task to the board.
  * @param {string} status
  * @param {number} [order]
- * @returns {void}
+ * @returns {Promise<void>}
  */
-function addTask(status, order) {
+function createAndFocusTask(status, order) {
     return taskAPI.createTask(status, order).then(task => {
         renderTasks(() => {
             setTimeout(() => {
@@ -525,6 +549,16 @@ function addTask(status, order) {
             }, 100);
         }, task.id);
     });
+}
+
+/**
+ * Adds a new task to the board.
+ * @param {string} status
+ * @param {number} [order]
+ * @returns {void}
+ */
+function addTask(status, order) {
+    createAndFocusTask(status, order);
 }
 
 /**
@@ -1064,8 +1098,7 @@ function attachTaskEditHandler(el, task, textSpan) {
         el.ondragstart = ev => ev.preventDefault();
         const oldText = task.text;
         const textarea = createTextarea(oldText, function () {
-            el.setAttribute('draggable', 'true');
-            el.ondragstart = null;
+            restoreTaskDragState(el);
             if (textarea.value.trim() !== '') {
                 taskAPI.updateTaskText(task.id, textarea.value).then(() => renderTasks());
             } else {
@@ -1074,13 +1107,11 @@ function attachTaskEditHandler(el, task, textSpan) {
         }, function (e) {
             if (isBatchAddShortcut(e)) {
                 e.preventDefault();
-                el.setAttribute('draggable', 'true');
-                el.ondragstart = null;
+                restoreTaskDragState(el);
                 saveAndOpenNextTask(task, textarea);
             }
             else if (e.key === 'Escape') {
-                el.setAttribute('draggable', 'true');
-                el.ondragstart = null;
+                restoreTaskDragState(el);
                 renderTasks();
             }
         }, task.id);

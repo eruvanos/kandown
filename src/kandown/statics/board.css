@@ -39,6 +39,7 @@
 
   --color-storage-bg: rgba(0, 0, 0, 0.8);
   --color-storage-text: #fff;
+  --bg-hint: rgba(128, 128, 128, 0.16);
 }
 
 body.darkmode {
@@ -72,6 +73,7 @@ body.darkmode {
   --modal-text: #f3f3f3;
 
   --color-link: #90caf9;
+  --bg-hint: rgba(128, 128, 128, 0.22);
 }
 
 body {
@@ -661,7 +663,7 @@ a {
   margin: 0 8px 8px 8px;
   padding: 4px 8px;
   border-radius: 4px;
-  background: rgba(128, 128, 128, 0.16);
+  background: var(--bg-hint);
   color: var(--text-muted);
   font-size: 0.8em;
   line-height: 1.25;
