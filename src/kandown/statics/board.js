@@ -175,6 +175,50 @@ function createTextarea(value, onBlur, onKeyDown, taskId) {
 }
 
 /**
+ * Returns whether Ctrl/Cmd+Enter was pressed.
+ * @param {KeyboardEvent} e
+ * @returns {boolean}
+ */
+function isBatchAddShortcut(e) {
+    return e.key === 'Enter' && (e.ctrlKey || e.metaKey);
+}
+
+/**
+ * Wraps an editor textarea with a small batch-add hint under it.
+ * @param {HTMLTextAreaElement} textarea
+ * @returns {HTMLDivElement}
+ */
+function createEditorWrapper(textarea) {
+    const wrapper = createElement('div', 'edit-input-wrapper');
+    const indicator = createElement('div', 'batch-add-indicator');
+    indicator.textContent = 'Optional: Ctrl/Cmd + Enter saves and opens next task';
+    wrapper.appendChild(textarea);
+    wrapper.appendChild(indicator);
+    return wrapper;
+}
+
+/**
+ * Saves text and opens a new task in the same column for rapid batch entry.
+ * @param {Task} task
+ * @param {HTMLTextAreaElement} textarea
+ * @returns {void}
+ */
+function saveAndOpenNextTask(task, textarea) {
+    if (textarea.dataset.batchAddInProgress === 'true') return;
+    if (!textarea.value.trim()) {
+        textarea.blur();
+        return;
+    }
+    textarea.dataset.batchAddInProgress = 'true';
+    taskAPI.updateTaskText(task.id, textarea.value)
+        .then(() => addTask(task.status))
+        .catch((err) => {
+            console.error('Failed to save task for batch add:', err);
+            renderTasks();
+        });
+}
+
+/**
  * Creates a tag suggestion box for tag input.
  * @param {HTMLInputElement} input
  * @param {Task} task
@@ -787,17 +831,21 @@ async function processFilesystemImages(element) {
 function createTaskText(task, focusTaskId) {
     let textSpan;
     if (focusTaskId && task.id === focusTaskId && !task.text) {
-        textSpan = createTextarea('', function () {
-            if (textSpan.value.trim() !== '') {
-                taskAPI.updateTaskText(task.id, textSpan.value).then(() => renderTasks());
+        const textarea = createTextarea('', function () {
+            if (textarea.value.trim() !== '') {
+                taskAPI.updateTaskText(task.id, textarea.value).then(() => renderTasks());
             } else {
                 renderTasks();
             }
         }, function (e) {
-            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textSpan.blur();
+            if (isBatchAddShortcut(e)) {
+                e.preventDefault();
+                saveAndOpenNextTask(task, textarea);
+            }
             else if (e.key === 'Escape') renderTasks();
         }, task.id);
-        setTimeout(() => textSpan.focus(), 100);
+        setTimeout(() => textarea.focus(), 100);
+        textSpan = createEditorWrapper(textarea);
     } else {
         textSpan = document.createElement('p');
         textSpan.className = 'task-text';
@@ -1021,14 +1069,19 @@ function attachTaskEditHandler(el, task, textSpan) {
                 renderTasks();
             }
         }, function (e) {
-            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textarea.blur();
+            if (isBatchAddShortcut(e)) {
+                e.preventDefault();
+                el.setAttribute('draggable', 'true');
+                el.ondragstart = null;
+                saveAndOpenNextTask(task, textarea);
+            }
             else if (e.key === 'Escape') {
                 el.setAttribute('draggable', 'true');
                 el.ondragstart = null;
                 renderTasks();
             }
         }, task.id);
-        textSpan.replaceWith(textarea);
+        textSpan.replaceWith(createEditorWrapper(textarea));
         textarea.focus();
     });
 }
@@ -1135,10 +1188,13 @@ function create_divider(el, task) {
                     renderTasks();
                 }
             }, function (e) {
-                if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textarea.blur();
+                if (isBatchAddShortcut(e)) {
+                    e.preventDefault();
+                    saveAndOpenNextTask(task, textarea);
+                }
                 else if (e.key === 'Escape') renderTasks();
             }, task.id);
-            textSpan.replaceWith(textarea);
+            textSpan.replaceWith(createEditorWrapper(textarea));
             setTimeout(() => textarea.focus(), 10);
         });
     }
