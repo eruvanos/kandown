@@ -99,7 +99,8 @@ class FileSystemAPI {
                     settings: {
                         darkmode: false,
                         random_port: false,
-                        store_images_in_subfolder: false
+                        store_images_in_subfolder: false,
+                        show_icebox: false
                     },
                     tasks: []
                 });

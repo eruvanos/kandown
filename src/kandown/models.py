@@ -61,6 +61,10 @@ class Settings(BaseModel):
             "Storing images in a subfolder makes them easier to manage and edit externally, while inline base64 embedding keeps the YAML file portable but makes image editing harder."
         ),
     )
+    show_icebox: bool = Field(
+        default=False,
+        description="Show the Icebox column in the Kanban board. When disabled, the Icebox column is hidden.",
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert settings to dictionary format for JSON serialization."""

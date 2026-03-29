@@ -1420,6 +1420,14 @@ async function initBoardApp() {
     settingsAPI = new SettingsAPI();
     await initSettingsUI(taskAPI, settingsAPI, serverMode);
 
+    // Apply show_icebox setting
+    const settings = await settingsAPI.getSettings();
+    const showIcebox = settings.show_icebox !== false; // Default to true if not specified
+    const iceboxCol = document.getElementById('icebox-col');
+    if (iceboxCol) {
+        iceboxCol.style.display = showIcebox ? '' : 'none';
+    }
+
     // Check if we're in read-only mode
     // Update UI for read-only mode
     // TODO move this to a separate function

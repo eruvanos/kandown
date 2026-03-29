@@ -32,7 +32,9 @@ function initializeLastIdCounter(tasks) {
 }
 
 // Default settings
-const DEFAULT_SETTINGS = {};
+const DEFAULT_SETTINGS = {
+    show_icebox: false
+};
 
 
 // LocalStorage-based implementations

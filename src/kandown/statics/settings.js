@@ -5,6 +5,7 @@ import {ModalManager} from './modal-manager.js';
 let dark = false;
 let randomPort = false;
 let storeImagesInSubfolder = false;
+let showIcebox = false;
 
 /**
  * @typedef {import('./types.js').SettingsAPI} SettingsAPI
@@ -28,6 +29,7 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
     const modal = document.getElementById(SETTINGS_MODAL_ID);
     const randomPortCheckbox = document.getElementById('random-port');
     const storeImagesInSubfolderCheckbox = document.getElementById('store-images-in-subfolder');
+    const showIceboxCheckbox = document.getElementById('show-icebox');
     const clearDataBtn = document.getElementById('clear-data-btn');
     const resetDemoDataBtn = document.getElementById('reset-data-btn');
     const switchToFilesystemBtn = document.getElementById('switch-to-filesystem');
@@ -106,6 +108,19 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         };
     }
 
+    // --- Setting: show icebox column ---
+    if (showIceboxCheckbox) {
+        showIceboxCheckbox.onchange = async function () {
+            showIcebox = showIceboxCheckbox.checked;
+            await settingsAPI.updateSettings({show_icebox: showIcebox});
+            // Update the UI to show/hide the icebox column
+            const iceboxCol = document.getElementById('icebox-col');
+            if (iceboxCol) {
+                iceboxCol.style.display = showIcebox ? '' : 'none';
+            }
+        };
+    }
+
     // --- Danger zone: clear all data ---
     if (clearDataBtn) {
         clearDataBtn.onclick = function () {
@@ -165,7 +180,8 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
                 const yamlData = {
                     settings: {
                         random_port: settings.random_port || false,
-                        store_images_in_subfolder: settings.store_images_in_subfolder || false
+                        store_images_in_subfolder: settings.store_images_in_subfolder || false,
+                        show_icebox: settings.show_icebox !== false
                     },
                     tasks: tasks.map(task => ({
                         id: task.id,
@@ -213,6 +229,13 @@ export async function initSettingsUI(taskAPI, settingsAPI, serverMode) {
         if (randomPortCheckbox) randomPortCheckbox.checked = randomPort;
         storeImagesInSubfolder = !!settings.store_images_in_subfolder;
         if (storeImagesInSubfolderCheckbox) storeImagesInSubfolderCheckbox.checked = storeImagesInSubfolder;
+        showIcebox = settings.show_icebox !== false; // Default to true if not specified
+        if (showIceboxCheckbox) showIceboxCheckbox.checked = showIcebox;
+        // Apply show_icebox setting to UI
+        const iceboxCol = document.getElementById('icebox-col');
+        if (iceboxCol) {
+            iceboxCol.style.display = showIcebox ? '' : 'none';
+        }
     }
 
     const currentSettings = await settingsAPI.getSettings();
