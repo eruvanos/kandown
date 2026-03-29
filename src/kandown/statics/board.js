@@ -215,6 +215,9 @@ function saveAndOpenNextTask(task, textarea) {
         .catch((err) => {
             console.error('Failed to save task for batch add:', err);
             renderTasks();
+        })
+        .finally(() => {
+            textarea.dataset.batchAddInProgress = 'false';
         });
 }
 
@@ -507,7 +510,7 @@ function updateColumnOrder(status, newOrder, movedId, originalStatus) {
  * @returns {void}
  */
 function addTask(status, order) {
-    taskAPI.createTask(status, order).then(task => {
+    return taskAPI.createTask(status, order).then(task => {
         renderTasks(() => {
             setTimeout(() => {
                 const col = columns[status];
