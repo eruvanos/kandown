@@ -20,7 +20,7 @@ let taskAPI = null;
 let settingsAPI = null;
 
 const eventManager = new EventManager();
-const ICEBOX_COLLAPSED_KEY = 'kandown_icebox_collapsed';
+
 
 /**
  * @type {ServerMode}
@@ -270,44 +270,27 @@ function createTagSuggestionBox(input, task, getTagSuggestions) {
 }
 
 /**
- * Updates visual state of the Icebox column.
- * @param {boolean} collapsed
- * @param {boolean} [persist=true]
+ * Sets up Icebox drag-hover expansion: expands when a task is dragged over it,
+ * collapses when the drag leaves or ends.
  */
-function setIceboxCollapsed(collapsed, persist = true) {
+function setupIceboxDragHover() {
     const iceboxCol = document.getElementById('icebox-col');
-    const toggleBtn = document.getElementById('icebox-toggle');
-    if (!iceboxCol || !toggleBtn) {
-        return;
-    }
+    if (!iceboxCol) return;
 
-    iceboxCol.classList.toggle('is-collapsed', collapsed);
-    toggleBtn.textContent = collapsed ? '\u25B6' : '\u25C0';
-    toggleBtn.title = collapsed ? 'Expand Icebox' : 'Collapse Icebox';
-    toggleBtn.setAttribute('aria-label', toggleBtn.title);
+    iceboxCol.addEventListener('dragenter', function (e) {
+        if (dragSrcId) {
+            iceboxCol.classList.add('is-drag-over');
+        }
+    });
 
-    if (persist) {
-        localStorage.setItem(ICEBOX_COLLAPSED_KEY, collapsed ? '1' : '0');
-    }
-}
+    iceboxCol.addEventListener('dragleave', function (e) {
+        if (!iceboxCol.contains(e.relatedTarget)) {
+            iceboxCol.classList.remove('is-drag-over');
+        }
+    });
 
-/**
- * Initializes Icebox collapse/expand controls.
- */
-function initIceboxToggle() {
-    const toggleBtn = document.getElementById('icebox-toggle');
-    if (!toggleBtn) {
-        return;
-    }
-
-    const savedValue = localStorage.getItem(ICEBOX_COLLAPSED_KEY);
-    const startsCollapsed = savedValue === null ? true : savedValue !== '0';
-    setIceboxCollapsed(startsCollapsed, false);
-
-    toggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const currentlyCollapsed = document.getElementById('icebox-col')?.classList.contains('is-collapsed');
-        setIceboxCollapsed(!currentlyCollapsed);
+    iceboxCol.addEventListener('drop', function () {
+        iceboxCol.classList.remove('is-drag-over');
     });
 }
 
@@ -339,6 +322,8 @@ function makeDraggable() {
             dragOverCol = null;
             card.classList.remove('dragging');
             removePlaceholder();
+            const iceboxCol = document.getElementById('icebox-col');
+            if (iceboxCol) iceboxCol.classList.remove('is-drag-over');
         });
     });
 }
@@ -1520,7 +1505,7 @@ function showHelpModal() {
         'in_progress': document.getElementById('inprogress-col'),
         'done': document.getElementById('done-col')
     };
-    initIceboxToggle();
+    setupIceboxDragHover();
     setupDropZones();
 
     // Initialize advanced mode keyboard handler

@@ -129,63 +129,50 @@ a {
   min-height: 43px;
 }
 
-.icebox-toggle {
-  border: 1px solid var(--border-color);
-  /*font-size: 1.5em;*/
-  background: var(--btn-bg);
-  color: var(--text-primary);
-  border-radius: 6px;
-  width: 28px;
-  height: 28px;
-  line-height: 1;
-  cursor: pointer;
-}
 
 .icebox-column {
-  position: sticky;
-  top: 2px;
+  position: fixed;
   left: 0;
-  z-index: 5;
-  align-self: flex-start;
-  height: calc(100vh - 130px);
-  min-height: 100%;
+  top: 0;
+  z-index: 100;
+  width: 48px;
+  min-width: unset;
+  height: 100vh;
+  overflow: hidden;
   overflow-y: auto;
-  overflow-x: hidden;
   overscroll-behavior: contain;
-  transition: min-width 0.2s ease, width 0.2s ease, padding 0.2s ease;
+  background: var(--bg-column);
+  border-radius: 0 8px 8px 0;
+  box-shadow: 2px 0 12px var(--shadow-medium);
+  transition: width 0.25s ease, box-shadow 0.25s ease;
+}
+
+.icebox-column:hover,
+.icebox-column.is-drag-over {
+  width: 320px;
+  box-shadow: 6px 0 32px var(--shadow-strong);
 }
 
 .icebox-column h2 {
   position: sticky;
-  top: 0; /* height of the title bar */
+  top: 0;
   padding: 0.83em;
   margin: 0;
   z-index: 4;
   background: var(--bg-column);
-}
-
-.icebox-column.is-collapsed {
-  min-width: 44px;
-  width: 44px;
-  /*padding: 10px 6px;*/
-  flex: 0 0 44px;
+  justify-content: flex-start;
+  white-space: nowrap;
   overflow: hidden;
 }
 
-.icebox-column.is-collapsed .show-advanced {
-  /* Show advanced uses important to override the display: none on the title and tasks */
-  display: none !important;
+.icebox-label {
+  font-size: 1.3em;
+  flex-shrink: 0;
 }
 
-.icebox-column.is-collapsed .icebox-title,
-.icebox-column.is-collapsed .add-task,
-.icebox-column.is-collapsed .task,
-.icebox-column.is-collapsed .add-beneath-btn {
-  display: none;
-}
-
-.icebox-column.is-collapsed h2 {
-  justify-content: center;
+.icebox-title {
+  flex: 1;
+  margin-left: 8px;
 }
 
 .task {
