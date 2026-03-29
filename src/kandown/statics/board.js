@@ -284,9 +284,9 @@ function setupIceboxDragHover() {
     });
 
     iceboxCol.addEventListener('dragleave', function (e) {
-        if (!iceboxCol.contains(e.relatedTarget)) {
-            iceboxCol.classList.remove('is-drag-over');
-        }
+        // Collapse icebox when dragging out of it
+        // This handles dragging from icebox to board, or dragging over then leaving
+        iceboxCol.classList.remove('is-drag-over');
     });
 
     iceboxCol.addEventListener('drop', function () {
@@ -315,6 +315,12 @@ function makeDraggable() {
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', card.dataset.id);
             card.classList.add('dragging');
+            // If dragging from icebox, keep it expanded but disable hover
+            const iceboxCol = document.getElementById('icebox-col');
+            if (iceboxCol && card.closest('#icebox-col')) {
+                iceboxCol.classList.add('is-drag-over');
+                iceboxCol.classList.add('is-dragging-from');
+            }
         });
         card.addEventListener('dragend', function (e) {
             dragSrcId = null;
@@ -323,7 +329,10 @@ function makeDraggable() {
             card.classList.remove('dragging');
             removePlaceholder();
             const iceboxCol = document.getElementById('icebox-col');
-            if (iceboxCol) iceboxCol.classList.remove('is-drag-over');
+            if (iceboxCol) {
+                iceboxCol.classList.remove('is-drag-over');
+                iceboxCol.classList.remove('is-dragging-from');
+            }
         });
     });
 }

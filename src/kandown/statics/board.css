@@ -135,7 +135,7 @@ a {
   left: 0;
   top: 0;
   z-index: 100;
-  width: 48px;
+  width: 320px;
   min-width: unset;
   height: 100vh;
   overflow: hidden;
@@ -144,13 +144,19 @@ a {
   background: var(--bg-column);
   border-radius: 0 8px 8px 0;
   box-shadow: 2px 0 12px var(--shadow-medium);
-  transition: width 0.25s ease, box-shadow 0.25s ease;
+  transform: translateX(-272px);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .icebox-column:hover,
 .icebox-column.is-drag-over {
-  width: 320px;
+  transform: translateX(0);
   box-shadow: 6px 0 32px var(--shadow-strong);
+}
+
+/* Disable hover expansion when dragging - only use is-drag-over class */
+.icebox-column.is-dragging-from:hover {
+  transform: translateX(-272px);
 }
 
 .icebox-column h2 {
