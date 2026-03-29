@@ -126,7 +126,7 @@ a {
   gap: 8px;
   color: var(--text-secondary);
   margin-bottom: 16px;
-  min-height: 24px;
+  min-height: 43px;
 }
 
 .icebox-toggle {
@@ -142,14 +142,39 @@ a {
 }
 
 .icebox-column {
+  position: sticky;
+  top: 2px;
+  left: 0;
+  z-index: 5;
+  align-self: flex-start;
+  height: calc(100vh - 130px);
+  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
   transition: min-width 0.2s ease, width 0.2s ease, padding 0.2s ease;
+}
+
+.icebox-column h2 {
+  position: sticky;
+  top: 0; /* height of the title bar */
+  padding: 0.83em;
+  margin: 0;
+  z-index: 4;
+  background: var(--bg-column);
 }
 
 .icebox-column.is-collapsed {
   min-width: 44px;
   width: 44px;
-  padding: 10px 6px;
+  /*padding: 10px 6px;*/
   flex: 0 0 44px;
+  overflow: hidden;
+}
+
+.icebox-column.is-collapsed .show-advanced {
+  /* Show advanced uses important to override the display: none on the title and tasks */
+  display: none !important;
 }
 
 .icebox-column.is-collapsed .icebox-title,
