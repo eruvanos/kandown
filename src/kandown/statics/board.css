@@ -990,7 +990,7 @@ kbd {
     -webkit-overflow-scrolling: touch;
   }
 
-  .column {
+  .column:not(.icebox-column) {
     flex: 0 0 100vw;
     min-width: 100vw;
     max-width: 100vw;
@@ -1037,5 +1037,15 @@ kbd {
   /* Settings adjustments */
   .setting-desc {
     font-size: 0.9em;
+  }
+
+  /* Icebox: hide almost fully off-screen when collapsed on mobile */
+  .icebox-column {
+    padding: 0;
+    transform: translateX(-305px);
+  }
+
+  .icebox-column.expand {
+    transform: translateX(0);
   }
 }
