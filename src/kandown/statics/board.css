@@ -148,16 +148,11 @@ a {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.icebox-column:hover,
-.icebox-column.is-drag-over {
+.icebox-column.expand{
   transform: translateX(0);
   box-shadow: 6px 0 32px var(--shadow-strong);
 }
 
-/* Disable hover expansion when dragging - only use is-drag-over class */
-.icebox-column.is-dragging-from:hover {
-  transform: translateX(-272px);
-}
 
 .icebox-column h2 {
   position: sticky;
