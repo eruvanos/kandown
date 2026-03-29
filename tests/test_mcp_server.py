@@ -1,3 +1,5 @@
+import pytest
+
 from kandown.mcp_server import (
     edit_task,
     get_tasks_by_column,
@@ -10,6 +12,7 @@ from kandown.task_repo import YamlTaskRepository
 
 def make_repo(tmp_path):
     backlog = tmp_path / "backlog.yaml"
+    backlog.write_text("[]\n", encoding="utf-8")
     repo = YamlTaskRepository(backlog)
     return repo, backlog
 
@@ -33,12 +36,8 @@ def test_resolve_backlog_path_from_defaults(tmp_path):
 
 
 def test_resolve_backlog_path_raises_when_missing_inputs():
-    try:
+    with pytest.raises(ValueError, match="No backlog path could be resolved"):
         resolve_backlog_path()
-    except ValueError as exc:
-        assert "No backlog path could be resolved" in str(exc)
-    else:
-        raise AssertionError("Expected ValueError")
 
 
 def test_get_tasks_by_column_filters_and_sorts(tmp_path):

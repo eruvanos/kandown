@@ -71,7 +71,7 @@ def main(
             )
             return
         except ModuleNotFoundError as exc:
-            if exc.name and exc.name.startswith("mcp"):
+            if exc.name == "mcp" or (exc.name and exc.name.startswith("mcp.")):
                 raise click.ClickException("MCP dependencies missing. Install with: pip install 'kandown[mcp]'") from exc
             raise
 

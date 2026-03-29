@@ -32,9 +32,9 @@ def resolve_backlog_path(
             )
 
     if not resolved.exists():
-        raise ValueError(f"Backlog file does not exist: {resolved}")
+        raise ValueError(f"Resolved backlog file does not exist: {resolved}")
     if not resolved.is_file():
-        raise ValueError(f"Backlog path is not a file: {resolved}")
+        raise ValueError(f"Resolved backlog path is not a file: {resolved}")
     return resolved
 
 
@@ -100,7 +100,7 @@ def edit_task(
     if task_type is not None:
         updates["type"] = task_type
     if not updates:
-        raise ValueError("No updates provided.")
+        raise ValueError("No updates provided. Specify at least one field to update (text, status, tags, order, or task_type).")
 
     repo = YamlTaskRepository(resolved)
     task = repo.update(task_id, **updates)
