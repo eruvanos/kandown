@@ -1,187 +1,155 @@
 
 # Kandown
 
-A simple, markdown-inspired Kanban board powered by YAML and Flask.
+A lightweight, markdown-inspired Kanban board for developers — backed by a plain YAML file that lives right in your project repository.
 
 ![screenshot.png](https://raw.githubusercontent.com/eruvanos/kandown/refs/heads/main/docs/screenshot.png)
 
-## 🎯 Try Kandown Instantly Online
+## What is Kandown?
 
-Experience Kandown without any installation required!  
-Access the **[GitHub hosted demo](https://eruvanos.github.io/kandown/)** — your data stays private and is stored locally in your browser.
+Kandown is a simple Kanban board app that stores all your tasks in a single human-readable YAML file. Because it's just a file, you can:
 
-Want to preview a real project?  
-Check out our [own backlog](https://eruvanos.github.io/kandown/?backlog=https://raw.githubusercontent.com/eruvanos/kandown/refs/heads/main/backlog.yaml).
+- **Version-control your backlog** alongside your code in Git
+- **Edit tasks manually** in any text editor
+- **Share and review** your backlog like any other project file
 
-## Overview
+It ships as a Python CLI that starts a local web server, giving you a clean drag-and-drop board in your browser. No database, no cloud account, no complex setup required.
 
-Kandown is a lightweight web application for visualizing and managing 
-tasks in a Kanban board format. 
-Tasks are stored in a YAML file, making it easy to edit, version, and share your board.
-The app features a clean, responsive web UI started by the CLI.
+## 🎯 Quick Start — No Installation Needed
+
+> **Not a developer? This is the recommended option for you.**
+
+Try Kandown instantly in your browser — no install, no sign-up, your data stays private and local:
+
+👉 **[Open Kandown in your browser](https://eruvanos.github.io/kandown/)**
+
+Want to see a real board? Check out our [own project backlog](https://eruvanos.github.io/kandown/?backlog=https://raw.githubusercontent.com/eruvanos/kandown/refs/heads/main/backlog.yaml).
+
+The hosted static site runs entirely in your browser:
+- **localStorage mode** (default, all browsers) — data is saved in your browser
+- **File System mode** (Chrome / Edge only) — read and write a real `backlog.yaml` file on your computer
 
 ## Features
 
-- 🗂️ **Kanban board UI**: Drag-and-drop tasks between columns (To Do, In Progress, Done)
-- ✏️ **Markdown support**: Write task descriptions using Markdown syntax
-- 🖼️ **Paste images**: Task descriptions support pasting images from clipboard
-- 🗂️ **Image Storage**: Images can be embedded as base64 or saved to disk into an `.backlog` folder
-- ✅ **Interactive checkboxes**: Clickable checkboxes in task descriptions
-- 📄 **YAML-backed storage**: All tasks are stored in a simple YAML file
-- 🔄 **Jetbrains IDE integration**: View and track tasks directly from JetBrains IDEs
-- 🚀 **CLI**: Start the server, choose host/port/debug, auto-create YAML file if missing
-- 🌐 **Hybrid demo mode**: Try it in your browser with localStorage or connect to local files (Chrome/Edge)
+- 🗂️ **Kanban board** — drag-and-drop tasks between _Icebox_, _To Do_, _In Progress_, and _Done_ columns
+- ✏️ **Markdown descriptions** — write rich task descriptions with full Markdown support
+- ✅ **Interactive checkboxes** — check off items directly on the card
+- 🏷️ **Tags and task types** — organise tasks with custom tags and built-in types (feature, bug, chore, epic, experiment, request)
+- 🖼️ **Paste images** — paste screenshots directly into task descriptions
+- 📄 **YAML-backed storage** — all tasks live in a plain, human-readable `backlog.yaml` file
+- 🌐 **Browser-only mode** — use without installing anything via the [hosted static site](https://eruvanos.github.io/kandown/)
+- 🔄 **JetBrains IDE integration** — view and navigate tasks from any JetBrains IDE
+- 🚀 **CLI server** — start a local server with one command, auto-creates the YAML file if missing
+- 🌙 **Dark mode** — easy on the eyes
 
-## Usage
+## Getting Started
 
-You can install it or directly or use via `uvx`.
+### For Developers — CLI Mode
+
+Install and run with a single command:
 
 ```bash
-# install via uv
+# Run directly without installing (requires uv)
+uvx kandown [YAML_FILE]
+
+# Or install permanently
 uv tool install kandown
-
-# or via pipx
 pipx install kandown
-
-# or via pip
 pip install kandown
-
-# even without installing, you can run it directly:
-uvx kandown [OPTIONS] [YAML_FILE]
 ```
 
-## Usage
-
-### Start the Kanban server
+#### Start the server
 
 ```bash
-kandown [OPTIONS] [YAML_FILE]
+# Start with the default backlog.yaml (created automatically if missing)
+kandown
+
+# Start with a specific file on a custom port
+kandown --port 8080 myproject.yaml
 ```
 
-- If no YAML file is provided, defaults to `backlog.yaml` (auto-created if missing).
-- Open your browser to `http://127.0.0.1:5001` (default) to view the board.
+Open your browser at `http://127.0.0.1:5001` (default port) to view the board.
 
 #### CLI Options
 
-```
-Options:
-  --host TEXT     Host to bind to (default: 127.0.0.1)
-  --port INTEGER  Port to bind to (default: 5001)
-  --debug         Enable debug mode
-  --help          Show help message
-```
+| Option | Default | Description |
+|---|---|---|
+| `YAML_FILE` | `backlog.yaml` | Path to the YAML task file (auto-created if missing) |
+| `--port INTEGER` | `5001` | Port to listen on |
+| `--debug` | off | Enable Flask debug mode |
+| `--help` | | Show help and exit |
 
-#### Examples
+### For Non-Technical Users — Static Site
 
-```bash
-# Start server with default YAML file (if exists)
-kandown
+The easiest way to use Kandown is through the **[hosted static site](https://eruvanos.github.io/kandown/)**. No installation required — just open it in your browser and start adding tasks.
 
-# Start server with a custom YAML file on a custom port
-kandown --port 5001 page.yml
-```
+Your data is stored in your browser (localStorage) by default, so it persists between visits without any server. Chrome and Edge users can also connect directly to a folder on their computer to read and write real YAML files.
 
-## Hosted Version
+## Storage Modes
 
-A GitHub hosted version of Kandown is hosted at **[https://eruvanos.github.io/kandown/](https://eruvanos.github.io/kandown/)**.
+Kandown supports four storage modes:
 
-### Storage Modes
+| Mode | How to access | Data stored in | Editable |
+|---|---|---|---|
+| **CLI** | `kandown myfile.yaml` | Local YAML file on disk | ✅ Yes |
+| **localStorage** (default) | [Hosted site](https://eruvanos.github.io/kandown/) | Browser localStorage | ✅ Yes |
+| **File System** | Hosted site → Settings → Use File System | Local YAML file (via browser API) | ✅ Yes (Chrome/Edge only) |
+| **Read-Only** | `?backlog=<url>` URL parameter | Remote YAML (memory only) | 🚫 View only |
 
-**localStorage Mode (Default - All Browsers):**
-- ✅ Works in all modern browsers
-- ✅ Data stored in browser's localStorage
-- ✅ Quick trials without any setup
-- ✅ Privacy: Data stays in your browser
-- ✅ Offline use after initial load
-- ✅ Download data as YAML file
-- ✅ Import data from YAML file
+### Using File System Mode (Chrome / Edge)
 
-**File System Mode (Chrome/Edge Only - Optional):**
-- ✅ Connect to a local folder on your computer
-- ✅ Read and write real `backlog.yaml` files
-- ✅ Work with existing Kandown projects
-- ✅ True file system integration
-- ✅ Changes persist to actual files
+1. Open the [hosted site](https://eruvanos.github.io/kandown/) in Chrome or Edge
+2. Click the ⚙️ settings button
+3. Under **Storage Mode**, click **📂 Use File System (Chrome/Edge)**
+4. Select a folder — Kandown will read/write `backlog.yaml` in that folder
+5. Work as normal; all changes are saved directly to the file
 
-### Demo Mode Features
+### Sharing a Board (Read-Only)
 
-The demo mode includes all core features:
-- ✅ Drag-and-drop task management
-- ✅ Markdown rendering
-- ✅ Image paste support (stored as base64 in localStorage, or as files in File System mode)
-- ✅ Task tags and types
-- ✅ Dark mode
-- ✅ Data persistence (localStorage or file system)
-- ✅ Storage mode switcher (localStorage ↔ File System)
-- ✅ Clear data option in settings
-- ✅ Load backlog files via URL parameter
-
-### Loading a Backlog File via URL Parameter (Read-Only Mode)
-
-You can load and view a specific backlog YAML file in demo mode using URL parameters:
+Anyone with access to a publicly hosted YAML file can view your board in read-only mode:
 
 ```
-https://eruvanos.github.io/kandown/?backlog=example.yaml
-https://eruvanos.github.io/kandown/?file=path/to/backlog.yaml
+https://eruvanos.github.io/kandown/?backlog=https://example.com/path/to/backlog.yaml
 ```
 
-**Read-Only Mode Features:**
-When loading a backlog via URL parameter, the application enters read-only mode to protect your data:
-- 📖 View-only access - no modifications allowed
-- 🚫 Drag and drop disabled
-- 🚫 Text editing disabled
-- 🚫 Type changes disabled
-- 🚫 Tag editing disabled
-- 🚫 Task creation/deletion disabled
-- 💾 Data not stored in localStorage - kept only in memory
+The file must be accessible via HTTP and have CORS enabled (GitHub raw URLs work well).
 
-This is useful for:
-- 📤 Sharing backlogs with team members for viewing
-- 📚 Providing example projects or templates
-- 🎓 Creating tutorial or demo workflows
-- 👁️ Previewing backlog files without modifying your local data
+### Deploying Your Own Static Site
 
-**Requirements:**
-- The YAML file must be accessible via HTTP
-- Either same-origin or CORS must be enabled on the file's server
-- If the file cannot be loaded, the demo falls back to default demo tasks (editable)
+Fork the repository, enable GitHub Pages (Settings → Pages → Source: GitHub Actions), and push to `main`. The included workflow will build and deploy the static site automatically.
 
-### Using File System Mode
+## Settings
 
-1. Open the demo in Chrome or Edge browser
-2. Click the settings button (⚙️)
-3. Scroll to "Storage Mode" section
-4. Click "📂 Use File System (Chrome/Edge)"
-5. Select a folder on your computer (it will look for or create `backlog.yaml`)
-6. Start working with your local files!
+The settings panel (⚙️ button) exposes the following options. Availability depends on the active storage mode:
 
-**Note**: 
-- In localStorage mode, data is stored in your browser's localStorage. Clearing browser data will delete all tasks.
-- In File System mode, your data is stored in actual files on your computer. The browser needs permission to access the folder, which you can revoke at any time.
+| Setting | Description | CLI | localStorage | File System | Read-Only |
+|---|---|:---:|:---:|:---:|:---:|
+| **Dark mode** | Toggle dark/light theme | ✅ | ✅ | ✅ | ✅ |
+| **Show Icebox column** | Show or hide the leftmost Icebox column | ✅ | ✅ | ✅ | — |
+| **Random port on startup** | Pick a free port automatically instead of using 5001 | ✅ | — | — | — |
+| **Store images in subfolder** | Save pasted images as files in `.backlog/` instead of embedding them as base64 | ✅ | — | ✅ | — |
+| **Download YAML** | Export the current board as a `backlog.yaml` file | — | ✅ | ✅ | — |
+| **Import YAML** | Load tasks from a `backlog.yaml` file | — | ✅ | — | — |
+| **Switch storage mode** | Toggle between localStorage and File System | — | ✅ | ✅ | — |
+| **Clear / Reset data** | Delete all tasks and reset to defaults | — | ✅ | — | — |
 
-### Deploy Your Own Demo
+> **Tip:** Settings are stored together with your tasks inside the `backlog.yaml` file in CLI and File System modes, so they roam with your project.
 
-The demo can be deployed to any static hosting service. A GitHub Actions workflow is included to automatically deploy to GitHub Pages:
+## JetBrains IDE Integration
 
-1. Enable GitHub Pages in your repository settings (Settings → Pages → Source: GitHub Actions)
-2. Push to the `main` branch or trigger the workflow manually
-3. The demo will be built and deployed automatically
+Connect Kandown to any JetBrains IDE using the built-in [Tasks & Contexts](https://www.jetbrains.com/help/idea/managing-tasks-and-context.html) feature:
 
-## Jetbrains Task Integration
+1. Open IDE settings → **Tools → Tasks → Servers**
+2. Add a new **Generic** server with these details:
 
-You can integrate Kandown with Jetbrains IDEs using the [Tasks & Contexts](https://www.jetbrains.com/help/idea/managing-tasks-and-context.html) feature.
-
-To set up Kandown as a task server open the IDE settings and navigate to `Tools > Tasks > Servers`.
-Add a new generic server with the following details:
-
-- **General Settings**:
-  - URL: `http://localhost:5001` (or your server URL)
-  - Login Anonymously: Checked
-- **Server Configuration**:
-  - Task List URL: `http://localhost:5001/api/tasks`
-  - Tasks: $
-  - id: `id`
-  - summary: `text`
+| Field | Value |
+|---|---|
+| URL | `http://localhost:5001` |
+| Login Anonymously | ✅ Checked |
+| Task List URL | `http://localhost:5001/api/tasks` |
+| Tasks | `$` |
+| id field | `id` |
+| summary field | `text` |
 
 ## License
 
