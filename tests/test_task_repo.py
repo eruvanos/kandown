@@ -84,3 +84,20 @@ def test_closed_field_on_status_change(tmp_path):
     done_again = repo.update(task.id, status="done")
     assert done_again.closed_at is not None
     assert done_again.closed_at != closed_time
+
+
+def test_batch_update_reorders_tasks_like_drag_and_drop(tmp_path):
+    """Batch update should persist task ordering changes used by drag-and-drop."""
+    repo, _ = make_repo_with_tasks(tmp_path)
+    first = repo.save(Task(text="First", status="todo", order=0))
+    second = repo.save(Task(text="Second", status="todo", order=1))
+
+    updated = repo.batch_update({
+        first.id: {"order": 1},
+        second.id: {"order": 0},
+    })
+
+    assert len(updated) == 2
+    tasks = sorted(repo.all(), key=lambda t: t.order)
+    assert tasks[0].id == second.id
+    assert tasks[1].id == first.id
