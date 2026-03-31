@@ -1,5 +1,6 @@
 import re
 import pytest
+import requests
 from playwright.sync_api import Page, expect
 
 
@@ -107,3 +108,85 @@ def test_add_task(page: Page, kandown_server):
     page.get_by_text("❌").click()
     expect(page.get_by_text("Delete Task?This action")).to_be_visible()
     page.get_by_role("button", name="Delete").click()
+
+
+@pytest.mark.e2e
+def test_mobile_layout_has_full_width_columns_and_collapsed_icebox_peek(page: Page, kandown_server):
+    """On mobile viewport, board is horizontally paged with full-width columns and a mostly hidden icebox."""
+    page.set_viewport_size({"width": 768, "height": 900})
+    page.goto(kandown_server)
+
+    metrics = page.evaluate("""
+        () => {
+            const board = document.getElementById('board');
+            const todo = document.getElementById('todo-col');
+            const icebox = document.getElementById('icebox-col');
+            const boardStyle = getComputedStyle(board);
+            const todoStyle = getComputedStyle(todo);
+
+            return {
+                overflowX: boardStyle.overflowX,
+                scrollSnapType: boardStyle.scrollSnapType,
+                todoFlexBasis: todoStyle.flexBasis,
+                scrollable: board.scrollWidth > board.clientWidth,
+                iceboxRight: icebox.getBoundingClientRect().right,
+            };
+        }
+    """)
+
+    assert metrics["overflowX"] in ("auto", "scroll")
+    assert "x" in metrics["scrollSnapType"]
+    assert metrics["todoFlexBasis"] == "100%"
+    assert metrics["scrollable"] is True
+    # Icebox should be mostly hidden when collapsed (only a small edge visible)
+    assert 0 <= metrics["iceboxRight"] <= 25
+
+
+@pytest.mark.e2e
+def test_mobile_drag_and_drop_still_moves_tasks_between_columns(page: Page, kandown_server):
+    """Drag and drop still works in mobile layout by reordering tasks in a column."""
+    requests.post(
+        f"{kandown_server}/api/tasks",
+        json={"text": "mobile task A", "status": "todo"},
+        timeout=10,
+    ).raise_for_status()
+    requests.post(
+        f"{kandown_server}/api/tasks",
+        json={"text": "mobile task B", "status": "todo"},
+        timeout=10,
+    ).raise_for_status()
+
+    page.set_viewport_size({"width": 768, "height": 900})
+    page.goto(kandown_server)
+
+    page.evaluate("""
+        () => {
+            const board = document.getElementById('board');
+            const target = document.getElementById('todo-col');
+            board.scrollTo({ left: target.offsetLeft });
+        }
+    """)
+    page.wait_for_timeout(250)
+
+    expect(page.locator("#todo-col .task", has_text="mobile task A")).to_have_count(1)
+    expect(page.locator("#todo-col .task", has_text="mobile task B")).to_have_count(1)
+
+    page.locator("#todo-col .task", has_text="mobile task B").drag_to(
+        page.locator("#todo-col .task", has_text="mobile task A")
+    )
+    page.wait_for_timeout(500)
+
+    indices = page.evaluate("""
+        () => {
+            const taskTexts = Array.from(document.querySelectorAll('#todo-col .task'))
+                .map((el) => el.textContent || '');
+            return {
+                indexA: taskTexts.findIndex((text) => text.includes('mobile task A')),
+                indexB: taskTexts.findIndex((text) => text.includes('mobile task B')),
+            };
+        }
+    """)
+
+    assert indices["indexA"] >= 0
+    assert indices["indexB"] >= 0
+    assert indices["indexB"] < indices["indexA"]
