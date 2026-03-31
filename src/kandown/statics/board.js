@@ -304,6 +304,10 @@ function setupMobileBoardSwipe() {
     let startScrollLeft = 0;
     let tracking = false;
 
+    function getSnapTargets() {
+        return Array.from(board.querySelectorAll('.column:not(.icebox-column)')).map((col) => col.offsetLeft);
+    }
+
     board.addEventListener('touchstart', function (e) {
         if (window.innerWidth > 768 || e.touches.length !== 1) return;
         const touch = e.touches[0];
@@ -326,9 +330,22 @@ function setupMobileBoardSwipe() {
     board.addEventListener('touchend', function () {
         if (!tracking || window.innerWidth > 768) return;
         tracking = false;
-        const targetIndex = Math.round(board.scrollLeft / board.clientWidth);
+
+        const snapTargets = getSnapTargets();
+        if (snapTargets.length === 0) return;
+        const currentScroll = board.scrollLeft;
+        let targetIndex = 0;
+        let minDistance = Math.abs(snapTargets[0] - currentScroll);
+        for (let i = 1; i < snapTargets.length; i++) {
+            const distance = Math.abs(snapTargets[i] - currentScroll);
+            if (distance < minDistance) {
+                minDistance = distance;
+                targetIndex = i;
+            }
+        }
+
         board.scrollTo({
-            left: targetIndex * board.clientWidth,
+            left: snapTargets[targetIndex],
             behavior: 'smooth'
         });
     }, {passive: true});

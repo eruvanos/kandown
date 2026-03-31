@@ -39,6 +39,7 @@
 
   --color-storage-bg: rgba(0, 0, 0, 0.8);
   --color-storage-text: #fff;
+  --icebox-mobile-peek: 14px;
 }
 
 body.darkmode {
@@ -998,6 +999,6 @@ kbd {
 
   .icebox-column {
     width: 280px;
-    transform: translateX(calc(-100% + 14px));
+    transform: translateX(calc(-100% + var(--icebox-mobile-peek)));
   }
 }
