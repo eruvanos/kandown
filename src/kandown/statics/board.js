@@ -295,6 +295,45 @@ function setupIceboxDragHover() {
     syncIceboxDragState();
 }
 
+function setupMobileBoardSwipe() {
+    const board = document.getElementById('board');
+    if (!board) return;
+
+    let startX = 0;
+    let startY = 0;
+    let startScrollLeft = 0;
+    let tracking = false;
+
+    board.addEventListener('touchstart', function (e) {
+        if (window.innerWidth > 768 || e.touches.length !== 1) return;
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startScrollLeft = board.scrollLeft;
+        tracking = true;
+    }, {passive: true});
+
+    board.addEventListener('touchmove', function (e) {
+        if (!tracking || window.innerWidth > 768 || e.touches.length !== 1) return;
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
+        board.scrollLeft = startScrollLeft - deltaX;
+        e.preventDefault();
+    }, {passive: false});
+
+    board.addEventListener('touchend', function () {
+        if (!tracking || window.innerWidth > 768) return;
+        tracking = false;
+        const targetIndex = Math.round(board.scrollLeft / board.clientWidth);
+        board.scrollTo({
+            left: targetIndex * board.clientWidth,
+            behavior: 'smooth'
+        });
+    }, {passive: true});
+}
+
 // --- Drag & Drop ---
 let dragSrcId = null;
 let dragOverIndex = null;
@@ -1526,6 +1565,7 @@ async function initBoardApp() {
         'done': document.getElementById('done-col')
     };
     setupIceboxDragHover();
+    setupMobileBoardSwipe();
     setupDropZones();
 
     // Initialize advanced mode keyboard handler
