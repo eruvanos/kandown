@@ -40,6 +40,7 @@ The hosted static site runs entirely in your browser:
 - 🌐 **Browser-only mode** — use without installing anything via the [hosted static site](https://eruvanos.github.io/kandown/)
 - 🔄 **JetBrains IDE integration** — view and navigate tasks from any JetBrains IDE
 - 🚀 **CLI server** — start a local server with one command, auto-creates the YAML file if missing
+- 🤖 **MCP server mode** — expose task operations for AI clients (tasks by column, edit, move)
 - 🌙 **Dark mode** — easy on the eyes
 
 ## Getting Started
@@ -56,6 +57,9 @@ uvx kandown [YAML_FILE]
 uv tool install kandown
 pipx install kandown
 pip install kandown
+
+# Install with MCP support
+pip install "kandown[mcp]"
 ```
 
 #### Start the server
@@ -77,6 +81,11 @@ Open your browser at `http://127.0.0.1:5001` (default port) to view the board.
 | `YAML_FILE` | `backlog.yaml` | Path to the YAML task file (auto-created if missing) |
 | `--port INTEGER` | `5001` | Port to listen on |
 | `--debug` | off | Enable Flask debug mode |
+| `--mcp` | off | Run as MCP server instead of starting the web UI server |
+| `--default-backlog-path PATH` | none | MCP default backlog file if tool calls omit `backlog_path` and `project_root` |
+| `--default-project-root PATH` | none | MCP default project root if tool calls omit `backlog_path` and `project_root` |
+| `--backlog-filename TEXT` | `backlog.yaml` | MCP filename used when a project root is provided |
+| `--transport TEXT` | `stdio` | MCP transport |
 | `--help` | | Show help and exit |
 
 ### For Non-Technical Users — Static Site
@@ -134,6 +143,68 @@ The settings panel (⚙️ button) exposes the following options. Availability d
 | **Clear / Reset data** | Delete all tasks and reset to defaults | — | ✅ | — | — |
 
 > **Tip:** Settings are stored together with your tasks inside the `backlog.yaml` file in CLI and File System modes, so they roam with your project.
+
+## MCP Server
+
+Kandown can run as an MCP server so AI tools can query and update your backlog.
+
+### Install
+
+```bash
+pip install "kandown[mcp]"
+```
+
+### Start
+
+```bash
+# Generic server, no fixed project:
+kandown --mcp
+
+# Set defaults for convenience:
+kandown --mcp --default-project-root /path/to/project
+# or
+kandown --mcp --default-backlog-path /path/to/project/backlog.yaml
+```
+
+### Exposed MCP tools
+
+- `tasks_by_column(column, backlog_path?, project_root?)`
+- `edit_backlog_task(task_id, text?, status?, tags?, order?, task_type?, backlog_path?, project_root?)`
+- `move_backlog_task(task_id, to_column, order?, backlog_path?, project_root?)`
+
+### Configuration behavior
+
+- Tool call parameters (`backlog_path`, `project_root`) always take precedence.
+- If tool call parameters are omitted, MCP falls back to CLI defaults:
+  - `--default-project-root` + `--backlog-filename`
+  - or `--default-backlog-path`
+- This allows one long-running MCP server process to work across multiple projects without restart, by passing `project_root` or `backlog_path` per tool call.
+
+### Backlog target options: pros and cons
+
+#### Option A: CLI MCP where every call passes `backlog.yaml` path
+
+**Pros**
+- Unambiguous target file
+- Works with non-standard filenames and locations
+- Easiest to reason about for automation
+
+**Cons**
+- Slightly more verbose tool calls
+- Caller must know exact file path
+- Harder to switch environments if absolute paths differ
+
+#### Option B: CLI MCP where every call passes project root
+
+**Pros**
+- Cleaner, shorter interface
+- Portable across environments when filename convention is stable
+- Easier multi-project usage (`project_root` changes, server stays running)
+
+**Cons**
+- Assumes a known filename (default `backlog.yaml`, or configured)
+- Ambiguity if multiple backlog files exist
+- Slightly more implicit behavior than explicit file path calls
 
 ## JetBrains IDE Integration
 

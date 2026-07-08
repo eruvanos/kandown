@@ -10,6 +10,7 @@ import click
 from waitress import serve
 
 from kandown.app import create_app
+from kandown.mcp_server import run_mcp_server
 from kandown.storage import AttachmentResolver
 from kandown.task_repo import YamlTaskRepository
 
@@ -18,12 +19,61 @@ from kandown.task_repo import YamlTaskRepository
 @click.argument("yaml_file", required=False, type=click.Path())
 @click.option("--port", default=None, help="Port to bind to (default: 5001)")
 @click.option("--debug", is_flag=True, help="Enable debug mode")
-def main(yaml_file, port, debug):
+@click.option("--mcp", "run_mcp", is_flag=True, help="Run as MCP server instead of starting the web UI server.")
+@click.option(
+    "--default-backlog-path",
+    default=None,
+    type=click.Path(),
+    help="MCP default backlog YAML path when tools are called without backlog_path/project_root.",
+)
+@click.option(
+    "--default-project-root",
+    default=None,
+    type=click.Path(),
+    help="MCP default project root when tools are called without backlog_path/project_root.",
+)
+@click.option(
+    "--backlog-filename",
+    default="backlog.yaml",
+    show_default=True,
+    help="MCP backlog filename used when project_root is provided.",
+)
+@click.option(
+    "--transport",
+    default="stdio",
+    show_default=True,
+    type=click.Choice(["stdio"]),
+    help="MCP transport to use.",
+)
+def main(
+    yaml_file,
+    port,
+    debug,
+    run_mcp,
+    default_backlog_path,
+    default_project_root,
+    backlog_filename,
+    transport,
+):
     """Start the Kandown server with a YAML file for tasks.
 
     yaml_file: Optional path to the YAML file to use for tasks. If not provided, defaults to 'backlog.yaml'.
     """
     basicConfig(level=logging.ERROR if not debug else logging.INFO)
+
+    if run_mcp:
+        try:
+            run_mcp_server(
+                default_backlog_path=default_backlog_path,
+                default_project_root=default_project_root,
+                backlog_filename=backlog_filename,
+                transport=transport,
+            )
+            return
+        except ModuleNotFoundError as exc:
+            if exc.name == "mcp" or (exc.name and exc.name.startswith("mcp.")):
+                raise click.ClickException("MCP dependencies missing. Install with: pip install 'kandown[mcp]'") from exc
+            raise
 
     if not yaml_file:
         yaml_file = Path("backlog.yaml")

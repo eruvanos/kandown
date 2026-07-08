@@ -32,6 +32,11 @@ classifiers = [
     "Topic :: Utilities",
 ]
 
+[project.optional-dependencies]
+mcp = [
+    "mcp>=1.2.0",
+]
+
 [project.urls]
 GitHub = "https://github.com/eruvanos/kandown"
 "Live Page" = "https://eruvanos.github.io/kandown"
