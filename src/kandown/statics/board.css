@@ -39,6 +39,7 @@
 
   --color-storage-bg: rgba(0, 0, 0, 0.8);
   --color-storage-text: #fff;
+  --icebox-mobile-peek: 14px;
 }
 
 body.darkmode {
@@ -968,3 +969,36 @@ kbd {
   color: var(--text-primary);
 }
 
+@media (max-width: 768px) {
+  .main-content {
+    padding: 12px;
+  }
+
+  .board {
+    width: 100%;
+    margin-top: 12px;
+    gap: 0;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    scrollbar-width: none;
+  }
+
+  .board::-webkit-scrollbar {
+    display: none;
+  }
+
+  .board > .column:not(.icebox-column) {
+    flex: 0 0 100%;
+    min-width: 100%;
+    scroll-snap-align: start;
+  }
+
+  .icebox-column {
+    width: 280px;
+    transform: translateX(calc(-100% + var(--icebox-mobile-peek)));
+  }
+}
