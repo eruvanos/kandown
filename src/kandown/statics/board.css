@@ -650,6 +650,28 @@ a {
   box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
 }
 
+/* Hint shown beneath the textarea while adding a new task */
+.edit-input-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-input-hint {
+  margin: -2px 8px 8px;
+  font-size: 0.75em;
+  color: var(--text-secondary, #888);
+  opacity: 0.85;
+}
+
+.edit-input-hint kbd {
+  font-family: inherit;
+  font-size: 0.95em;
+  padding: 0 4px;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 3px;
+  background: var(--bg-input, rgba(127, 127, 127, 0.12));
+}
+
 /* Task header and ID row */
 .task-id-row {
   display: flex;

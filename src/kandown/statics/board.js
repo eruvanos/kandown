@@ -21,6 +21,10 @@ let settingsAPI = null;
 
 const eventManager = new EventManager();
 
+// Platform-aware modifier key (Cmd on Mac, Ctrl elsewhere)
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+const modKeyLabel = isMac ? '⌘' : 'Ctrl';
+
 
 /**
  * @type {ServerMode}
@@ -787,17 +791,44 @@ async function processFilesystemImages(element) {
 function createTaskText(task, focusTaskId) {
     let textSpan;
     if (focusTaskId && task.id === focusTaskId && !task.text) {
-        textSpan = createTextarea('', function () {
+        // Guards against the blur handler firing again once we've already
+        // handled the commit/discard via a keyboard shortcut.
+        let handled = false;
+
+        // Persist the typed text, or remove the freshly-created empty task so
+        // the board isn't littered with blank "Click to add text" cards.
+        const saveOrDiscard = () => {
             if (textSpan.value.trim() !== '') {
-                taskAPI.updateTaskText(task.id, textSpan.value).then(() => renderTasks());
-            } else {
-                renderTasks();
+                return taskAPI.updateTaskText(task.id, textSpan.value);
             }
+            return taskAPI.deleteTask(task.id);
+        };
+
+        textSpan = createTextarea('', function () {
+            if (handled) return;
+            saveOrDiscard().then(() => renderTasks());
         }, function (e) {
-            if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey))) textSpan.blur();
-            else if (e.key === 'Escape') renderTasks();
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                // Save the current task and immediately open another one below,
+                // so stories can be added in a row without reaching for the mouse.
+                e.preventDefault();
+                handled = true;
+                saveOrDiscard().then(() => addTask(task.status, (task.order || 0) + 1));
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                handled = true;
+                saveOrDiscard().then(() => renderTasks());
+            }
         }, task.id);
+
+        // Muted hint teaching the "save & add another" shortcut.
+        const wrapper = createElement('div', 'edit-input-wrapper');
+        const hint = createElement('div', 'edit-input-hint');
+        hint.innerHTML = `<kbd>${modKeyLabel}</kbd>+<kbd>Enter</kbd> to save &amp; add another · <kbd>Esc</kbd> to finish`;
+        wrapper.appendChild(textSpan);
+        wrapper.appendChild(hint);
         setTimeout(() => textSpan.focus(), 100);
+        return wrapper;
     } else {
         textSpan = document.createElement('p');
         textSpan.className = 'task-text';
@@ -1337,9 +1368,6 @@ function initAdvancedMode() {
         }
     };
 
-    // Detect Mac vs Windows/Linux for appropriate key
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-
     window.addEventListener('keydown', (e) => {
         // Use Meta (Cmd) on Mac, Ctrl on Windows/Linux
         if ((isMac && e.metaKey) || (!isMac && e.ctrlKey)) {
@@ -1455,7 +1483,6 @@ async function initBoardApp() {
      * Shows the help modal with a brief UI overview and keyboard shortcut reference.
      */
     function showHelpModal() {
-        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
         const modKey = isMac ? '⌘ Cmd' : 'Ctrl';
 
         const content = `
@@ -1469,6 +1496,7 @@ async function initBoardApp() {
                 <h4>✏️ Working with Tasks</h4>
                 <ul>
                     <li>Click <strong>+</strong> in a column header to add a new task.</li>
+                    <li>While typing a new task, press <kbd>${modKey}</kbd>+<kbd>Enter</kbd> to save it and immediately start another one below.</li>
                     <li>Click a task's text to edit it inline (supports Markdown).</li>
                     <li>Drag &amp; drop tasks to reorder or move between columns.</li>
                     <li>Click a task's type badge (🐛 / ✨ / …) to change its type.</li>
@@ -1485,6 +1513,10 @@ async function initBoardApp() {
                             <li>Add a <strong>➕</strong> under each task for quick adding at the right place.</li>
                         </ul>
                         </td>
+                    </tr>
+                    <tr>
+                        <td><kbd>${modKey}</kbd> + <kbd>Enter</kbd></td>
+                        <td>While adding a task: save it and open a new one below. Press <kbd>Esc</kbd> to finish.</td>
                     </tr>
                     <tr>
                         <td><kbd>Esc</kbd></td>
